@@ -3,10 +3,11 @@ import styles from "./page.module.css";
 import { changePageTitle } from "./layout";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
+import Login from "@/pages/login";
 
 // TODO: Use Framer Motion for page transitions
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("home");
+  const [curPage, setCurPage] = useState<PageName>("login");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
@@ -14,7 +15,7 @@ export default function PageHandler() {
     },
     login: {
       title: "Login | SuperBiddo",
-      component: <h1 className={styles.title}>Login</h1>,
+      component: <Login setCurPage={setCurPage} />,
     },
     signup: {
       title: "Signup | SuperBiddo",
@@ -38,10 +39,11 @@ export default function PageHandler() {
     changePageTitle(pages[curPage].title);
   }, [curPage]);
 
+  // TODO: Add navbar
   return (
-    <div>
+    <>
       <h1>Hello</h1>
       {pages[curPage].component}
-    </div>
+    </>
   );
 }
