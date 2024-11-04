@@ -1,0 +1,258 @@
+openapi: 3.1.0
+info:
+  version: "1.0.0"
+  title: superbiddo-api
+  description: The API for superbiddo
+paths:
+  /api:
+    get:
+      summary: Get the current API version.
+      responses:
+        200:
+          description: The current API version.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "1"
+  /api/v1/session:
+    get:
+      summary: Get the current session details.
+      responses:
+        200:
+          description: The current session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        404:
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create a new session.
+      # requestBody:
+      #   required: true
+      #   content:
+      #     application/json:
+      #       schema:
+      #         type: object
+      #         required:
+      #           - username
+      #           - password
+      #         properties:
+      #           username:
+      #             $ref: "#/components/schemas/Username"
+      #           password:
+      #             $ref: "#/components/schemas/Password"
+      responses:
+        201:
+          description: The newly created session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      summary: End the current session.
+      responses:
+        204:
+          description: Successfully ended session.
+        404:
+          $ref: "#/components/responses/NotFound"
+components:
+  schemas:
+    Account:
+      type: object
+      description: All data associated with an account.
+      required:
+        - email
+        - password
+        - address
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        password:
+          writeOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Password"
+        address:
+          $ref: "#/components/schemas/Address"
+    Address:
+      type: object
+      required:
+        - address1
+        - city
+        - province
+        - postalCode
+        - latitude
+        - longitude
+      properties:
+        address1:
+          type: string
+          maxLength: 80
+        address2:
+          type: string
+          maxLength: 80
+        address3:
+          type: string
+          maxLength: 80
+        city:
+          type: string
+          maxLength: 35
+        province:
+          type: string
+          enum:
+            - Ontario
+            - Quebec
+            - British Columbia
+            - Alberta
+            - Manitoba
+            - Saskatchewan
+            - Nova Scotia
+            - New Brunswick
+            - Newfoundland and Labrador
+            - Prince Edward Island
+            - Northwest Territories
+            - Yukon
+            - Nunavut
+        postalCode:
+          type: string
+          pattern: '^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$'
+        latitude:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Latitude"
+        longitude:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Longitude"
+    Username:
+      type: string
+      minLength: 3
+      maxLength: 80
+      pattern: '[^!*''();:@&=+$,/?%#[\]\s]{3,80}' #can't conatain any url reserved characters
+    Password:
+      type: string
+      minLength: 8
+      maxLength: 50
+      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,50}$' #must contain lowercase, uppercase, number
+    Latitude:
+      type: number
+      format: float
+      maximum: 90
+      minimum: -90
+    Longitude:
+      type: number
+      format: float
+      maximum: 180
+      minimum: -180
+    Email:
+      type: string
+      format: email
+      maxLength: 80
+    Cookie:
+      type: object
+      required:
+        - originalMaxAge
+        - expires
+        - secure
+        - httpOnly
+        - path
+      properties:
+        originalMaxAge:
+          type: integer
+          format: int64
+        expires:
+          type: string
+          format: date-time
+        secure:
+          type: boolean
+        httpOnly:
+          type: boolean
+        path:
+          type: string
+    Errors:
+      type: array
+      items:
+        $ref: "#/components/schemas/Error"
+    Error:
+      type: object
+      required:
+        - path
+        - message
+        - detail
+      properties:
+        path:
+          type: string
+        message:
+          type: string
+        detail:
+          type: string
+    Session:
+      type: object
+      required:
+        - cookie
+        - accountUid
+      properties:
+        cookie:
+          $ref: "#/components/schemas/Cookie"
+        accountUid:
+          type: string
+          format: uuid
+  responses:
+    BadRequest:
+      description: request format is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+    Unauthorized:
+      description: action requires authentication
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+    Forbidden:
+      description: insufficient permission for this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+    NotFound:
+      description: specified resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+    Conflict:
+      description: request has correct format but data currently conflicts
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+    InternalServerError:
+      description: error processing request on server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Errors"
+  parameters:
+    AccountUid:
+      name: accountUid
+      description: The uuid of an account
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SwapperUid:
+      name: swapperUid
+      description: The uuid of a swapper
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
