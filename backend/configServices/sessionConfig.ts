@@ -7,6 +7,14 @@ const isLocalServer = process.env.IS_LOCAL_SERVER === "true";
 const store = new (pgSession(session))({
   pool: pool,
 });
+
+// configure session data
+declare module "express-session" {
+  interface SessionData {
+    accountUid?: string;
+  }
+}
+
 export const sessionMiddleware = session({
   store: store,
   secret: process.env.SESSION_SECRET,
