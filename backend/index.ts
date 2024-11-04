@@ -10,6 +10,7 @@ import { sessionMiddleware } from "./configServices/sessionConfig.js";
 import { corsConfig } from "./configServices/corsConfig.js";
 import { BusinessError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
+import { router as sessionRouter } from "./routes/session.js";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,8 @@ app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
 
+app.use("/api/v1/session", sessionRouter);
+
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
   // if one error (my custom errors) return array with just that error
@@ -65,6 +68,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // other errors are unknown system errors
   else {
     console.log("err is unknown system error");
+    throw err;
     res.status(500).json({
       path: req.originalUrl,
       message: "unknown server error",
