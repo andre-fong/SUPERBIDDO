@@ -72,7 +72,9 @@ export default function Login({
 
         <p className={styles.redirect_text}>
           Don&apos;t have an account?{" "}
-          <button className={styles.link}>Register here</button>
+          <button className={styles.link} onClick={() => setCurPage("signup")}>
+            Register here
+          </button>
         </p>
       </div>
 

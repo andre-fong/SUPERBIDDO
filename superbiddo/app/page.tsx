@@ -52,7 +52,7 @@ export default function PageHandler() {
     changePageTitle(pages[curPage].title);
   }, [curPage]);
 
-  // TODO: Add navbar
+  // TODO: Add navbar (unless page is login/signup)
   return (
     <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
   );
