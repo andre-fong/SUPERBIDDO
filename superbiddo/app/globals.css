@@ -1,6 +1,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* SUPERBIDDO COLOR PALETTE */
+  --primary: #f44336;
+  --secondary: #3f51b5;
 }
 
 html,

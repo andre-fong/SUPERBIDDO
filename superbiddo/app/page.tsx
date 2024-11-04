@@ -3,10 +3,14 @@ import styles from "./page.module.css";
 import { changePageTitle } from "./layout";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
-import Login from "@/pages/login";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import Login from "@/pages/login";
+import Auction from "@/pages/auction";
 
 // https://mui.com/material-ui/customization/palette/
+/**
+ * SUPERBIDDO COLOR PALETTE
+ */
 const theme = createTheme({
   palette: {
     primary: {
@@ -19,8 +23,11 @@ const theme = createTheme({
 });
 
 // TODO: Use Framer Motion for page transitions
+/**
+ * CORE PAGE HANDLER FOR SUPERBIDDO
+ */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("login");
+  const [curPage, setCurPage] = useState<PageName>("auction");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
@@ -40,7 +47,7 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: <h1 className={styles.title}>Auction</h1>,
+      component: <Auction setCurPage={setCurPage} />,
     },
     profile: {
       title: "Profile | SuperBiddo",
