@@ -32,20 +32,20 @@ paths:
           $ref: "#/components/responses/NotFound"
     post:
       summary: Create a new session.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - username
-                - password
-              properties:
-                username:
-                  $ref: "#/components/schemas/Username"
-                password:
-                  $ref: "#/components/schemas/Password"
+      # requestBody:
+      #   required: true
+      #   content:
+      #     application/json:
+      #       schema:
+      #         type: object
+      #         required:
+      #           - username
+      #           - password
+      #         properties:
+      #           username:
+      #             $ref: "#/components/schemas/Username"
+      #           password:
+      #             $ref: "#/components/schemas/Password"
       responses:
         201:
           description: The newly created session.
