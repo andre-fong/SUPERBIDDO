@@ -4,6 +4,19 @@ import { changePageTitle } from "./layout";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import Login from "@/pages/login";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+// https://mui.com/material-ui/customization/palette/
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#f44336",
+    },
+    secondary: {
+      main: "#3f51b5",
+    },
+  },
+});
 
 // TODO: Use Framer Motion for page transitions
 export default function PageHandler() {
@@ -41,9 +54,6 @@ export default function PageHandler() {
 
   // TODO: Add navbar
   return (
-    <>
-      <h1>Hello</h1>
-      {pages[curPage].component}
-    </>
+    <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
   );
 }

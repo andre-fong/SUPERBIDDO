@@ -1,6 +1,8 @@
 import { PageName } from "@/types/pageTypes";
 import React from "react";
 import styles from "@/styles/login.module.css";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 
 export default function Login({
   setCurPage,
@@ -9,23 +11,78 @@ export default function Login({
 }) {
   function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // TODO: Save previous action and redirect to it after login
     setCurPage("home");
   }
 
   return (
     <main className={styles.main}>
-      <form className={styles.container} onSubmit={handleLoginSubmit}>
-        <h1 className={styles.title}>Login</h1>
-        <input type="text" placeholder="Username" className={styles.input} />
-        <input
-          type="password"
-          placeholder="Password"
-          className={styles.input}
+      <div className={styles.container}>
+        <form className={styles.form_container} onSubmit={handleLoginSubmit}>
+          {/* LOGO */}
+
+          <h2 className={styles.title}>Welcome back!</h2>
+          <p className={styles.subtitle}>
+            Log in to continue using all of SuperBiddo&apos;s features.
+          </p>
+
+          <label
+            htmlFor="username"
+            className={`${styles.label} ${styles.required}`}
+          >
+            Username
+          </label>
+          <TextField
+            id="username"
+            size="small"
+            placeholder="Enter your email / username"
+            variant="outlined"
+            required
+            autoComplete="off"
+          />
+
+          <label
+            htmlFor="password"
+            className={`${styles.label} ${styles.required}`}
+          >
+            Password
+          </label>
+          <TextField
+            id="password"
+            size="small"
+            placeholder="Enter your password"
+            variant="outlined"
+            type="password"
+            required
+            autoComplete="off"
+          />
+
+          <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
+            Log in
+          </Button>
+        </form>
+
+        <div className={styles.divider_container}>
+          <div className={styles.divider} />
+          <p className={styles.divider_text}>Or, login with</p>
+          <div className={styles.divider} />
+        </div>
+
+        {/* OAUTH */}
+
+        <p className={styles.redirect_text}>
+          Don&apos;t have an account?{" "}
+          <button className={styles.link}>Register here</button>
+        </p>
+      </div>
+
+      <div className={styles.image_container}>
+        <img
+          src="https://images2.alphacoders.com/136/thumb-1920-1368422.jpeg"
+          alt="SuperBiddo"
+          className={styles.TEMP_img}
         />
-        <button className={styles.button} type="submit">
-          Login
-        </button>
-      </form>
+      </div>
     </main>
   );
 }
