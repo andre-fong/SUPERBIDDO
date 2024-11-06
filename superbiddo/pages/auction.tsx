@@ -18,38 +18,46 @@ export default function Auction({
           {/* WATCH button */}
         </div>
 
-        <h1 className={styles.title}>Charizard Birth Japanese Card VM</h1>
+        <div className={styles.info_container}>
+          <h1 className={styles.title}>Charizard Birth Japanese Card VM</h1>
 
-        <div className={styles.price_row}>
-          <div className={styles.price_container}>
-            <h2 className={styles.price}>$5.50</h2>
-            <p className={styles.currency}>{"CAD"}</p>
-          </div>
-          <button className={styles.bid_list_button}>{"6"} Bids</button>
-        </div>
-
-        <div className={styles.timer_container}>
-          <div className={styles.timer_row}>
-            <p className={styles.label}>Remaining time: </p>
-            <p className={styles.timer}>0d 15h 45s</p>
+          <div className={styles.account_row}>
+            {/* PFP image */}
+            <p className={styles.username}>Account Name</p>
+            <p className={styles.user_num_listings}>({})</p>
           </div>
 
-          <p className={styles.end_date}>Saturday, November 2, 9:45:00 PM</p>
-        </div>
-
-        <div className={styles.quality_row}>
-          <p className={styles.label}>Quality: </p>
-          <div className={styles.quality_container}>
-            <p className={styles.quality}>Near Mint</p>
-            {/* QUALITY TOOLTIP */}
+          <div className={styles.price_row}>
+            <div className={styles.price_container}>
+              <h2 className={styles.price}>$5.50</h2>
+              <p className={styles.currency}>{"CAD"}</p>
+            </div>
+            <button className={styles.bid_list_button}>{6} Bids</button>
           </div>
-        </div>
 
-        <div className={styles.location_row}>
-          <p className={styles.label}>Location: </p>
-          <div className={styles.location_container}>
-            <p className={styles.location}>Toronto, ON</p>
-            {/* LOCATION TOOLTIP */}
+          <div className={styles.timer_container}>
+            <div className={styles.timer_row}>
+              <p className={styles.label}>Remaining time: </p>
+              <p className={styles.timer}>— 0d 15h 45s</p>
+            </div>
+
+            <p className={styles.end_date}>Saturday, November 2, 9:45:00 PM</p>
+          </div>
+
+          <div className={styles.quality_row}>
+            <p className={styles.label}>Quality: </p>
+            <div className={styles.quality_container}>
+              <p className={styles.quality}>Near Mint</p>
+              {/* QUALITY TOOLTIP */}
+            </div>
+          </div>
+
+          <div className={styles.location_row}>
+            <p className={styles.label}>Location: </p>
+            <div className={styles.location_container}>
+              <p className={styles.location}>Toronto, ON</p>
+              {/* LOCATION TOOLTIP */}
+            </div>
           </div>
         </div>
       </div>
