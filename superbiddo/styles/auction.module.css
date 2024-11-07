@@ -1,1 +1,92 @@
+.main {
+  padding: 30px clamp(30px, 5vw, 50px);
+}
 
+.hero_container {
+  display: flex;
+  gap: 30px;
+  /* flex-wrap: wrap; */
+}
+
+.card_container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* TODO: remove */
+.TEMP_card {
+  width: 80%;
+
+  /* Standard playing card ratio */
+  aspect-ratio: 2.5/3.5;
+}
+
+.info_container {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.account_row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.TEMP_pfp {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.username {
+  font-weight: 500;
+  text-align: center;
+}
+
+.user_num_listings {
+  font-size: 0.85em;
+  color: rgb(86, 86, 86);
+}
+
+.price_row {
+  display: flex;
+  align-items: flex-end;
+  gap: 60px;
+  margin-bottom: 20px;
+}
+
+.price_container {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.price {
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+.currency {
+  font-size: 0.9em;
+  margin-bottom: 3px;
+}
+
+.bid_list_button {
+  font-size: 1.1rem;
+  background: 0;
+  border: 0;
+  margin-bottom: 3px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.timer_container {
+}
