@@ -1,0 +1,68 @@
+version: "2"
+
+services:
+  # nginx reverse proxy
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+
+  # # reverse proxy let's encrypt companion
+  # nginx-proxy-acme:
+  #   image: nginxproxy/acme-companion
+  #   container_name: nginx-proxy-acme
+  #   restart: always
+  #   volumes_from:
+  #     - nginx-proxy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./acme:/etc/acme.sh
+  #   environment:
+  #     - DEFAULT_EMAIL=matthew.s13542@gmail.com
+
+  # React frontend
+  frontend:
+    image: frontend
+    container_name: frontend
+    restart: always
+    environment:
+      # certificate information for let's encrypt
+      - VIRTUAL_HOST=${FRONTEND_DOMAIN}
+      - LETSENCRYPT_HOST=${FRONTEND_DOMAIN}
+
+  # react backend
+  backend:
+    image: backend
+    container_name: backend
+    restart: always
+    environment:
+      # certificate information for let's encrypt
+      - VIRTUAL_HOST=${BACKEND_DOMAIN}
+      - LETSENCRYPT_HOST=${BACKEND_DOMAIN}
+      # database connection information
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      # app variables
+      - SESSION_SECRET=${SESSION_SECRET}
+
+  database:
+    image: postgres
+    container_name: database
+    restart: always
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
