@@ -57,7 +57,7 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
 
   database:
-    image: postgres
+    image: postgres:16
     container_name: database
     restart: always
     volumes:
