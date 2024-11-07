@@ -10,7 +10,8 @@ import cardRarities, { qualityList } from './cardGameInfo';
 
 const CardListing: React.FC = () => {
   const cardPhotosRef = useRef<File | null>(null);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [frontPhotoPreview, setFrontPreview] = useState<string>();
+  const [backPhotoPreview, setBackPreview] = useState<string>();
   const [cardType, setCardType] = useState<string>('MTG');
 
   const startPriceRef = useRef<HTMLInputElement>(null);
@@ -52,6 +53,16 @@ const CardListing: React.FC = () => {
     }
   }
 
+  const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const filePreview = URL.createObjectURL(file);
+    setBackPreview(filePreview);
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -59,7 +70,7 @@ const CardListing: React.FC = () => {
     }
 
     const filePreview = URL.createObjectURL(file);
-    setPhotoPreviews([filePreview]);
+    setFrontPreview(filePreview);
     cardPhotosRef.current = file;
 
     const formData = new FormData();
@@ -94,7 +105,7 @@ const CardListing: React.FC = () => {
 
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: false,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
@@ -104,13 +115,10 @@ const CardListing: React.FC = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Card Listing Form</h1>
 
-      {photoPreviews.length > 0 && (
-        <Slider {...settings} className={styles.slider}>
-          {photoPreviews.map((image, index) => (
-            <img src={image} alt={`Uploaded Card ${index + 1}`} className={styles.image} key={index} />
-          ))}
-        </Slider>
-      )}
+      <Slider {...settings} className={styles.slider}>
+          <img src={frontPhotoPreview} className={styles.image}  />
+          <img src={backPhotoPreview} className={styles.image} />
+      </Slider>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
@@ -133,8 +141,13 @@ const CardListing: React.FC = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Upload Card Photo*</label>
+          <label>Upload Front Photo</label>
           <input type="file" accept="image/*" onChange={handleFileChange} />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label>Upload Back Photo</label>
+          <input type="file" accept="image/*" onChange={handleBackChange}/>
         </div>
 
         <div className={styles.formGroup}>
