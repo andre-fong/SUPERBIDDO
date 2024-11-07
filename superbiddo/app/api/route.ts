@@ -1,25 +1,28 @@
-
-import { GoogleAIFileManager } from "@google/generative-ai/server"
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import cardRarities, { qualityList } from "../pages/cardGameInfo";
-   
-export async function POST(
-    request: Request,
-) {
 
-    const geminiApiKey = ''; 
+// TODO: Move logic to backend express API
+export async function POST(request: Request) {
+  // TODO: Retrieve from .env
+  const geminiApiKey = "";
 
-    const fileManager = new GoogleAIFileManager(geminiApiKey);
-    
-    const uploadResult = await fileManager.uploadFile('app/api/s-l1600.webp', {
-        mimeType: 'image/webp', displayName: "Sample Image", 
-    });
+  const fileManager = new GoogleAIFileManager(geminiApiKey);
 
-    const genAI = new GoogleGenerativeAI(geminiApiKey);
-    console.log(Object.entries(cardRarities).map(([game, { rarities }]) => `${game}: ${rarities.join(", ")}`).join("\n                "));
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-    const result = await model.generateContent([
-        `Give the answer in JUST JSON no backquotes or anything.
+  const uploadResult = await fileManager.uploadFile("app/api/s-l1600.webp", {
+    mimeType: "image/webp",
+    displayName: "Sample Image",
+  });
+
+  const genAI = new GoogleGenerativeAI(geminiApiKey);
+  console.log(
+    Object.entries(cardRarities)
+      .map(([game, { rarities }]) => `${game}: ${rarities.join(", ")}`)
+      .join("\n                ")
+  );
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const result = await model.generateContent([
+    `Give the answer in JUST JSON no backquotes or anything.
             {
                 cardType: 
                 manufacturer:
@@ -75,7 +78,11 @@ export async function POST(
             - quality: The condition of the card this only consist of
                 ${qualityList.join(", ")}
             - rarity: The rarity of the card this only consist of
-                ${Object.entries(cardRarities).map(([game, { rarities }]) => `${game}: ${rarities.join(", ")}`).join("\n                ")}
+                ${Object.entries(cardRarities)
+                  .map(
+                    ([game, { rarities }]) => `${game}: ${rarities.join(", ")}`
+                  )
+                  .join("\n                ")}
             - set: The set the card is from (if applicable)
             - foil: Whether the card is a foil card (Yes or No)
             - cardName: The name of the card
@@ -83,15 +90,14 @@ export async function POST(
             - setCode: The set code of the card (For pokemon put the equivlient one for the pokemon tcg api)
             - For pokemon Only do the pure pokemon name not the full card name
         `,
-        {
-            fileData: {
-            fileUri: uploadResult.file.uri,
-            mimeType: uploadResult.file.mimeType,
-            },
-        },
-    ]);
-    const responseText = await result.response.text();
+    {
+      fileData: {
+        fileUri: uploadResult.file.uri,
+        mimeType: uploadResult.file.mimeType,
+      },
+    },
+  ]);
+  const responseText = await result.response.text();
 
-    return Response.json({ response: JSON.stringify(JSON.parse(responseText)) });
+  return Response.json({ response: JSON.stringify(JSON.parse(responseText)) });
 }
-

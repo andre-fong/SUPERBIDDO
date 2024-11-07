@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import styles from './CardListing.module.css'; // Ensure you have this CSS file
-import { fetchCardPrice } from '../api/apiEndpoints';
-import cardRarities, { qualityList } from './cardGameInfo';
+import React, { useRef, useState, useEffect } from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import styles from "@/styles/CardListing.module.css"; // Ensure you have this CSS file
+import { fetchCardPrice } from "@/app/api/apiEndpoints";
+import cardRarities, { qualityList } from "@/types/cardGameInfo";
 
 const CardListing: React.FC = () => {
   const cardPhotosRef = useRef<File | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
   const [backPhotoPreview, setBackPreview] = useState<string>();
-  const [cardType, setCardType] = useState<string>('MTG');
+  const [cardType, setCardType] = useState<string>("MTG");
 
   const startPriceRef = useRef<HTMLInputElement>(null);
   const cardNameRef = useRef<HTMLInputElement>(null);
@@ -30,28 +30,36 @@ const CardListing: React.FC = () => {
 
   const formatCardUploadData = async (uploadFormData: FormData) => {
     try {
-      const response = await fetch('http://localhost:3000/api', {
-        method: 'POST',
+      const response = await fetch("http://localhost:3000/api", {
+        method: "POST",
         body: uploadFormData,
       });
 
       const data = await response.json();
       const cardInfo = JSON.parse(data.response);
-      const price = await fetchCardPrice(cardInfo.cardType, cardInfo.cardName, cardInfo.setCode, cardInfo.collectorNumber, cardInfo.foil === 'Yes');
+      const price = await fetchCardPrice(
+        cardInfo.cardType,
+        cardInfo.cardName,
+        cardInfo.setCode,
+        cardInfo.collectorNumber,
+        cardInfo.foil === "Yes"
+      );
 
       if (cardNameRef.current) cardNameRef.current.value = cardInfo.cardName;
       setCardType(cardInfo.cardType);
-      if (isFoilRef.current) isFoilRef.current.value = cardInfo.foil === 'Yes' ? 'Yes' : 'No';
-      if (manufacturerRef.current) manufacturerRef.current.value = cardInfo.manufacturer;
+      if (isFoilRef.current)
+        isFoilRef.current.value = cardInfo.foil === "Yes" ? "Yes" : "No";
+      if (manufacturerRef.current)
+        manufacturerRef.current.value = cardInfo.manufacturer;
       if (qualityRef.current) qualityRef.current.value = cardInfo.quality;
       if (rarityRef.current) rarityRef.current.value = cardInfo.rarity;
       if (setRef.current) setRef.current.value = cardInfo.set;
-      if (startingPriceRef.current) startingPriceRef.current.value = price || '';
-
+      if (startingPriceRef.current)
+        startingPriceRef.current.value = price || "";
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
-  }
+  };
 
   const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +69,7 @@ const CardListing: React.FC = () => {
 
     const filePreview = URL.createObjectURL(file);
     setBackPreview(filePreview);
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,7 +82,7 @@ const CardListing: React.FC = () => {
     cardPhotosRef.current = file;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     formatCardUploadData(formData);
   };
@@ -100,7 +108,7 @@ const CardListing: React.FC = () => {
       endDate: endDateRef.current?.value,
     };
 
-    console.log('Submitted Data:', formData);
+    console.log("Submitted Data:", formData);
   };
 
   const settings = {
@@ -116,14 +124,18 @@ const CardListing: React.FC = () => {
       <h1 className={styles.title}>Card Listing Form</h1>
 
       <Slider {...settings} className={styles.slider}>
-          <img src={frontPhotoPreview} className={styles.image}  />
-          <img src={backPhotoPreview} className={styles.image} />
+        <img src={frontPhotoPreview} className={styles.image} />
+        <img src={backPhotoPreview} className={styles.image} />
       </Slider>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label htmlFor="cardType">Card Type*</label>
-          <select value={cardType} onChange={(e) => setCardType(e.target.value)} required>
+          <select
+            value={cardType}
+            onChange={(e) => setCardType(e.target.value)}
+            required
+          >
             <option value="MTG">Magic: The Gathering</option>
             <option value="Yugioh">Yu-Gi-Oh!</option>
             <option value="Pokemon">Pokemon</option>
@@ -147,7 +159,7 @@ const CardListing: React.FC = () => {
 
         <div className={styles.formGroup}>
           <label>Upload Back Photo</label>
-          <input type="file" accept="image/*" onChange={handleBackChange}/>
+          <input type="file" accept="image/*" onChange={handleBackChange} />
         </div>
 
         <div className={styles.formGroup}>
@@ -159,7 +171,9 @@ const CardListing: React.FC = () => {
           <label>Quality*</label>
           <select ref={qualityRef} required>
             {qualityList.map((quality: string, index: number) => (
-              <option value={quality} key={index}>{quality}</option>
+              <option value={quality} key={index}>
+                {quality}
+              </option>
             ))}
           </select>
         </div>
@@ -167,9 +181,13 @@ const CardListing: React.FC = () => {
         <div className={styles.formGroup}>
           <label>Rarity*</label>
           <select ref={rarityRef} required>
-            {cardRarities[cardType]?.rarities.map((rarity: string, index: number) => (
-              <option value={rarity} key={index}>{rarity}</option>
-            ))}
+            {cardRarities[cardType]?.rarities.map(
+              (rarity: string, index: number) => (
+                <option value={rarity} key={index}>
+                  {rarity}
+                </option>
+              )
+            )}
           </select>
         </div>
 
@@ -211,7 +229,9 @@ const CardListing: React.FC = () => {
           <input type="date" ref={endDateRef} />
         </div>
 
-        <button type="submit" className={styles.submitButton}>Submit Listing</button>
+        <button type="submit" className={styles.submitButton}>
+          Submit Listing
+        </button>
       </form>
     </div>
   );
