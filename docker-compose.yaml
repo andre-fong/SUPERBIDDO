@@ -15,18 +15,18 @@ services:
       - ./vhost:/etc/nginx/vhost.d
       - ./html:/usr/share/nginx/html
 
-  # # reverse proxy let's encrypt companion
-  # nginx-proxy-acme:
-  #   image: nginxproxy/acme-companion
-  #   container_name: nginx-proxy-acme
-  #   restart: always
-  #   volumes_from:
-  #     - nginx-proxy
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./acme:/etc/acme.sh
-  #   environment:
-  #     - DEFAULT_EMAIL=matthew.s13542@gmail.com
+  # reverse proxy let's encrypt companion
+  nginx-proxy-acme:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    restart: always
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme:/etc/acme.sh
+    environment:
+      - DEFAULT_EMAIL=matthew.s13542@gmail.com
 
   # React frontend
   frontend:
@@ -62,6 +62,8 @@ services:
     restart: always
     volumes:
       - ./db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
