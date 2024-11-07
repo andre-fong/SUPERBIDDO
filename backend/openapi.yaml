@@ -62,6 +62,198 @@ paths:
           description: Successfully ended session.
         404:
           $ref: "#/components/responses/NotFound"
+  /api/v1/auctions:
+    get:
+      summary: Get auctions. Query params can be used to filter and order results.
+      parameters:
+        - in: query
+          name: auctioneerId
+          description: The uuid of an auctioneer. If provided, only auctions by this auctioneer will be returned. May be different from signed in user id.
+          required: false
+          schema:
+            type: uuid
+        - in: query
+          name: biderId
+          description: The uuid of a bider. If provided, only auctions that this bider has bid on will be returned. Must match signed in user id.
+          required: false
+          schema:
+            type: uuid
+        - in: query
+          name: savedBy
+          description: The uuid of a user. If provided, only auctions that this user has saved will be returned. Must match signed in user id.
+          required: false
+          schema:
+            type: uuid
+        - in: query
+          name: name
+          description: The name of an auction. If provided, auctions' names will be compared with the provided name and included if they surpass a similarity threshold.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: minStartPrice
+          description: The minimum start price of an auction. If provided, auctions with start prices below this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: maxStartPrice
+          description: The maximum start price of an auction. If provided, auctions with start prices above this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: minCurrentPrice
+          description: The minimum current price of an auction. If provided, auctions with current prices below this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: maxCurrentPrice
+          description: The maximum current price of an auction. If provided, auctions with current prices above this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: minSpread
+          description: The minimum spread of an auction. If provided, auctions with spreads below this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: maxSpread
+          description: The maximum spread of an auction. If provided, auctions with spreads above this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: minBidPrice
+          description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: maxBidPrice
+          description: The maximum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids above this value will be excluded.
+          required: false
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: minStartTime
+          description: The minimum start time of an auction. If provided, auctions with start times before this value will be excluded.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: maxStartTime
+          description: The maximum start time of an auction. If provided, auctions with start times after this value will be excluded.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: minEndTime
+          description: The minimum end time of an auction. If provided, auctions with end times before this value will be excluded.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: maxEndTime
+          description: The maximum end time of an auction. If provided, auctions with end times after this value will be excluded.
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: isBundle
+          description: Whether or not the auction is a bundle. If provided, and true only auctions that are bundles will be returned. If provided, and false only auctions that are not bundles will be returned. If not provided, all auctions will be returned.
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: sortBy
+          description: The field to sort auctions by. If provided, auctions will be sorted by this field. Will be sorted by auctionId ascending if not provided. If provided, will auctionId ascending will be secondary sorting field.
+          required: false
+          schema:
+            type: string
+            enum:
+              - startPriceAsc
+              - startPriceDesc
+              - currentPriceAsc
+              - currentPriceDesc
+              - currentBidAsc
+              - currentBidDesc
+              - startTimeAsc
+              - startTimeDesc
+              - endTimeAsc
+              - endTimeDesc
+        - in: query
+          name: key
+          description: The pagination key. If provided, results will start from AFTER the auction with this auctionId. If not provided, results will start from the beginning.
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: limit
+          description: The maximum number of auctions to return. If provided, at most this many auctions will be returned. If not provided, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        200:
+          description: Auctions matching query params.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auctions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Auction"
+                  key:
+                    type: string
+                    format: uuid
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create a new auction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auction"
+      responses:
+        201:
+          description: The newly created auction.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auction"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 components:
   schemas:
     Account:
@@ -153,6 +345,140 @@ components:
       type: string
       format: email
       maxLength: 80
+    Auction:
+      type: object
+      required:
+        - auctionId
+        - auctioneerId
+        - name
+        - startPrice
+        - spread
+        - startTime
+        - endTime
+        - currentPrice
+      oneOf:
+        - required:
+            - cards
+        - required:
+            - bundle
+      properties:
+        auctionId:
+          readOnly: true
+          type: string
+          format: uuid
+        auctioneerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        startPrice:
+          type: number
+          format: float
+          minimum: 0
+        spread:
+          type: number
+          format: float
+          minimum: 0
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        currentPrice:
+          readOnly: true
+          type: number
+          format: float
+          minimum: 0
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+        bundle:
+          $ref: "#/components/schemas/Bundle"
+    Card:
+      type: object
+      required:
+        - cardId
+        - game
+        - name
+        - manufacturer
+        - quality
+        - rarity
+        - set
+        - isFoil
+      properties:
+        cardId:
+          readOnly: true
+          type: string
+          format: uuid
+        game:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        manufacturer:
+          type: string
+          maxLength: 100
+        quality:
+          type: string
+          enum:
+            - Mint
+            - Near Mint
+            - Excellent
+            - Good
+            - Lightly Played
+            - Played
+            - Poor
+        rarity:
+          type: string
+          enum:
+            - Common
+            - Uncommon
+            - Rare
+            - Mythic Rare
+            - Special
+        set:
+          type: string
+          maxLength: 100
+        isFoil:
+          type: boolean
+    Bundle:
+      type: object
+      required:
+        - bundleId
+        - game
+        - name
+        - manufacturer
+        - set
+      properties:
+        bundleId:
+          readOnly: true
+          type: string
+          format: uuid
+        game:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        manufacturer:
+          type: string
+          maxLength: 100
+        set:
+          type: string
+          maxLength: 100
     Cookie:
       type: object
       required:

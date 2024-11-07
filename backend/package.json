@@ -5,9 +5,9 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/index.ts",
+    "start": "node backend/index.ts",
     "build": "cd client && npm install && npm run build",
+    "prod": "tsx index.ts",
     "dev": "tsx watch index.ts",
     "pretty": "prettier --write \"./**/*.{ts,js,jsx,json}\""
   },
@@ -16,14 +16,17 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "body-parser": "^2.0.2",
     "camelize": "^1.0.1",
     "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.0.1",
     "express-openapi-validator": "^6.0.0-alpha.4",
     "express-session": "^1.18.1",
     "helmet": "^8.0.0",
+    "http": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.13.1",
     "pg-pool": "^3.7.0"
