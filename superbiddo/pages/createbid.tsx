@@ -14,7 +14,6 @@ const CardListing: React.FC = () => {
   const [backPhotoPreview, setBackPreview] = useState<string>();
   const [cardType, setCardType] = useState<string>("MTG");
 
-  const startPriceRef = useRef<HTMLInputElement>(null);
   const cardNameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const manufacturerRef = useRef<HTMLInputElement>(null);
@@ -22,7 +21,6 @@ const CardListing: React.FC = () => {
   const rarityRef = useRef<HTMLSelectElement>(null);
   const setRef = useRef<HTMLInputElement>(null);
   const isFoilRef = useRef<HTMLSelectElement>(null);
-  const nameRef = useRef<HTMLInputElement>(null);
   const startingPriceRef = useRef<HTMLInputElement>(null);
   const spreadRef = useRef<HTMLInputElement>(null);
   const startDateRef = useRef<HTMLInputElement>(null);
@@ -91,7 +89,6 @@ const CardListing: React.FC = () => {
     e.preventDefault();
 
     const formData = {
-      startPrice: startPriceRef.current?.value,
       cardType: cardType,
       cardName: cardNameRef.current?.value,
       description: descriptionRef.current?.value,
@@ -101,7 +98,6 @@ const CardListing: React.FC = () => {
       rarity: rarityRef.current?.value,
       set: setRef.current?.value,
       isFoil: isFoilRef.current?.value,
-      name: nameRef.current?.value,
       startingPrice: startingPriceRef.current?.value,
       spread: spreadRef.current?.value,
       startDate: startDateRef.current?.value,
@@ -154,7 +150,7 @@ const CardListing: React.FC = () => {
 
         <div className={styles.formGroup}>
           <label>Upload Front Photo</label>
-          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <input required type="file" accept="image/*" onChange={handleFileChange} />
         </div>
 
         <div className={styles.formGroup}>
@@ -193,40 +189,35 @@ const CardListing: React.FC = () => {
 
         <div className={styles.formGroup}>
           <label>Set</label>
-          <input type="text" ref={setRef} />
+          <input type="text" ref={setRef} required />
         </div>
 
         <div className={styles.formGroup}>
           <label>Foil (y/n)*</label>
-          <select ref={isFoilRef}>
+          <select ref={isFoilRef} required>
             <option value="No">No</option>
             <option value="Yes">Yes</option>
           </select>
         </div>
 
         <div className={styles.formGroup}>
-          <label>Name*</label>
-          <input type="text" ref={nameRef} required />
-        </div>
-
-        <div className={styles.formGroup}>
           <label>Starting Price*</label>
-          <input type="text" ref={startingPriceRef} required />
+          <input type="number" step="0.01" ref={startingPriceRef} required />
         </div>
 
         <div className={styles.formGroup}>
           <label>Spread*</label>
-          <input type="text" ref={spreadRef} required />
+          <input type="number" step="0.01" ref={spreadRef} required />
         </div>
 
         <div className={styles.formGroup}>
           <label>Start Date</label>
-          <input type="date" ref={startDateRef} />
+          <input type="date" ref={startDateRef} required />
         </div>
 
         <div className={styles.formGroup}>
           <label>End Date</label>
-          <input type="date" ref={endDateRef} />
+          <input type="date" ref={endDateRef} required />
         </div>
 
         <button type="submit" className={styles.submitButton}>

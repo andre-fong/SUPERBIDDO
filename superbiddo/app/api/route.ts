@@ -1,11 +1,11 @@
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import cardRarities, { qualityList } from "../pages/cardGameInfo";
+import cardRarities, { qualityList } from "@/types/cardGameInfo";
 
 // TODO: Move logic to backend express API
 export async function POST(request: Request) {
   // TODO: Retrieve from .env
-  const geminiApiKey = "";
+  const geminiApiKey = "AIzaSyCTqKl8ARQs3_3QFxco1XiIa0-1aUNldOo";
 
   const fileManager = new GoogleAIFileManager(geminiApiKey);
 
@@ -15,11 +15,6 @@ export async function POST(request: Request) {
   });
 
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  console.log(
-    Object.entries(cardRarities)
-      .map(([game, { rarities }]) => `${game}: ${rarities.join(", ")}`)
-      .join("\n                ")
-  );
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
   const result = await model.generateContent([
     `Give the answer in JUST JSON no backquotes or anything.
