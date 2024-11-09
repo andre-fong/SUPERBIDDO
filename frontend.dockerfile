@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:lts-slim as build
+FROM --platform=linux/amd64 node:lts-slim AS build
 
 RUN mkdir -p /app
 WORKDIR /app
@@ -6,7 +6,7 @@ COPY ./frontend /app
 RUN npm install
 RUN npm run build
 
-FROM --platform=linux/amd64 node:lts-slim as main
+FROM --platform=linux/amd64 node:lts-slim AS main
 WORKDIR /app
 COPY --from=build /app /app
 EXPOSE 3000
