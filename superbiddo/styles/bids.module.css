@@ -1,0 +1,24 @@
+.main {
+  padding: 30px clamp(30px, 5vw, 50px);
+}
+
+.TEMP_pfp {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.bids_container {
+  margin-top: 30px;
+}
+
+.bid_card {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
