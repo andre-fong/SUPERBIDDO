@@ -11,6 +11,7 @@ import { corsConfig } from "./configServices/corsConfig.js";
 import { BusinessError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
+import { router as auctionRouter } from "./routes/auction.js";
 
 // load dev environment variables
 if (process.env.NODE_ENV === "development") {
@@ -47,6 +48,7 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/auctions", auctionRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
