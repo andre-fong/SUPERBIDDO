@@ -17,7 +17,6 @@ paths:
                 properties:
                   version:
                     type: string
-                    example: "1"
   /api/v1/session:
     get:
       summary: Get the current session details.
@@ -71,19 +70,22 @@ paths:
           description: The uuid of an auctioneer. If provided, only auctions by this auctioneer will be returned. May be different from signed in user id.
           required: false
           schema:
-            type: uuid
+            type: string
+            format: uuid
         - in: query
           name: biderId
           description: The uuid of a bider. If provided, only auctions that this bider has bid on will be returned. Must match signed in user id.
           required: false
           schema:
-            type: uuid
+            type: string
+            format: uuid
         - in: query
           name: savedBy
           description: The uuid of a user. If provided, only auctions that this user has saved will be returned. Must match signed in user id.
           required: false
           schema:
-            type: uuid
+            type: string
+            format: uuid
         - in: query
           name: name
           description: The name of an auction. If provided, auctions' names will be compared with the provided name and included if they surpass a similarity threshold.
