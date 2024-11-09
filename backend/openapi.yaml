@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   version: "1.0.0"
   title: superbiddo-api
@@ -348,60 +348,69 @@ components:
       format: email
       maxLength: 80
     Auction:
-      type: object
-      required:
-        - auctionId
-        - auctioneerId
-        - name
-        - startPrice
-        - spread
-        - startTime
-        - endTime
-        - currentPrice
-      oneOf:
-        - required:
-            - cards
-        - required:
-            - bundle
-      properties:
-        auctionId:
-          readOnly: true
-          type: string
-          format: uuid
-        auctioneerId:
-          type: string
-          format: uuid
-        name:
-          type: string
-          maxLength: 100
-        description:
-          type: string
-          maxLength: 500
-        startPrice:
-          type: number
-          format: float
-          minimum: 0
-        spread:
-          type: number
-          format: float
-          minimum: 0
-        startTime:
-          type: string
-          format: date-time
-        endTime:
-          type: string
-          format: date-time
-        currentPrice:
-          readOnly: true
-          type: number
-          format: float
-          minimum: 0
-        cards:
-          type: array
-          items:
-            $ref: "#/components/schemas/Card"
-        bundle:
-          $ref: "#/components/schemas/Bundle"
+      allOf:
+        - type: object
+          required:
+            - auctionId
+            - auctioneerId
+            - name
+            - startPrice
+            - spread
+            - startTime
+            - endTime
+            - currentPrice
+          properties:
+            auctionId:
+              readOnly: true
+              type: string
+              format: uuid
+            auctioneerId:
+              type: string
+              format: uuid
+            name:
+              type: string
+              maxLength: 100
+            description:
+              type: string
+              maxLength: 500
+            startPrice:
+              type: number
+              format: float
+              minimum: 0
+            spread:
+              type: number
+              format: float
+              minimum: 0
+            startTime:
+              type: string
+              format: date-time
+            endTime:
+              type: string
+              format: date-time
+            currentPrice:
+              readOnly: true
+              type: number
+              format: float
+              minimum: 0
+          not:
+            required:
+              - cards
+              - bundle
+        - oneOf:
+            - type: object
+              required:
+                - cards
+              properties:
+                cards:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Card"
+            - type: object
+              required:
+                - bundle
+              properties:
+                bundle:
+                  $ref: "#/components/schemas/Bundle"
     Card:
       type: object
       required:
