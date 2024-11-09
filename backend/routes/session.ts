@@ -5,7 +5,10 @@ import camelize from "camelize";
 import * as dotenv from "dotenv";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
+// load dev environment variables
+if (process.env.NODE_ENV === "development") {
+  dotenv.config({ path: "../.env.development" });
+}
 
 export const router = express.Router();
 

@@ -5,10 +5,8 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "node backend/index.ts",
-    "build": "cd client && npm install && npm run build",
-    "prod": "tsx index.ts",
-    "dev": "tsx watch index.ts",
+    "prod": "cross-env NODE_ENV=production tsx index.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch index.ts",
     "pretty": "prettier --write \"./**/*.{ts,js,jsx,json}\""
   },
   "keywords": [],
@@ -35,6 +33,7 @@
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.0",
     "@types/node": "^22.8.7",
+    "cross-env": "^7.0.3",
     "tsx": "^4.19.2"
   }
 }
