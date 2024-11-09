@@ -150,7 +150,12 @@ const CardListing: React.FC = () => {
 
         <div className={styles.formGroup}>
           <label>Upload Front Photo</label>
-          <input required type="file" accept="image/*" onChange={handleFileChange} />
+          <input
+            required
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
         </div>
 
         <div className={styles.formGroup}>
