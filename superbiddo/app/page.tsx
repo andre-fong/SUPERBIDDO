@@ -7,6 +7,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
 import Auction from "@/pages/auction";
 import Bids from "@/pages/TEMPbids";
+import CreateBid from "@/pages/createbid";
 
 // https://mui.com/material-ui/customization/palette/
 /**
@@ -53,6 +54,10 @@ export default function PageHandler() {
     profile: {
       title: "Profile | SuperBiddo",
       component: <h1 className={styles.title}>Profile</h1>,
+    },
+    create: {
+      title: "Create Auction | SuperBiddo",
+      component: <CreateBid />,
     },
   };
 
