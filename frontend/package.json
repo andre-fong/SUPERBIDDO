@@ -1,10 +1,11 @@
 {
-  "name": "superbiddo",
+  "name": "superbiddo-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "cross-env NODE_ENV=development next dev",
+    "build": "cross-env NODE_ENV=production next build",
+    "prod": "cross-env NODE_ENV=production next start",
     "start": "next start",
     "lint": "next lint"
   },
@@ -30,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "@types/react-slick": "^0.23.13",
     "eslint": "^8",
     "eslint-config-next": "15.0.2",

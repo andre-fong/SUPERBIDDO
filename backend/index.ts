@@ -12,7 +12,11 @@ import { BusinessError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
+// load dev environment variables
+if (process.env.NODE_ENV === "development") {
+  dotenv.config({ path: "../.env.development" });
+}
+
 const PORT = process.env.PORT || 3001;
 const app = express();
 

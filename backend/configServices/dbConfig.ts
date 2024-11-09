@@ -1,6 +1,11 @@
 import * as dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 import Pool from "pg-pool";
+
+// load dev environment variables
+if (process.env.NODE_ENV === "development") {
+  dotenv.config({ path: "../.env.development" });
+}
+
 export const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
