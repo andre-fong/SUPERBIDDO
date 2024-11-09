@@ -6,6 +6,7 @@ import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
 import Auction from "@/pages/auction";
+import Bids from "@/pages/TEMPbids";
 
 // https://mui.com/material-ui/customization/palette/
 /**
@@ -43,7 +44,7 @@ export default function PageHandler() {
     },
     bids: {
       title: "Bids | SuperBiddo",
-      component: <h1 className={styles.title}>Bids</h1>,
+      component: <Bids setCurPage={setCurPage} />,
     },
     auction: {
       title: "Auction | SuperBiddo",

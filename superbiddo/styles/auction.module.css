@@ -88,5 +88,24 @@
   cursor: pointer;
 }
 
-.timer_container {
+.timer_container,
+.quality_row,
+.location_row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.timer_row {
+  display: flex;
+}
+
+.timer {
+  margin-left: 20px;
+  margin-right: -10px;
+  font-weight: 500;
+}
+
+.end_date {
+  margin-left: 17px;
 }

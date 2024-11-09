@@ -42,18 +42,24 @@ export default function Auction({
               <h2 className={styles.price}>$ 5.50</h2>
               <p className={styles.currency}>CAD</p>
             </div>
-            <button className={styles.bid_list_button} title="View bids">
+            {/* TODO: Make this summon a modal instead of redirecting to bids page */}
+            <button
+              className={styles.bid_list_button}
+              title="View bids"
+              onClick={() => setCurPage("bids")}
+            >
               {6} Bids
             </button>
           </div>
 
+          {/* TODO: Refactor to use css grid for cleaner UI */}
           <div className={styles.timer_container}>
             <div className={styles.timer_row}>
               <p className={styles.label}>Remaining Time: </p>
-              <p className={styles.timer}>— 0d 15h 45s</p>
+              <p className={styles.timer}>15h 45m</p>
             </div>
 
-            <p className={styles.end_date}>Saturday, November 2, 9:45:00 PM</p>
+            <p className={styles.end_date}>(Saturday Nov 2, 9:45 PM)</p>
           </div>
 
           <div className={styles.quality_row}>
