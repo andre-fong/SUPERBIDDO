@@ -3,15 +3,17 @@ import React from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import { login } from "@/utils/fetchFunctions";
 
 export default function Login({
   setCurPage,
 }: {
   setCurPage: (page: PageName) => void;
 }) {
-  function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     // TODO: Save previous action and redirect to it after login
+    await login();
     setCurPage("home");
   }
 

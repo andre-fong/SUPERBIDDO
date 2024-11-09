@@ -29,7 +29,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const [curPage, setCurPage] = useState<PageName>("login");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
