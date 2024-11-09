@@ -6,7 +6,8 @@ export type PageName =
   | "signup"
   | "bids"
   | "auction"
-  | "profile";
+  | "profile"
+  | "create";
 export type PageData = Record<
   PageName,
   { title: string; component: ReactNode }
