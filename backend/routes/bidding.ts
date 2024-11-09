@@ -1,28 +1,31 @@
 import express from 'express';
-const app = express();
+
+export const router = express.Router();
 
 // Object to store clients per auction
 let auctionClients = {};
 
 // In-memory storage for auction bids
 let currentBids = {
-    'auction1': { amount: 100, bidder: 'Initial Bidder' },
-    'auction2': { amount: 200, bidder: 'Initial Bidder' }
+    'auction1': [{ amount: 100, bidder: 'Initial Bidder' }],
+    'auction2': [{ amount: 200, bidder: 'Initial Bidder' }]
     // Add more auctions as needed
 };
 
 // Endpoint for clients to submit new bids for a specific auction
-app.post('api/v1/bid/:auctionId', express.json(), (req, res) => {
+router.post('/:auctionId', express.json(), (req, res) => {
     const { auctionId } = req.params;
     const { amount, bidder } = req.body;
 
+    console.log(`Received bid in ${auctionId}: $${amount} by ${bidder}`);
     // Ensure the auction exists
     if (!currentBids[auctionId]) {
         return res.status(404).send('Auction not found');
     }
-
-    if (amount > currentBids[auctionId].amount) {
-        currentBids[auctionId] = { amount, bidder };
+    
+    let auction = currentBids[auctionId];
+    if (amount > auction[auction.length - 1].amount) {
+        currentBids[auctionId].push({ amount, bidder });
         console.log(`New highest bid in ${auctionId}: $${amount} by ${bidder}`);
 
         // Notify all clients waiting for this auction
@@ -38,9 +41,8 @@ app.post('api/v1/bid/:auctionId', express.json(), (req, res) => {
 });
 
 // Endpoint for clients to poll for updates to a specific auction
-app.get('/api/v1/join/:auctionid', (req, res) => {
+router.get('/:auctionId', (req, res) => {
     const { auctionId } = req.params;
-
     // Ensure the auction exists
     if (!currentBids[auctionId]) {
         return res.status(404).send('Auction not found');
