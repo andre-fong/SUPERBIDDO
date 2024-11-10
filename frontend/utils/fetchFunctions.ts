@@ -1,6 +1,8 @@
 import { Bid } from "@/types/auctionTypes";
+import { Severity, ErrorType } from "@/types/errorTypes";
 
 const url = "http://localhost:3001/api/v1";
+const unkownError = "An unknown error occurred";
 
 /*
   TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
@@ -26,21 +28,29 @@ export async function fetchLogin() {
   return data;
 }
 
-export async function fetchSession() {
-  const response = await fetch(`${url}/session`, {
-    method: "GET",
-    credentials: "include",
-  });
+export async function fetchSession(errorFcn: (error: ErrorType) => void) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-  if (!response.ok) {
-    throw new Error("GET session failed");
+    console.log(response);
+
+    if (response.status === 404) {
+      errorFcn({ message: "Session info not found", severity: Severity.Critical });
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    const userData = await response.json();
+    return userData;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
   }
-
-  const userData = await response.json();
-  return userData;
 }
 
-export async function getAuctionBids(auctionId: string) {
+export async function getAuctionBids(errorFcn: (error: ErrorType) => void, auctionId: string) {
   const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
     method: "GET",
     headers: {
@@ -61,6 +71,7 @@ export async function getAuctionBids(auctionId: string) {
 }
 
 export async function pollForAuctionUpdates(
+  errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
   setBids: (bids: Bid[]) => void
@@ -85,13 +96,14 @@ export async function pollForAuctionUpdates(
       );
     }
     // Re-initiate polling after receiving an update or timeout
-    setTimeout(() => pollForAuctionUpdates(auctionId, signal, setBids), 1000);
+    setTimeout(() => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids), 1000);
   } catch (err) {
     console.log(`Polling for auction ${auctionId} aborted:`, err);
   }
 }
 
 export async function submitBid(
+  errorFcn: (error: ErrorType) => void,
   auctionId: string,
   amount: number,
   bidder: string
