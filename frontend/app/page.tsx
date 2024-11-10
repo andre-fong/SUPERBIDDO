@@ -23,6 +23,9 @@ const theme = createTheme({
       main: "#3f51b5",
     },
   },
+  typography: {
+    fontFamily: "'Inter', 'Inter Fallback'",
+  },
 });
 
 // TODO: Use Framer Motion for page transitions
@@ -31,7 +34,7 @@ const theme = createTheme({
  */
 export default function PageHandler() {
   const { user, loading } = useUser();
-  const [curPage, setCurPage] = useState<PageName>("login");
+  const [curPage, setCurPage] = useState<PageName>("create");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
@@ -51,7 +54,11 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: user ? <Auction user={user} setCurPage={setCurPage} /> : <div>Loading...</div>,
+      component: user ? (
+        <Auction user={user} setCurPage={setCurPage} />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
     profile: {
       title: "Profile | SuperBiddo",

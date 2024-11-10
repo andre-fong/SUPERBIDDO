@@ -5,7 +5,7 @@ import cardRarities, { qualityList } from "@/types/cardGameInfo";
 // TODO: Move logic to backend express API
 export async function POST(request: Request) {
   // TODO: Retrieve from .env
-  const geminiApiKey = "";
+  const geminiApiKey = process.env.GEMINI_API_KEY || "";
 
   const fileManager = new GoogleAIFileManager(geminiApiKey);
 
