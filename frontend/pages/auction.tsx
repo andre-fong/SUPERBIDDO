@@ -1,12 +1,17 @@
 import { PageName } from "@/types/pageTypes";
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "@/styles/auction.module.css";
+import { User } from "@/types/userTypes";
+import { pollForAuctionUpdates } from "@/utils/fetchFunctions";
 
 export default function Auction({
   setCurPage,
+  user,
 }: {
   setCurPage: (page: PageName) => void;
+  user: User;
 }) {
+
   return (
     <main className={styles.main}>
       <div className={styles.hero_container}>

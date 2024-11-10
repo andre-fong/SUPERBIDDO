@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Auction from "@/pages/auction";
 import Bids from "@/pages/TEMPbids";
 import CreateBid from "@/pages/createbid";
+import useUser from "@/hooks/useUser";
 
 // https://mui.com/material-ui/customization/palette/
 /**
@@ -22,6 +23,9 @@ const theme = createTheme({
       main: "#3f51b5",
     },
   },
+  typography: {
+    fontFamily: "'Inter', 'Inter Fallback'",
+  },
 });
 
 // TODO: Use Framer Motion for page transitions
@@ -29,7 +33,8 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const { user, loading } = useUser();
+  const [curPage, setCurPage] = useState<PageName>("create");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
@@ -49,7 +54,11 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: <Auction setCurPage={setCurPage} />,
+      component: user ? (
+        <Auction user={user} setCurPage={setCurPage} />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
     profile: {
       title: "Profile | SuperBiddo",

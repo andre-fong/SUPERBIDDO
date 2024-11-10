@@ -11,6 +11,7 @@ import { corsConfig } from "./configServices/corsConfig.js";
 import { BusinessError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
+import { router as biddingRouter } from "./routes/bidding.js";
 
 // load dev environment variables
 if (process.env.NODE_ENV === "development") {
@@ -34,19 +35,20 @@ app.use(
 
 app.use(sessionMiddleware);
 
-app.use(
-  OpenApiValidator.middleware({
-    apiSpec: "./openapi.yaml",
-    validateRequests: true, // (default)
-    validateResponses: false, // false by default
-  })
-);
+// app.use(
+//   OpenApiValidator.middleware({
+//     apiSpec: "./openapi.yaml",
+//     validateRequests: true, // (default)
+//     validateResponses: false, // false by default
+//   })
+// );
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
 
 app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/bid", biddingRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
