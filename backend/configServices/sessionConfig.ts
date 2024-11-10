@@ -27,6 +27,7 @@ export const sessionMiddleware = session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
+    // TODO: lax for development only
     sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
     secure: process.env.NODE_ENV === "development" ? false : true,
     // partitioned: true,
