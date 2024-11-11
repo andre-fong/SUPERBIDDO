@@ -82,3 +82,7 @@
 .submitButton:hover {
   background-color: #005bb5;
 }
+
+.dots {
+  bottom: -40px !important;
+}

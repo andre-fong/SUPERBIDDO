@@ -36,7 +36,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("login");
+  const [curPage, setCurPage] = useState<PageName>("create");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -91,7 +91,6 @@ export default function PageHandler() {
     changePageTitle(pages[curPage].title);
   }, [curPage]);
 
-  // TODO: Add navbar (unless page is login/signup)
   return (
     <>
       {toastMessage && toastSeverity && (
