@@ -34,7 +34,7 @@ const theme = createTheme({
  */
 export default function PageHandler() {
   const { user, loading } = useUser();
-  const [curPage, setCurPage] = useState<PageName>("create");
+  const [curPage, setCurPage] = useState<PageName>("auction");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
