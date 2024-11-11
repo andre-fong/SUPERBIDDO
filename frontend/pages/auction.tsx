@@ -23,6 +23,8 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
 export default function Auction({
   setCurPage,
@@ -33,6 +35,7 @@ export default function Auction({
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
+  const [bidCount, setBidCount] = useState<number>(0);
   const [bidsLoading, setBidsLoading] = useState<boolean>(true);
   const [isBidding, setIsBidding] = useState<boolean>(false);
 
@@ -42,8 +45,7 @@ export default function Auction({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    getAuctionBids("auction1").then((bids) => {
-      console.log(bids);
+    getAuctionBids("auction1").then((bids: AuctionBidHistory[]) => {
       setBids(bids);
     });
     pollForAuctionUpdates("auction1", signal, setBids);
@@ -53,6 +55,10 @@ export default function Auction({
       controller.abort("Polling aborted");
     };
   }, []);
+
+  useEffect(() => {
+    setBidCount(bids.reduce((acc, cur) => acc + cur.bids, 0));
+  }, [bids]);
 
   // TODO: Use actual loading data
   useEffect(() => {
@@ -68,6 +74,18 @@ export default function Auction({
   // TODO: Replace with actual data
   const spread = 0.5;
   const start = 0.5;
+
+  /**
+   * Handles submitting a new bid
+   */
+  function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const bidAmount = parseFloat(formData.get("bid_amount") as string);
+    (e.currentTarget as HTMLFormElement).reset();
+    console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
+    submitBid("auction1", bidAmount, "matt");
+  }
 
   return (
     <>
@@ -131,10 +149,10 @@ export default function Auction({
                     width={60}
                   />
                 ) : (
-                  <p className={styles.num_bids_amt}>{bids.length}</p>
+                  <p className={styles.num_bids_amt}>{bidCount}</p>
                 )}
                 <p className={styles.main_data_label}>
-                  {bids.length === 1 ? "BID" : "BIDS"}
+                  {bidCount === 1 ? "BID" : "BIDS"}
                 </p>
               </button>
             </div>
@@ -146,6 +164,7 @@ export default function Auction({
                 fullWidth
                 size="large"
                 disabled={bidsLoading}
+                onClick={() => setIsBidding(true)}
               >
                 Bid{" "}
                 {!bidsLoading && `$ ${(bids[0]?.highBid + spread).toFixed(2)}`}
@@ -222,6 +241,7 @@ export default function Auction({
         open={viewingBids}
         onClose={() => setViewingBids(false)}
         fullWidth
+        disableScrollLock={true}
       >
         <div className={styles.bids_container}>
           <h2 className={styles.bids_title}>Bid History</h2>
@@ -241,9 +261,9 @@ export default function Auction({
               <p className={styles.bid_info_label}>CURRENT BID</p>
             </div>
             <div className={styles.bid_count}>
-              <p className={styles.bid_count_amt}>{bids.length}</p>
+              <p className={styles.bid_count_amt}>{bidCount}</p>
               <p className={styles.bid_info_label}>
-                {bids.length === 1 ? "BID" : "BIDS"}
+                {bidCount === 1 ? "BID" : "BIDS"}
               </p>
             </div>
           </div>
@@ -319,6 +339,65 @@ export default function Auction({
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      <Dialog
+        open={isBidding}
+        onClose={() => setIsBidding(false)}
+        fullWidth
+        disableScrollLock={true}
+      >
+        <form
+          className={styles.confirm_bid_container}
+          onSubmit={handleBidSubmit}
+        >
+          <h2 className={styles.confirm_title}>Confirm Bid</h2>
+          <p className={styles.confirm_msg}>
+            Are you sure you want to place a bid for
+          </p>
+
+          <TextField
+            label="Bid Amount"
+            variant="outlined"
+            name="bid_amount"
+            defaultValue={(bids[0]?.highBid + spread).toFixed(2)}
+            required
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">$</InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          <p className={styles.confirm_msg_end}>
+            on{" "}
+            <span className={styles.bold}>
+              "Charizard Birth Japanese Card VM"
+            </span>
+            ?
+          </p>
+
+          <div className={styles.confirm_button_row}>
+            <Button
+              variant="outlined"
+              type="reset"
+              sx={{ width: "30%" }}
+              onClick={() => setIsBidding(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ width: "30%" }}
+              type="submit"
+              onClick={() => setIsBidding(false)}
+            >
+              Place bid!
+            </Button>
+          </div>
+        </form>
       </Dialog>
     </>
   );

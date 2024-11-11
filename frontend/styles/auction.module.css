@@ -1,5 +1,5 @@
 .main {
-  padding: 30px clamp(30px, 5vw, 50px);
+  padding: 30px clamp(30px, 5vw, 300px);
 }
 
 .hero_container {
@@ -234,6 +234,38 @@
   width: 100%;
   display: flex;
   justify-content: flex-end;
+}
+
+.confirm_bid_container {
+  width: 100%;
+  padding: 20px 30px;
+  overflow-y: auto;
+}
+
+.confirm_title {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 2em;
+  font-weight: 600;
+}
+
+.confirm_msg {
+  margin-bottom: 20px;
+}
+
+.confirm_msg_end {
+  margin: 20px 0;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.confirm_button_row {
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
 }
 
 @media (max-width: 800px) {
