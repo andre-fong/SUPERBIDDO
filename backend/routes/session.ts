@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import camelize from "camelize";
 import * as dotenv from "dotenv";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
-
+import crypto from "crypto";
 // load dev environment variables
 if (process.env.NODE_ENV === "development") {
   dotenv.config({ path: "../.env.development" });
@@ -23,6 +23,7 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   // TEMP just make a new session with a random accountUid
+  console.log("creating new session");
   req.session.accountUid = crypto.randomUUID();
   res.status(201).json(req.session);
   //   const { username, password } = req.body;
