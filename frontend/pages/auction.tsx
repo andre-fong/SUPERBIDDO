@@ -74,6 +74,9 @@ export default function Auction({
   // TODO: Replace with actual data
   const spread = 0.5;
   const start = 0.5;
+  const username = "matt";
+  const winning = bids[0]?.bidder === username;
+  const watching = false;
 
   /**
    * Handles submitting a new bid
@@ -84,7 +87,7 @@ export default function Auction({
     const bidAmount = parseFloat(formData.get("bid_amount") as string);
     (e.currentTarget as HTMLFormElement).reset();
     console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-    submitBid("auction1", bidAmount, "matt");
+    submitBid("auction1", bidAmount, username);
   }
 
   return (
@@ -111,11 +114,25 @@ export default function Auction({
                     width={60}
                   />
                 ) : (
-                  <p className={styles.high_bid_amt}>
+                  <p
+                    className={
+                      winning
+                        ? `${styles.green_highlight} ${styles.high_bid_amt}`
+                        : styles.high_bid_amt
+                    }
+                  >
                     $ {bids[0]?.highBid.toFixed(2)}
                   </p>
                 )}
-                <p className={styles.main_data_label}>HIGH BID</p>
+                {winning ? (
+                  <p
+                    className={`${styles.green_highlight} ${styles.main_data_label}`}
+                  >
+                    YOUR HIGH BID
+                  </p>
+                ) : (
+                  <p className={styles.main_data_label}>HIGH BID</p>
+                )}
               </div>
               <div className={styles.closing_in}>
                 {bidsLoading ? (
@@ -163,21 +180,39 @@ export default function Auction({
                 variant="contained"
                 fullWidth
                 size="large"
-                disabled={bidsLoading}
+                disabled={bidsLoading || winning}
                 onClick={() => setIsBidding(true)}
               >
-                Bid{" "}
-                {!bidsLoading && `$ ${(bids[0]?.highBid + spread).toFixed(2)}`}
+                {winning
+                  ? "Winning Bid!"
+                  : bidsLoading
+                  ? "Bid"
+                  : `Bid $ ${(bids[0]?.highBid + spread).toFixed(2)}`}
               </Button>
               {/* WATCH button */}
-              <Button
-                variant="outlined"
-                startIcon={<StarIcon />}
-                fullWidth
-                size="large"
-              >
-                Watch
-              </Button>
+              {bidsLoading ? (
+                <Button variant="outlined" fullWidth size="large" disabled>
+                  Loading...
+                </Button>
+              ) : watching ? (
+                <Button
+                  variant="contained"
+                  startIcon={<StarIcon />}
+                  fullWidth
+                  size="large"
+                >
+                  Watching
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  startIcon={<StarIcon />}
+                  fullWidth
+                  size="large"
+                >
+                  Watch
+                </Button>
+              )}
             </div>
 
             <div className={styles.auction_secondary_data}>
@@ -254,11 +289,9 @@ export default function Auction({
               <p className={styles.starting_bid_amt}>$ {start.toFixed(2)}</p>
               <p className={styles.bid_info_label}>STARTING BID</p>
             </div>
-            <div className={styles.current_bid}>
-              <p className={styles.current_bid_amt}>
-                $ {bids[0]?.highBid.toFixed(2)}
-              </p>
-              <p className={styles.bid_info_label}>CURRENT BID</p>
+            <div className={styles.spread}>
+              <p className={styles.spread_amt}>$ {spread.toFixed(2)}</p>
+              <p className={styles.bid_info_label}>SPREAD</p>
             </div>
             <div className={styles.bid_count}>
               <p className={styles.bid_count_amt}>{bidCount}</p>
@@ -294,7 +327,16 @@ export default function Auction({
                       backgroundColor: index === 0 ? "#e8f5e9" : "inherit",
                     }}
                   >
-                    <TableCell component="th" scope="row">
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: "25ch",
+                      }}
+                    >
                       {bid.bidder}
                     </TableCell>
                     <TableCell align="center">{bid.bids}</TableCell>
@@ -342,7 +384,7 @@ export default function Auction({
       </Dialog>
 
       <Dialog
-        open={isBidding}
+        open={isBidding && !winning}
         onClose={() => setIsBidding(false)}
         fullWidth
         disableScrollLock={true}
@@ -374,7 +416,7 @@ export default function Auction({
           <p className={styles.confirm_msg_end}>
             on{" "}
             <span className={styles.bold}>
-              "Charizard Birth Japanese Card VM"
+              &quot;Charizard Birth Japanese Card VM&quot;
             </span>
             ?
           </p>

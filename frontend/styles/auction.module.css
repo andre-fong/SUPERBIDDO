@@ -92,6 +92,7 @@
 .main_data_label {
   font-size: 0.8rem;
   color: rgb(86, 86, 86);
+  text-align: center;
 }
 .main_data_label_row {
   display: flex;
@@ -121,6 +122,10 @@
 .num_bids_amt {
   font-size: 1.7rem;
   font-weight: 600;
+}
+
+.green_highlight {
+  color: rgb(0, 138, 0);
 }
 
 @keyframes timer_blink {
@@ -202,7 +207,7 @@
 }
 
 .starting_bid,
-.current_bid,
+.spread,
 .bid_count {
   flex: 1;
   display: flex;
@@ -211,13 +216,13 @@
   gap: 5px;
   padding: 10px 0;
 }
-.current_bid {
+.spread {
   border-left: 1px solid lightgray;
   border-right: 1px solid lightgray;
 }
 
 .starting_bid_amt,
-.current_bid_amt,
+.spread_amt,
 .bid_count_amt {
   font-size: 1.3em;
   font-weight: 600;
