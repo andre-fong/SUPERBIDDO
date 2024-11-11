@@ -67,7 +67,7 @@ export default function PageHandler() {
     },
     bids: {
       title: "Bids | SuperBiddo",
-      component: <Bids setCurPage={setCurPage} />,
+      component: <Bids setCurPage={setCurPage} setToast={setToast} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
