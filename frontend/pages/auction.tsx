@@ -2,7 +2,12 @@ import { PageName } from "@/types/pageTypes";
 import React, { useEffect, useState } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
-import { pollForAuctionUpdates } from "@/utils/fetchFunctions";
+import { AuctionBidHistory } from "@/types/auctionTypes";
+import {
+  pollForAuctionUpdates,
+  getAuctionBids,
+  submitBid,
+} from "@/utils/fetchFunctions";
 import InfoIcon from "@mui/icons-material/InfoOutlined";
 import HelpIcon from "@mui/icons-material/HelpOutlineOutlined";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -17,6 +22,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
 
 export default function Auction({
   setCurPage,
@@ -26,40 +32,42 @@ export default function Auction({
   user: User;
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);
+  const [bids, setBids] = useState<AuctionBidHistory[]>([]);
+  const [bidsLoading, setBidsLoading] = useState<boolean>(true);
+  const [isBidding, setIsBidding] = useState<boolean>(false);
 
-  // TODO: Add type for bid history
-  const bidHistory = [
-    {
-      bidder: "v***o",
-      bids: 5,
-      highBid: 5.5,
-      lastBidTime: "10/31/2021",
-    },
-    {
-      bidder: "m**t",
-      bids: 3,
-      highBid: 5,
-      lastBidTime: "10/31/2021",
-    },
-    {
-      bidder: "j***s",
-      bids: 2,
-      highBid: 4.5,
-      lastBidTime: "10/31/2021",
-    },
-    {
-      bidder: "j*****a",
-      bids: 1,
-      highBid: 4,
-      lastBidTime: "10/31/2021",
-    },
-    {
-      bidder: "j***b",
-      bids: 1,
-      highBid: 3.5,
-      lastBidTime: "10/31/2021",
-    },
-  ];
+  console.log(user);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    getAuctionBids("auction1").then((bids) => {
+      console.log(bids);
+      setBids(bids);
+    });
+    pollForAuctionUpdates("auction1", signal, setBids);
+    // pollForAuctionUpdates("auction2", signal, setBids);
+
+    return () => {
+      controller.abort("Polling aborted");
+    };
+  }, []);
+
+  // TODO: Use actual loading data
+  useEffect(() => {
+    setTimeout(() => {
+      setBidsLoading(false);
+    }, 3000);
+
+    return () => {
+      setBidsLoading(true);
+    };
+  }, []);
+
+  // TODO: Replace with actual data
+  const spread = 0.5;
+  const start = 0.5;
 
   return (
     <>
@@ -78,11 +86,29 @@ export default function Auction({
 
             <div className={styles.auction_main_data}>
               <div className={styles.high_bid}>
-                <p className={styles.high_bid_amt}>$ 5.00</p>
+                {bidsLoading ? (
+                  <Skeleton
+                    variant="text"
+                    sx={{ fontSize: "1.7em" }}
+                    width={60}
+                  />
+                ) : (
+                  <p className={styles.high_bid_amt}>
+                    $ {bids[0]?.highBid.toFixed(2)}
+                  </p>
+                )}
                 <p className={styles.main_data_label}>HIGH BID</p>
               </div>
               <div className={styles.closing_in}>
-                <p className={styles.closing_in_amt}>15m 30s</p>
+                {bidsLoading ? (
+                  <Skeleton
+                    variant="text"
+                    sx={{ fontSize: "1.7em" }}
+                    width={60}
+                  />
+                ) : (
+                  <p className={styles.closing_in_amt}>15m 30s</p>
+                )}
                 <div className={styles.main_data_label_row}>
                   <p className={styles.main_data_label}>CLOSING IN</p>
                   <Tooltip
@@ -98,15 +124,31 @@ export default function Auction({
                 className={styles.num_bids}
                 onClick={() => setViewingBids(true)}
               >
-                <p className={styles.num_bids_amt}>5</p>
-                <p className={styles.main_data_label}>BIDS</p>
+                {bidsLoading ? (
+                  <Skeleton
+                    variant="text"
+                    sx={{ fontSize: "1.7rem" }}
+                    width={60}
+                  />
+                ) : (
+                  <p className={styles.num_bids_amt}>{bids.length}</p>
+                )}
+                <p className={styles.main_data_label}>
+                  {bids.length === 1 ? "BID" : "BIDS"}
+                </p>
               </button>
             </div>
 
             <div className={styles.button_row}>
               {/* BID button */}
-              <Button variant="contained" fullWidth size="large">
-                Bid $ 6.00
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                disabled={bidsLoading}
+              >
+                Bid{" "}
+                {!bidsLoading && `$ ${(bids[0]?.highBid + spread).toFixed(2)}`}
               </Button>
               {/* WATCH button */}
               <Button
@@ -189,16 +231,20 @@ export default function Auction({
 
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
-              <p className={styles.starting_bid_amt}>$ 1.00</p>
+              <p className={styles.starting_bid_amt}>$ {start.toFixed(2)}</p>
               <p className={styles.bid_info_label}>STARTING BID</p>
             </div>
             <div className={styles.current_bid}>
-              <p className={styles.current_bid_amt}>$ 5.00</p>
+              <p className={styles.current_bid_amt}>
+                $ {bids[0]?.highBid.toFixed(2)}
+              </p>
               <p className={styles.bid_info_label}>CURRENT BID</p>
             </div>
             <div className={styles.bid_count}>
-              <p className={styles.bid_count_amt}>5</p>
-              <p className={styles.bid_info_label}>BIDS</p>
+              <p className={styles.bid_count_amt}>{bids.length}</p>
+              <p className={styles.bid_info_label}>
+                {bids.length === 1 ? "BID" : "BIDS"}
+              </p>
             </div>
           </div>
 
@@ -221,8 +267,13 @@ export default function Auction({
               </TableHead>
 
               <TableBody>
-                {bidHistory.map((bid) => (
-                  <TableRow key={bid.bidder}>
+                {bids.map((bid, index) => (
+                  <TableRow
+                    key={bid.bidder}
+                    sx={{
+                      backgroundColor: index === 0 ? "#e8f5e9" : "inherit",
+                    }}
+                  >
                     <TableCell component="th" scope="row">
                       {bid.bidder}
                     </TableCell>
@@ -230,7 +281,28 @@ export default function Auction({
                     <TableCell align="center">
                       {bid.highBid.toFixed(2)}
                     </TableCell>
-                    <TableCell align="right">{bid.lastBidTime}</TableCell>
+                    <TableCell
+                      align="right"
+                      title={new Date(bid.lastBidTime).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                          second: "numeric",
+                        }
+                      )}
+                    >
+                      {new Date(bid.lastBidTime).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        second: "numeric",
+                      })}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

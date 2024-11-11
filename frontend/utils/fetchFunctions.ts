@@ -1,4 +1,4 @@
-import { Bid } from "@/types/auctionTypes";
+import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 
 const url = "http://localhost:3001/api/v1";
 
@@ -63,7 +63,7 @@ export async function getAuctionBids(auctionId: string) {
 export async function pollForAuctionUpdates(
   auctionId: string,
   signal: AbortSignal,
-  setBids: (bids: Bid[]) => void
+  setBids: (bids: AuctionBidHistory[]) => void
 ) {
   try {
     const response = await fetch(`${url}/bid/${auctionId}?poll=true`, {

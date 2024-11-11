@@ -41,7 +41,10 @@ export default function TEMPbids({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    getAuctionBids("auction1").then((bids) => setBids(bids));
+    getAuctionBids("auction1").then((bids) => {
+      console.log(bids);
+      setBids(bids);
+    });
     pollForAuctionUpdates("auction1", signal, setBids);
     // pollForAuctionUpdates("auction2", signal, setBids);
 
