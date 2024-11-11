@@ -25,6 +25,7 @@ import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import { useTimer } from "react-timer-hook";
 
 export default function Auction({
   setCurPage,
@@ -38,8 +39,7 @@ export default function Auction({
   const [bidCount, setBidCount] = useState<number>(0);
   const [bidsLoading, setBidsLoading] = useState<boolean>(true);
   const [isBidding, setIsBidding] = useState<boolean>(false);
-
-  console.log(user);
+  const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,16 +73,28 @@ export default function Auction({
 
   // TODO: Replace with actual data
   const spread = 0.5;
-  const start = 0.5;
+  const startingBid = 0.5;
   const username = "matt";
   const winning = bids[0]?.bidder === username;
   const watching = false;
+  const endTime = new Date();
+  endTime.setSeconds(endTime.getSeconds() + 10);
+  const { totalSeconds, seconds, minutes, hours, days, isRunning } = useTimer({
+    expiryTimestamp: endTime,
+    onExpire: () => setAuctionEnded(true),
+    autoStart: true,
+  });
 
   /**
    * Handles submitting a new bid
    */
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (auctionEnded || winning) {
+      console.warn("Cannot bid on an ended or winning auction");
+      return;
+    }
     const formData = new FormData(e.currentTarget);
     const bidAmount = parseFloat(formData.get("bid_amount") as string);
     (e.currentTarget as HTMLFormElement).reset();
@@ -142,7 +154,12 @@ export default function Auction({
                     width={60}
                   />
                 ) : (
-                  <p className={styles.closing_in_amt}>15m 30s</p>
+                  <p className={styles.closing_in_amt}>
+                    {days > 0 && `${days}d `}
+                    {hours > 0 && `${hours}h `}
+                    {minutes > 0 && `${minutes}m `}
+                    {seconds}s
+                  </p>
                 )}
                 <div className={styles.main_data_label_row}>
                   <p className={styles.main_data_label}>CLOSING IN</p>
@@ -180,10 +197,12 @@ export default function Auction({
                 variant="contained"
                 fullWidth
                 size="large"
-                disabled={bidsLoading || winning}
+                disabled={bidsLoading || winning || auctionEnded}
                 onClick={() => setIsBidding(true)}
               >
-                {winning
+                {auctionEnded
+                  ? "Auction Ended"
+                  : winning
                   ? "Winning Bid!"
                   : bidsLoading
                   ? "Bid"
@@ -192,7 +211,7 @@ export default function Auction({
               {/* WATCH button */}
               {bidsLoading ? (
                 <Button variant="outlined" fullWidth size="large" disabled>
-                  Loading...
+                  Watch
                 </Button>
               ) : watching ? (
                 <Button
@@ -286,7 +305,9 @@ export default function Auction({
 
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
-              <p className={styles.starting_bid_amt}>$ {start.toFixed(2)}</p>
+              <p className={styles.starting_bid_amt}>
+                $ {startingBid.toFixed(2)}
+              </p>
               <p className={styles.bid_info_label}>STARTING BID</p>
             </div>
             <div className={styles.spread}>
@@ -384,7 +405,7 @@ export default function Auction({
       </Dialog>
 
       <Dialog
-        open={isBidding && !winning}
+        open={isBidding && !winning && !auctionEnded}
         onClose={() => setIsBidding(false)}
         fullWidth
         disableScrollLock={true}
@@ -393,7 +414,17 @@ export default function Auction({
           className={styles.confirm_bid_container}
           onSubmit={handleBidSubmit}
         >
-          <h2 className={styles.confirm_title}>Confirm Bid</h2>
+          <div className={styles.confirm_title_row}>
+            <h2 className={styles.confirm_title}>Confirm Bid</h2>
+            {totalSeconds < 300 && (
+              <p className={styles.closing_in_amt}>
+                {days > 0 && `${days}d `}
+                {hours > 0 && `${hours}h `}
+                {minutes > 0 && `${minutes}m `}
+                {seconds}s
+              </p>
+            )}
+          </div>
           <p className={styles.confirm_msg}>
             Are you sure you want to place a bid for
           </p>

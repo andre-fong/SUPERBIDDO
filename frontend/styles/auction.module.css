@@ -118,6 +118,7 @@
   font-weight: 500;
   color: red;
   animation: timer_blink 1s infinite;
+  animation-delay: 0.9s;
 }
 .num_bids_amt {
   font-size: 1.7rem;
@@ -247,9 +248,14 @@
   overflow-y: auto;
 }
 
-.confirm_title {
+.confirm_title_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-top: 10px;
   margin-bottom: 20px;
+}
+.confirm_title {
   font-size: 2em;
   font-weight: 600;
 }
