@@ -1,13 +1,7 @@
 import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
-import * as dotenv from "dotenv";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
-
-// load dev environment variables
-if (process.env.NODE_ENV === "development") {
-  dotenv.config({ path: "../.env.development" });
-}
 
 export const router = express.Router();
 

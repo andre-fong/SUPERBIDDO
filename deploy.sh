@@ -18,7 +18,7 @@ ssh $SERVER docker compose down --remove-orphans
 # remove dangling images
 ssh $SERVER docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
-# copy docker-compose and .env
+# copy docker-compose, .env
 scp docker-compose.yaml $SERVER:.
 scp .env.production $SERVER:.env
 

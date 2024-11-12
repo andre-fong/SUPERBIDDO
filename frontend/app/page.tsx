@@ -1,6 +1,6 @@
 "use client";
 import styles from "./page.module.css";
-import { changePageTitle } from "./layout";
+import { changePageTitle } from "@/utils/pageManagement";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -9,7 +9,7 @@ import Auction from "@/pages/auction";
 import Bids from "@/pages/TEMPbids";
 import CreateBid from "@/pages/createbid";
 import useUser from "@/hooks/useUser";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 
@@ -41,13 +41,13 @@ export default function PageHandler() {
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
   const setToast = (err: ErrorType) => {
-      setToastMessage(err.message);
-      setToastSeverity(err.severity);
-      if (err.severity === Severity.Critical) {
-          toast.error(err.message);
-      } else if (err.severity === Severity.Warning) {
-          toast.warn(err.message);
-      }
+    setToastMessage(err.message);
+    setToastSeverity(err.severity);
+    if (err.severity === Severity.Critical) {
+      toast.error(err.message);
+    } else if (err.severity === Severity.Warning) {
+      toast.warn(err.message);
+    }
   };
 
   const { user, loading } = useUser(setToast);
