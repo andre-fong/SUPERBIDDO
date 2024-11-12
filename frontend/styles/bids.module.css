@@ -2,6 +2,18 @@
   padding: 30px clamp(30px, 5vw, 50px);
 }
 
+.breadcrumbs {
+  margin-bottom: 30px;
+}
+
+.bid_form {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
 .TEMP_pfp {
   width: 35px;
   height: 35px;

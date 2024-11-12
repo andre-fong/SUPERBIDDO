@@ -5,21 +5,22 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "prod": "cross-env NODE_ENV=production tsx index.ts",
-    "dev": "cross-env NODE_ENV=development tsx watch index.ts",
+    "prod": "cross-env NODE_ENV=production tsc ./configServices/envConfig.ts --moduleResolution node --module ESNext --target ES6 --outDir ./temp && cross-env NODE_ENV=production tsx --import=./temp/envConfig.js index.ts && rimraf ./temp",
+    "dev": "dotenvx run -f ../.env.development -- tsx watch index.ts",
     "pretty": "prettier --write \"./**/*.{ts,js,jsx,json}\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.22.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.0.2",
     "camelize": "^1.0.1",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "crypto": "^1.0.1",
     "express": "^5.0.1",
     "express-openapi-validator": "^5.3.9",
     "express-session": "^1.18.1",
@@ -27,7 +28,9 @@
     "http": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.13.1",
-    "pg-pool": "^3.7.0"
+    "pg-pool": "^3.7.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

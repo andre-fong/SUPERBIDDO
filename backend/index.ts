@@ -1,22 +1,18 @@
 import express, { Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
-import * as dotenv from "dotenv";
 import bodyParser from "body-parser";
 import cors from "cors";
 import http from "http";
 import * as OpenApiValidator from "express-openapi-validator";
 import helmet from "helmet";
-import { sessionMiddleware } from "./configServices/sessionConfig.js";
+import { sessionConfig } from "./configServices/sessionConfig.js";
 import { corsConfig } from "./configServices/corsConfig.js";
+import session from "express-session";
 import { BusinessError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
 import { router as auctionRouter } from "./routes/auction.js";
-
-// load dev environment variables
-if (process.env.NODE_ENV === "development") {
-  dotenv.config({ path: "../.env.development" });
-}
+import { router as biddingRouter } from "./routes/bidding.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -33,15 +29,15 @@ app.use(
   })
 );
 
-app.use(sessionMiddleware);
+app.use(session(sessionConfig));
 
-app.use(
-  OpenApiValidator.middleware({
-    apiSpec: "./openapi.yaml",
-    validateRequests: true, // (default)
-    validateResponses: false, // false by default
-  })
-);
+// app.use(
+//   OpenApiValidator.middleware({
+//     apiSpec: "./openapi.yaml",
+//     validateRequests: true, // (default)
+//     validateResponses: false, // false by default
+//   })
+// );
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
@@ -49,6 +45,7 @@ app.get("/api", (req, res) => {
 
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
+app.use("/api/v1/bid", biddingRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.

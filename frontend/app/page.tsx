@@ -1,6 +1,6 @@
 "use client";
 import styles from "./page.module.css";
-import { changePageTitle } from "./layout";
+import { changePageTitle } from "@/utils/pageManagement";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -8,6 +8,10 @@ import Login from "@/pages/login";
 import Auction from "@/pages/auction";
 import Bids from "@/pages/TEMPbids";
 import CreateBid from "@/pages/createbid";
+import useUser from "@/hooks/useUser";
+import { toast } from "react-toastify";
+import { ErrorType, Severity } from "@/types/errorTypes";
+import ErrorToast from "@/components/errorToast";
 
 // https://mui.com/material-ui/customization/palette/
 /**
@@ -22,6 +26,9 @@ const theme = createTheme({
       main: "#3f51b5",
     },
   },
+  typography: {
+    fontFamily: "'Inter', 'Inter Fallback'",
+  },
 });
 
 // TODO: Use Framer Motion for page transitions
@@ -29,7 +36,22 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const [curPage, setCurPage] = useState<PageName>("login");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
+
+  const setToast = (err: ErrorType) => {
+    setToastMessage(err.message);
+    setToastSeverity(err.severity);
+    if (err.severity === Severity.Critical) {
+      toast.error(err.message);
+    } else if (err.severity === Severity.Warning) {
+      toast.warn(err.message);
+    }
+  };
+
+  const { user, loading } = useUser(setToast);
+
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
@@ -45,11 +67,15 @@ export default function PageHandler() {
     },
     bids: {
       title: "Bids | SuperBiddo",
-      component: <Bids setCurPage={setCurPage} />,
+      component: <Bids setCurPage={setCurPage} setToast={setToast} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: <Auction setCurPage={setCurPage} />,
+      component: user ? (
+        <Auction user={user} setCurPage={setCurPage} />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
     profile: {
       title: "Profile | SuperBiddo",
@@ -67,6 +93,11 @@ export default function PageHandler() {
 
   // TODO: Add navbar (unless page is login/signup)
   return (
-    <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
+    <>
+      {toastMessage && toastSeverity && (
+        <ErrorToast message={toastMessage} severity={toastSeverity} />
+      )}
+      <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
+    </>
   );
 }
