@@ -1,4 +1,43 @@
--- trigger definition
+CREATE OR REPLACE FUNCTION public.check_bid_valid()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    max_current_bid MONEY;
+    spread MONEY;
+    min_valid_bid MONEY;
+BEGIN
+	SELECT COALESCE(MAX(amount), 0) INTO max_current_bid
+	FROM bid WHERE auction_id = NEW.auction_id;
+	
+	SELECT spread INTO spread FROM auction WHERE auction_id = NEW.auction_id;
+
+	min_valid_bid := max_current_bid + spread;
+	
+	
+	IF 
+	    NEW.bid_amount < min_valid_bid THEN
+        RAISE EXCEPTION 'bid_ammount_insufficient';
+    END IF;
+   
+    RETURN NEW;
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.set_column_to_now()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    col_name TEXT := TG_ARGV[0];
+BEGIN
+    -- Set target_column to the value of source_column
+    NEW := json_populate_record(NEW, json_build_object(TG_ARGV[0], now()));
+    RETURN NEW;
+END;
+$function$
+;
 
 CREATE OR REPLACE FUNCTION public.set_default_current_price()
  RETURNS trigger
@@ -83,13 +122,25 @@ CREATE TABLE public.bid (
 	bid_id uuid NOT NULL DEFAULT gen_random_uuid(),
 	auction_id uuid NOT NULL,
 	bidder_id uuid NOT NULL,
-	bid_amount money NOT NULL,
+	amount money NOT NULL,
+	"timestamp" timestamptz NOT NULL DEFAULT now(),
 	CONSTRAINT bid_pk PRIMARY KEY (bid_id),
 	CONSTRAINT bid_fk_auction FOREIGN KEY (auction_id) REFERENCES public.auction(auction_id),
 	CONSTRAINT bid_fk_bidder FOREIGN KEY (bidder_id) REFERENCES public.account(account_id)
 );
 CREATE INDEX bid_auction_id_idx ON public.bid USING btree (auction_id);
 CREATE INDEX bid_bidder_id_idx ON public.bid USING btree (bidder_id);
+
+-- Table Triggers
+
+CREATE TRIGGER set_bid_timestamp_now_trigger BEFORE
+INSERT
+    ON
+    public.bid FOR EACH ROW EXECUTE FUNCTION set_column_to_now('timestamp');
+CREATE TRIGGER check_bid_valid_trigger BEFORE
+INSERT
+    ON
+    public.bid FOR EACH ROW EXECUTE FUNCTION check_bid_valid();
 
 
 -- public.bundle definition
