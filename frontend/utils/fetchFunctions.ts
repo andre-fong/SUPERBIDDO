@@ -1,7 +1,7 @@
 import { Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
