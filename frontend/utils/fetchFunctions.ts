@@ -1,6 +1,6 @@
 import { Bid } from "@/types/auctionTypes";
 
-const url = "http://localhost:3001/api/v1";
+const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 /*
   TODO: ERROR CHECKING AND HANDLING FOR FRONTEND

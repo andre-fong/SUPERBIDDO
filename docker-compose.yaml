@@ -36,6 +36,8 @@ services:
       - VIRTUAL_HOST=${FRONTEND_DOMAIN}
       # certificate information for let's encrypt
       - LETSENCRYPT_HOST=${FRONTEND_DOMAIN}
+      # frontend environment variables
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 
   # express backend
   backend:
@@ -47,17 +49,23 @@ services:
       - VIRTUAL_HOST=${BACKEND_DOMAIN}
       # certificate information for let's encrypt
       - LETSENCRYPT_HOST=${BACKEND_DOMAIN}
-      # database credentials
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
       # database configuration
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
-      # app variables
-      - SESSION_SECRET=${SESSION_SECRET}
+      # backend environment variables
       - FRONTEND_URL=${FRONTEND_URL}
+      # secrets
+      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET
+      - DB_USER_FILE=/run/secrets/db_user
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - SESSION_SECRET_FILE=/run/secrets/session_secret
+    secrets:
+      - db_user
+      - db_password
+      - session_secret
 
+  # postgres database
   database:
     image: postgres:16
     container_name: database
@@ -70,6 +78,18 @@ services:
       # host for nginx reverse proxy
       - VIRTUAL_HOST=${DB_HOST}
       # database configuration
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_DATABASE}
+      # secrets
+      - POSTGRES_USER_FILE=/run/secrets/db_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_user
+      - db_password
+
+secrets:
+  db_user:
+    environment: "DB_USER"
+  db_password:
+    environment: "DB_PASSWORD"
+  session_secret:
+    environment: "SESSION_SECRET"

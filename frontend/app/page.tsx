@@ -1,6 +1,6 @@
 "use client";
 import styles from "./page.module.css";
-import { changePageTitle } from "./layout";
+import { changePageTitle } from "@/utils/pageManagement";
 import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -34,7 +34,7 @@ const theme = createTheme({
  */
 export default function PageHandler() {
   const { user, loading } = useUser();
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const [curPage, setCurPage] = useState<PageName>("login");
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
