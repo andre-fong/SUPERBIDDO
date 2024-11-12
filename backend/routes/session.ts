@@ -3,6 +3,7 @@ import { pool } from "../configServices/dbConfig.js";
 import bcrypt from "bcrypt";
 import camelize from "camelize";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
+import crypto from "crypto";
 
 export const router = express.Router();
 
@@ -17,6 +18,7 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   // TEMP just make a new session with a random accountUid
+  console.log("creating new session");
   req.session.accountUid = crypto.randomUUID();
   res.status(201).json(req.session);
   //   const { username, password } = req.body;

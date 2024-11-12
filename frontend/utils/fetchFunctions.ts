@@ -1,6 +1,8 @@
 import { Bid } from "@/types/auctionTypes";
+import { Severity, ErrorType } from "@/types/errorTypes";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+const unkownError = "An unknown error occurred";
 
 /*
   TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
@@ -26,41 +28,59 @@ export async function fetchLogin() {
   return data;
 }
 
-export async function fetchSession() {
-  const response = await fetch(`${url}/session`, {
-    method: "GET",
-    credentials: "include",
-  });
+export async function fetchSession(errorFcn: (error: ErrorType) => void) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-  if (!response.ok) {
-    throw new Error("GET session failed");
+    if (response.status === 404) {
+      errorFcn({
+        message: "Session info not found",
+        severity: Severity.Critical,
+      });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    const userData = await response.json();
+    return userData;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
   }
-
-  const userData = await response.json();
-  return userData;
 }
 
-export async function getAuctionBids(auctionId: string) {
-  const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export async function getAuctionBids(
+  errorFcn: (error: ErrorType) => void,
+  auctionId: string
+) {
+  try {
+    const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (response.ok) {
-    const bids = await response.json();
-    return bids;
-  } else {
-    console.error(
-      `Failed to get bids for auction ${auctionId}:`,
-      response.statusText
-    );
+    if (response.ok) {
+      const bids = await response.json();
+      return bids;
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+      return [];
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
     return [];
   }
 }
 
 export async function pollForAuctionUpdates(
+  errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
   setBids: (bids: Bid[]) => void
@@ -78,39 +98,68 @@ export async function pollForAuctionUpdates(
       const newBid = await response.json();
       console.log(`POLLING New bid received for auction ${auctionId}:`, newBid);
       setBids(newBid);
-    } else {
+    } else if (response.status === 404) {
+      errorFcn({
+        message: "Error initiating connection for an auction",
+        severity: Severity.Critical,
+      });
       console.error(
         `Error during polling for auction ${auctionId}:`,
         response.statusText
       );
     }
     // Re-initiate polling after receiving an update or timeout
-    setTimeout(() => pollForAuctionUpdates(auctionId, signal, setBids), 1000);
-  } catch (err) {
-    console.log(`Polling for auction ${auctionId} aborted:`, err);
+    setTimeout(
+      () => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids),
+      1000
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    if (err.name === "AbortError") {
+      console.log(`Polling for auction ${auctionId} aborted`);
+      return;
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
   }
 }
 
 export async function submitBid(
+  errorFcn: (error: ErrorType) => void,
   auctionId: string,
   amount: number,
   bidder: string
 ) {
-  const response = await fetch(`${url}/bid/${auctionId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ amount, bidder }),
-  });
+  try {
+    const response = await fetch(`${url}/bid/${auctionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount, bidder }),
+    });
 
-  //TODO: status stuff
-  if (response.ok) {
-    console.log(`Bid for ${auctionId} submitted successfully`);
-  } else {
-    console.error(
-      `Failed to submit bid for ${auctionId}:`,
-      response.statusText
-    );
+    if (response.ok) {
+      console.log(`Bid for ${auctionId} submitted successfully`);
+    } else if (response.status === 400) {
+      errorFcn({ message: "Bid too low", severity: Severity.Warning });
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+      console.error(
+        `Failed to submit bid for ${auctionId}:`,
+        response.statusText
+      );
+    } else {
+      errorFcn({
+        message: "Failed to submit bid",
+        severity: Severity.Critical,
+      });
+      console.error(
+        `Failed to submit bid for ${auctionId}:`,
+        response.statusText
+      );
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
   }
 }
