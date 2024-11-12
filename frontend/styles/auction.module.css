@@ -10,17 +10,24 @@
 
 .card_container {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 0;
+
+  /* Needed for react-slick to calculate width of carousel */
+  min-width: 0;
+  padding: 10px 0 20px 0;
   background-color: rgb(220, 220, 220);
   border-radius: 15px;
 }
 
-/* TODO: remove */
-.TEMP_card {
-  width: 90%;
+.zoom_card_container {
+  text-align: center;
+}
+
+.slick_dots {
+  bottom: -20px !important;
+}
+
+.card {
+  width: 95%;
 
   /* Standard playing card ratio */
   aspect-ratio: 2.5/3.5;
