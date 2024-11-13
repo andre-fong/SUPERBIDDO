@@ -1,4 +1,4 @@
-import { Bid } from "@/types/auctionTypes";
+import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 
 const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
@@ -83,7 +83,7 @@ export async function pollForAuctionUpdates(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
-  setBids: (bids: Bid[]) => void
+  setBids: (bids: AuctionBidHistory[]) => void
 ) {
   try {
     const response = await fetch(`${url}/bid/${auctionId}?poll=true`, {

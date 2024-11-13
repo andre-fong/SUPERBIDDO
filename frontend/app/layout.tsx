@@ -1,4 +1,7 @@
 import "./globals.css";
+import "react-inner-image-zoom/lib/InnerImageZoom/styles.css";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });

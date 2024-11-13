@@ -13,7 +13,7 @@ import { ErrorType } from "@/types/errorTypes";
 
 export default function TEMPbids({
   setCurPage,
-  setToast
+  setToast,
 }: {
   setCurPage: (page: PageName) => void;
   setToast: (error: ErrorType) => void;
@@ -35,9 +35,14 @@ export default function TEMPbids({
     const bidAmount = parseFloat(formData.get("bid_amount") as string);
     (e.currentTarget as HTMLFormElement).reset();
     console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-    submitBid((error) => { 
-      setToast(error)
-    }, "auction1", bidAmount, "victo");
+    submitBid(
+      (error) => {
+        setToast(error);
+      },
+      "auction1",
+      bidAmount,
+      "victo"
+    );
   }
 
   const [bids, setBids] = useState<Bid[]>([]);
@@ -46,12 +51,17 @@ export default function TEMPbids({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    getAuctionBids((error) => { 
-      setToast(error)
+    getAuctionBids((error) => {
+      setToast(error);
     }, "auction1").then((bids) => setBids(bids));
-    pollForAuctionUpdates((error) => { 
-      setToast(error)
-    }, "auction1", signal, setBids);
+    pollForAuctionUpdates(
+      (error) => {
+        setToast(error);
+      },
+      "auction1",
+      signal,
+      setBids
+    );
     // pollForAuctionUpdates("auction2", signal, setBids);
 
     return () => {
@@ -120,6 +130,4 @@ export default function TEMPbids({
       </div>
     </main>
   );
-
 }
-
