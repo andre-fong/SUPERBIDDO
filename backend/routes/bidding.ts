@@ -5,12 +5,14 @@ export const router = express.Router();
 // Object to store clients per auction
 let auctionClients = {};
 
+// TODO: Change from in-memory to db
 // In-memory storage for auction bids
 let currentBids = {
-  auction1: [{ amount: 1, bidder: "victo", date: new Date() }],
+  auction1: [],
   auction2: [{ amount: 200, bidder: "Initial Bidder", date: new Date() }],
   // Add more auctions as needed
 };
+let startingBid = 0.5;
 
 // TODO: ts types, and check if this fcn is time efficient
 function formatBids(bids) {
@@ -41,6 +43,7 @@ function formatBids(bids) {
 }
 
 // Endpoint for clients to submit new bids for a specific auction
+// TODO: Refactor to connect to db
 router.post("/:auctionId", express.json(), (req, res) => {
   const { auctionId } = req.params;
   const { amount, bidder } = req.body;
@@ -51,8 +54,14 @@ router.post("/:auctionId", express.json(), (req, res) => {
     return res.status(404).send("Auction not found");
   }
 
+  // TODO: Verify last bid wasn't by the same bidder,
+  // verify bid is higher than the last bid + <spread>
+  // verify bid is a multiple of <spread>
   let auction = currentBids[auctionId];
-  if (amount > auction[auction.length - 1].amount) {
+  if (
+    amount >
+    (auction.length > 0 ? auction[auction.length - 1]?.amount : startingBid)
+  ) {
     currentBids[auctionId].push({ amount, bidder, date: new Date() });
     console.log(`New highest bid in ${auctionId}: $${amount} by ${bidder}`);
 

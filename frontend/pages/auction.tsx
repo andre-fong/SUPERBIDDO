@@ -83,7 +83,7 @@ export default function Auction({
   const winning = bids[0]?.bidder === username;
   const watching = false;
   const endTime = new Date();
-  endTime.setSeconds(endTime.getSeconds() + 60);
+  endTime.setSeconds(endTime.getSeconds() + 300);
   const { totalSeconds, seconds, minutes, hours, days } = useTimer({
     expiryTimestamp: endTime,
     onExpire: () => setAuctionEnded(true),
@@ -203,17 +203,22 @@ export default function Auction({
                         : styles.high_bid_amt
                     }
                   >
-                    $ {bids[0]?.highBid.toFixed(2)}
+                    ${" "}
+                    {bidCount > 0
+                      ? bids[0]?.highBid.toFixed(2)
+                      : startingBid.toFixed(2)}
                   </p>
                 )}
                 {winning ? (
                   <p
                     className={`${styles.green_highlight} ${styles.main_data_label}`}
                   >
-                    YOUR HIGH BID
+                    {auctionEnded ? "YOUR WINNING BID" : "YOUR HIGH BID"}
                   </p>
-                ) : (
+                ) : bidCount > 0 ? (
                   <p className={styles.main_data_label}>HIGH BID</p>
+                ) : (
+                  <p className={styles.main_data_label}>STARTING BID</p>
                 )}
               </div>
               <div className={styles.closing_in}>
@@ -275,7 +280,9 @@ export default function Auction({
                   ? "Winning Bid!"
                   : bidsLoading
                   ? "Bid"
-                  : `Bid $ ${(bids[0]?.highBid + spread).toFixed(2)}`}
+                  : `Bid $ ${(
+                      (bidCount > 0 ? bids[0]?.highBid : startingBid) + spread
+                    ).toFixed(2)}`}
               </Button>
 
               {bidsLoading ? (
@@ -502,7 +509,9 @@ export default function Auction({
             label="Bid Amount"
             variant="outlined"
             name="bid_amount"
-            defaultValue={(bids[0]?.highBid + spread).toFixed(2)}
+            defaultValue={(
+              (bidCount > 0 ? bids[0]?.highBid : startingBid) + spread
+            ).toFixed(2)}
             required
             slotProps={{
               input: {
