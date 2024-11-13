@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenvx run -f ../.env.development -- next dev",
+    "dev": "cross-env NODE_ENV=development dotenvx run -f ../.env.development -- next dev",
     "build": "cross-env NODE_ENV=production next build",
     "prod": "cross-env NODE_ENV=production next start",
     "start": "next start",
