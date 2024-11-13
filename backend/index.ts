@@ -18,6 +18,7 @@ const app = express();
 
 const server = http.createServer(app);
 
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(express.json());
 app.use(cors(corsConfig));
@@ -28,6 +29,7 @@ app.use(
   })
 );
 
+console.log(sessionConfig);
 app.use(session(sessionConfig));
 
 // app.use(
