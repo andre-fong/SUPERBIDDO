@@ -359,6 +359,7 @@ components:
             - startTime
             - endTime
             - currentPrice
+            - topBid
           properties:
             auctionId:
               readOnly: true
@@ -392,6 +393,10 @@ components:
               type: number
               format: float
               minimum: 0
+            topBid:
+              readOnly: true
+              allOf:
+                - $ref: "#/components/schemas/Bid"
           not:
             required:
               - cards
@@ -490,6 +495,32 @@ components:
         set:
           type: string
           maxLength: 100
+    Bid:
+      type: object
+      required:
+        - bidId
+        - auctionId
+        - bidderId
+        - amount
+        - timestamp
+      properties:
+        bidId:
+          readOnly: true
+          type: string
+          format: uuid
+        auctionId:
+          type: string
+          format: uuid
+        bidderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: float
+          minimum: 0
+        timestamp:
+          type: string
+          format: date-time
     Cookie:
       type: object
       required:
