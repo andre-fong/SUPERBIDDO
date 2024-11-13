@@ -79,7 +79,7 @@ export default function Auction({
   // TODO: Replace with actual data
   const spread = 0.5;
   const startingBid = 0.5;
-  const username = "matt";
+  const [username, setUsername] = useState<string>("Matt");
   const winning = bids[0]?.bidder === username;
   const watching = false;
   const endTime = new Date();
@@ -265,6 +265,16 @@ export default function Auction({
                 </p>
               </button>
             </div>
+
+            {/* TODO: REMOVE THIS AFTER DEMO */}
+            <TextField
+              label="Username (DEMO)"
+              variant="outlined"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              fullWidth
+              sx={{ marginBottom: "20px" }}
+            />
 
             <div className={styles.button_row}>
               <Button
