@@ -8,7 +8,7 @@ import helmet from "helmet";
 import { sessionConfig } from "./configServices/sessionConfig.js";
 import { corsConfig } from "./configServices/corsConfig.js";
 import session from "express-session";
-import { BusinessError } from "./utils/errors.js";
+import { BusinessError, ServerError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
 import { router as auctionRouter } from "./routes/auction.js";
@@ -31,13 +31,13 @@ app.use(
 
 app.use(session(sessionConfig));
 
-// app.use(
-//   OpenApiValidator.middleware({
-//     apiSpec: "./openapi.yaml",
-//     validateRequests: true, // (default)
-//     validateResponses: false, // false by default
-//   })
-// );
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: "./openapi.yaml",
+    validateRequests: true, // (default)
+    validateResponses: false, // false by default
+  })
+);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
@@ -57,6 +57,11 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     err.path = req.originalUrl;
     const errors = [err];
     res.status(err.status).json(errors);
+  } else if (err instanceof ServerError) {
+    console.log("err instanceof BusinessError");
+    err.path = req.originalUrl;
+    const errors = [err];
+    res.status(err.status).json(errors);
   }
   // HttpError is a class from openapi validator. All schema validation errors are of this type
   else if (err instanceof HttpError) {
@@ -71,7 +76,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // other errors are unknown system errors
   else {
     console.log("err is unknown system error");
-    throw err;
+    console.log(err);
     res.status(500).json({
       path: req.originalUrl,
       message: "unknown server error",
