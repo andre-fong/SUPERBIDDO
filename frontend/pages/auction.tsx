@@ -36,7 +36,7 @@ export default function Auction({
   setToast,
 }: {
   setCurPage: (page: PageName) => void;
-  user: User;
+  user: User | null;
   setToast: (err: ErrorType) => void;
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);

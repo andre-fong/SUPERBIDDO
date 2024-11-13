@@ -35,7 +35,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("create");
+  const [curPage, setCurPage] = useState<PageName>("login");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -66,10 +66,8 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: user ? (
+      component: (
         <Auction user={user} setCurPage={setCurPage} setToast={setToast} />
-      ) : (
-        <div>Loading...</div>
       ),
     },
     profile: {
