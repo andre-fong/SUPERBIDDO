@@ -5,7 +5,7 @@ const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
-  TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
+  TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
 */
 
 export async function fetchLogin() {
