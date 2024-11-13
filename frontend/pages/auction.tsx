@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
+import { ErrorType } from "@/types/errorTypes";
 import {
   pollForAuctionUpdates,
   getAuctionBids,
@@ -32,9 +33,11 @@ import Slider from "react-slick";
 export default function Auction({
   setCurPage,
   user,
+  setToast,
 }: {
   setCurPage: (page: PageName) => void;
   user: User;
+  setToast: (err: ErrorType) => void;
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
@@ -47,10 +50,10 @@ export default function Auction({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    getAuctionBids("auction1").then((bids: AuctionBidHistory[]) => {
+    getAuctionBids(setToast, "auction1").then((bids: AuctionBidHistory[]) => {
       setBids(bids);
     });
-    pollForAuctionUpdates("auction1", signal, setBids);
+    pollForAuctionUpdates(setToast, "auction1", signal, setBids);
     // pollForAuctionUpdates("auction2", signal, setBids);
 
     return () => {
@@ -101,7 +104,7 @@ export default function Auction({
     const bidAmount = parseFloat(formData.get("bid_amount") as string);
     (e.currentTarget as HTMLFormElement).reset();
     console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-    submitBid("auction1", bidAmount, username);
+    submitBid(setToast, "auction1", bidAmount, username);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -6,7 +6,6 @@ import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
 import Auction from "@/pages/auction";
-import Bids from "@/pages/TEMPbids";
 import CreateBid from "@/pages/createbid";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
@@ -65,14 +64,10 @@ export default function PageHandler() {
       title: "Signup | SuperBiddo",
       component: <h1 className={styles.title}>Signup</h1>,
     },
-    bids: {
-      title: "Bids | SuperBiddo",
-      component: <Bids setCurPage={setCurPage} setToast={setToast} />,
-    },
     auction: {
       title: "Auction | SuperBiddo",
       component: user ? (
-        <Auction user={user} setCurPage={setCurPage} />
+        <Auction user={user} setCurPage={setCurPage} setToast={setToast} />
       ) : (
         <div>Loading...</div>
       ),
