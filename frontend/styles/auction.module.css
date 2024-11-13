@@ -77,7 +77,7 @@
 .high_bid,
 .closing_in,
 .num_bids {
-  flex: 1;
+  flex: 1.5;
   display: flex;
   padding: 10px 7px;
   flex-direction: column;
@@ -90,6 +90,7 @@
   border-right: 1px solid lightgray;
 }
 .num_bids {
+  flex: 1;
   background: none;
   border: 0;
   cursor: pointer;
