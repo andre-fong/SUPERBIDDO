@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import { fetchSession } from '@/utils/fetchFunctions';
 import { User } from '@/types/userTypes';
+import { ErrorType } from '@/types/errorTypes';
 
-function useUser() {
+function useUser(setToast: (error: ErrorType) => void) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        fetchSession().then((user) => {
-            setUser(user);
-            setLoading(false);
-        }).catch(() => {
+        fetchSession((error: ErrorType) => {
+            setToast(error);
             setUser(null);
             setLoading(false);
-        });
+        })
+        .then((user) => {
+            console.log(user);
+            setUser(user);
+            setLoading(false);
+        })
     }, []);
 
     return { user, loading };

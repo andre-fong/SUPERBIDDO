@@ -2,12 +2,13 @@ FROM --platform=linux/amd64 node:lts-slim AS build
 
 RUN mkdir -p /app
 WORKDIR /app
-COPY ./frontend /app
+COPY ./frontend/package.json /app/
 RUN npm install
+COPY ./frontend /app
 RUN npm run build
 
 FROM --platform=linux/amd64 node:lts-slim AS main
 WORKDIR /app
 COPY --from=build /app /app
 EXPOSE 3000
-CMD ["npm","run","start"]
+CMD ["npm","run","prod"]
