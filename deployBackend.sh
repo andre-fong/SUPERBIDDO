@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# production server (SSH public key authnetication)
+SERVER=35.208.53.6
+FRONTEND_ENV_PATH=frontend/.env.production
+BACKEND_ENV_PATH=backend/.env.production
+REMOTE_DEST_PATH=.env
+
+echo "Building and deploying the application to $SERVER..."
+
+echo "Building the backend..."
+docker build -t backend -f backend.dockerfile .
+if [ $? -ne 0 ]; then
+  echo "Backend build failed. Exiting..."
+  exit 1
+fi
+echo "Backend build successful!"
+
+echo "Uploading the backend image to $SERVER..."
+docker save backend | bzip2 | pv | ssh $SERVER docker load
+if [ $? -ne 0 ]; then
+  echo "Backend upload failed. Exiting..."
+  exit 1
+fi
+echo "Backend upload successful!"
+
+echo "Stopping all containers on $SERVER..."
+ssh $SERVER docker compose down --remove-orphans
+
+echo "Removing dangling images on $SERVER..."
+ssh $SERVER docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+
+echo "Copying docker-compose.yaml to $SERVER..."
+scp docker-compose.yaml $SERVER:.
+if [ $? -ne 0 ]; then
+  echo "docker-compose.yaml copy failed. Exiting..."
+  exit 1
+fi
+echo "docker-compose.yaml copy successful!"
+
+echo "Copying combined environment file to $SERVER..."
+{
+  cat "$FRONTEND_ENV_PATH"
+  echo "" # add a newline between files to separate them
+  cat "$BACKEND_ENV_PATH"
+} | ssh "$SERVER" "cat > $REMOTE_DEST_PATH"
+if [ $? -ne 0 ]; then
+  echo "Environment file copy failed. Exiting..."
+  exit 1
+fi
+echo "Environment file copy successful!"
+
+echo "Starting the application on $SERVER..."
+ssh $SERVER docker compose up -d
+if [ $? -ne 0 ]; then
+  echo "Application start failed. Exiting..."
+  exit 1
+fi
+echo "Application start successful!"
+echo "Application deployed successfully! (done)"
