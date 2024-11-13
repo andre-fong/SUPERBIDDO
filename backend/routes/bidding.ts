@@ -7,10 +7,38 @@ let auctionClients = {};
 
 // In-memory storage for auction bids
 let currentBids = {
-  auction1: [{ amount: 100, bidder: "Initial Bidder", date: new Date() }],
+  auction1: [{ amount: 1, bidder: "victo", date: new Date() }],
   auction2: [{ amount: 200, bidder: "Initial Bidder", date: new Date() }],
   // Add more auctions as needed
 };
+
+// TODO: ts types, and check if this fcn is time efficient
+function formatBids(bids) {
+  let bidders = {};
+  for (let bid of bids) {
+    if (!bidders[bid.bidder]) {
+      bidders[bid.bidder] = { bids: 0, highBid: 0 };
+    }
+    bidders[bid.bidder].bids++;
+    if (bid.amount > bidders[bid.bidder].highBid) {
+      bidders[bid.bidder].highBid = bid.amount;
+    }
+  }
+
+  let formattedBids = [];
+  for (let bidder in bidders) {
+    formattedBids.push({
+      bidder,
+      bids: bidders[bidder].bids,
+      highBid: bidders[bidder].highBid,
+      lastBidTime: bids[bids.length - 1].date,
+    });
+  }
+
+  formattedBids.sort((a, b) => b.highBid - a.highBid);
+
+  return formattedBids;
+}
 
 // Endpoint for clients to submit new bids for a specific auction
 router.post("/:auctionId", express.json(), (req, res) => {
@@ -31,7 +59,7 @@ router.post("/:auctionId", express.json(), (req, res) => {
     // Notify all clients waiting for this auction
     if (auctionClients[auctionId]) {
       auctionClients[auctionId].forEach((client) =>
-        client.res.json(currentBids[auctionId])
+        client.res.json(formatBids(currentBids[auctionId]))
       );
       auctionClients[auctionId] = [];
     }
@@ -71,6 +99,6 @@ router.get("/:auctionId", (req, res) => {
     return;
   } else {
     // Return the current state of the auction
-    res.json(currentBids[auctionId]);
+    res.json(formatBids(currentBids[auctionId]));
   }
 });

@@ -1,12 +1,6 @@
-import session from "express-session";
+import session, { SessionOptions } from "express-session";
 import { pool } from "./dbConfig.js";
 import pgSession from "connect-pg-simple";
-import * as dotenv from "dotenv";
-
-// load dev environment variables
-if (process.env.NODE_ENV === "development") {
-  dotenv.config({ path: "../.env.development" });
-}
 
 const store = new (pgSession(session))({
   pool: pool,
@@ -19,7 +13,7 @@ declare module "express-session" {
   }
 }
 
-export const sessionMiddleware = session({
+export const sessionConfig: SessionOptions = {
   secret: process.env.SESSION_SECRET,
   store: store,
   resave: false,
@@ -33,4 +27,4 @@ export const sessionMiddleware = session({
     // partitioned: true,
     maxAge: 1000 * 60 * 60 * 24, //24 hours, reset on activity
   },
-});
+};

@@ -4,7 +4,6 @@ export type PageName =
   | "home"
   | "login"
   | "signup"
-  | "bids"
   | "auction"
   | "profile"
   | "create";

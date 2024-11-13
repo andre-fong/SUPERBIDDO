@@ -1,7 +1,7 @@
-import { Bid } from "@/types/auctionTypes";
+import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 
-const url = "http://localhost:3001/api/v1";
+const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
@@ -36,11 +36,14 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
     });
 
     if (response.status === 404) {
-      errorFcn({ message: "Session info not found", severity: Severity.Critical });
+      errorFcn({
+        message: "Session info not found",
+        severity: Severity.Critical,
+      });
       return null;
     } else if (!response.ok) {
       errorFcn({ message: unkownError, severity: Severity.Critical });
-      return null; 
+      return null;
     }
 
     const userData = await response.json();
@@ -51,7 +54,10 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
   }
 }
 
-export async function getAuctionBids(errorFcn: (error: ErrorType) => void, auctionId: string) {
+export async function getAuctionBids(
+  errorFcn: (error: ErrorType) => void,
+  auctionId: string
+) {
   try {
     const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
       method: "GET",
@@ -77,7 +83,7 @@ export async function pollForAuctionUpdates(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
-  setBids: (bids: Bid[]) => void
+  setBids: (bids: AuctionBidHistory[]) => void
 ) {
   try {
     const response = await fetch(`${url}/bid/${auctionId}?poll=true`, {
@@ -93,14 +99,21 @@ export async function pollForAuctionUpdates(
       console.log(`POLLING New bid received for auction ${auctionId}:`, newBid);
       setBids(newBid);
     } else if (response.status === 404) {
-      errorFcn({ message: "Error initiating connection for an auction", severity: Severity.Critical });
+      errorFcn({
+        message: "Error initiating connection for an auction",
+        severity: Severity.Critical,
+      });
       console.error(
         `Error during polling for auction ${auctionId}:`,
         response.statusText
       );
     }
     // Re-initiate polling after receiving an update or timeout
-    setTimeout(() => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids), 1000);
+    setTimeout(
+      () => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids),
+      1000
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.name === "AbortError") {
       console.log(`Polling for auction ${auctionId} aborted`);
@@ -137,7 +150,10 @@ export async function submitBid(
         response.statusText
       );
     } else {
-      errorFcn({ message: "Failed to submit bid", severity: Severity.Critical });
+      errorFcn({
+        message: "Failed to submit bid",
+        severity: Severity.Critical,
+      });
       console.error(
         `Failed to submit bid for ${auctionId}:`,
         response.statusText
