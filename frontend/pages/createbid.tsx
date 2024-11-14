@@ -1,12 +1,36 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import styles from "@/styles/CardListing.module.css"; // Ensure you have this CSS file
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Container, Typography, Box } from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
 import cardRarities, { qualityList } from "@/types/cardGameInfo";
+import styles from "@/styles/CardListing.module.css";
+
+function SampleNextArrow(props: any) {
+  const { className,  onClick } = props;
+  return (
+    <div
+      className={className}
+      style={{display: "block", background: "#f44336", borderRadius: "30%"}}
+      onClick={onClick}
+    >
+    </div>
+  );
+}
+
+function SamplePrevArrow(props: any) {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={className}
+      style={{ display: "block", background: "#f44336", borderRadius: "30%" }}
+      onClick={onClick}
+    />
+  );
+}
 
 const CardListing: React.FC = () => {
   const cardPhotosRef = useRef<File | null>(null);
@@ -26,6 +50,9 @@ const CardListing: React.FC = () => {
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
+
+
+  //TODO format correctly
   const formatCardUploadData = async (uploadFormData: FormData) => {
     try {
       const response = await fetch("http://localhost:3000/api", {
@@ -103,8 +130,6 @@ const CardListing: React.FC = () => {
       startDate: startDateRef.current?.value,
       endDate: endDateRef.current?.value,
     };
-
-    console.log("Submitted Data:", formData);
   };
 
   const settings = {
@@ -113,123 +138,183 @@ const CardListing: React.FC = () => {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
+    nextArrow: <SampleNextArrow />,
+    prevArrow: <SamplePrevArrow />,
+    dotsClass: `slick-dots dots-bottom ${styles.dots}`,
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Card Listing Form</h1>
+    <Container maxWidth={false} style={{ padding: 40 }}>
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3}>
+        <Box flex={1} maxWidth="50%">
+            {(frontPhotoPreview || backPhotoPreview) &&
+            <Box border={1} borderRadius={2} boxShadow={3} padding={1} paddingBottom={1} borderColor="grey.500">
+              <Slider {...settings}>
+              {frontPhotoPreview && <img src={frontPhotoPreview} alt="Front Preview" />}
+              {backPhotoPreview && <img src={backPhotoPreview} alt="Back Preview" />}
+              </Slider>
+            </Box>
+            }
+        </Box>
+        <Box flex={1} maxWidth="50%">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', height: '100%', gap: '5px' }}>
+            <Typography variant="h3" component="h1" gutterBottom style={{ fontWeight: 'bold' }}>
+            Card Listing Form
+            </Typography>
+          <FormControl fullWidth margin="normal" >
+              <InputLabel>Card Type</InputLabel>
+              <Select
+                value={cardType}
+                onChange={(e) => setCardType(e.target.value)}
+                required
+              >
+                    <MenuItem value="MTG">Magic: The Gathering</MenuItem>
+                    <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
+                    <MenuItem value="Pokemon">Pokemon</MenuItem>
+                  </Select>
+            </FormControl>
 
-      <Slider {...settings} className={styles.slider}>
-        <img src={frontPhotoPreview} className={styles.image} />
-        <img src={backPhotoPreview} className={styles.image} />
-      </Slider>
+            <TextField
+              label="Card Name"
+              inputRef={cardNameRef}
+              fullWidth
+              sx={{ margin: "normal" }}
+              required
+            />
 
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="cardType">Card Type*</label>
-          <select
-            value={cardType}
-            onChange={(e) => setCardType(e.target.value)}
-            required
-          >
-            <option value="MTG">Magic: The Gathering</option>
-            <option value="Yugioh">Yu-Gi-Oh!</option>
-            <option value="Pokemon">Pokemon</option>
-          </select>
-        </div>
+            <TextField
+              label="Description"
+              inputRef={descriptionRef}
+              fullWidth
+              margin="normal"
+              multiline
+              rows={4}
+            />
 
-        <div className={styles.formGroup}>
-          <label>Card Name*</label>
-          <input type="text" ref={cardNameRef} required />
-        </div>
+            <Button
+              variant="contained"
+              component="label"
+              fullWidth
+              sx={{ marginBottom: "10px"}}
+            >
+              Upload Front Photo
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleFileChange}
+                required
+              />
+            </Button>
 
-        <div className={styles.formGroup}>
-          <label>Description</label>
-          <textarea ref={descriptionRef}></textarea>
-        </div>
+            <Button
+              variant="contained"
+              component="label"
+              fullWidth
+              sx={{ margin: "normal" }}
+            >
+              Upload Back Photo
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleBackChange}
+              />
+            </Button>
 
-        <div className={styles.formGroup}>
-          <label>Upload Front Photo</label>
-          <input
-            required
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-        </div>
+            <TextField
+              label="Manufacturer"
+              inputRef={manufacturerRef}
+              fullWidth
+              margin="normal"
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Upload Back Photo</label>
-          <input type="file" accept="image/*" onChange={handleBackChange} />
-        </div>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Quality</InputLabel>
+              <Select inputRef={qualityRef} required>
+                {qualityList.map((quality: string, index: number) => (
+                  <MenuItem value={quality} key={index}>
+                    {quality}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-        <div className={styles.formGroup}>
-          <label>Manufacturer*</label>
-          <input type="text" ref={manufacturerRef} required />
-        </div>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Rarity</InputLabel>
+              <Select inputRef={rarityRef} required>
+                {cardRarities[cardType]?.rarities.map(
+                  (rarity: string, index: number) => (
+                    <MenuItem value={rarity} key={index}>
+                      {rarity}
+                    </MenuItem>
+                  )
+                )}
+              </Select>
+            </FormControl>
 
-        <div className={styles.formGroup}>
-          <label>Quality*</label>
-          <select ref={qualityRef} required>
-            {qualityList.map((quality: string, index: number) => (
-              <option value={quality} key={index}>
-                {quality}
-              </option>
-            ))}
-          </select>
-        </div>
+            <TextField
+              label="Set"
+              inputRef={setRef}
+              fullWidth
+              margin="normal"
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Rarity*</label>
-          <select ref={rarityRef} required>
-            {cardRarities[cardType]?.rarities.map(
-              (rarity: string, index: number) => (
-                <option value={rarity} key={index}>
-                  {rarity}
-                </option>
-              )
-            )}
-          </select>
-        </div>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Foil (y/n)</InputLabel>
+              <Select inputRef={isFoilRef} required>
+                <MenuItem value="No">No</MenuItem>
+                <MenuItem value="Yes">Yes</MenuItem>
+              </Select>
+            </FormControl>
 
-        <div className={styles.formGroup}>
-          <label>Set</label>
-          <input type="text" ref={setRef} required />
-        </div>
+            <TextField
+              label="Starting Price"
+              type="number"
+              inputRef={startingPriceRef}
+              fullWidth
+              margin="normal"
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Foil (y/n)*</label>
-          <select ref={isFoilRef} required>
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        </div>
+            <TextField
+              label="Spread"
+              type="number"
+              inputRef={spreadRef}
+              fullWidth
+              margin="normal"
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Starting Price*</label>
-          <input type="number" step="0.01" ref={startingPriceRef} required />
-        </div>
+            <TextField
+              label="Start Date"
+              type="date"
+              inputRef={startDateRef}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Spread*</label>
-          <input type="number" step="0.01" ref={spreadRef} required />
-        </div>
+            <TextField
+              label="End Date"
+              type="date"
+              inputRef={endDateRef}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              required
+            />
 
-        <div className={styles.formGroup}>
-          <label>Start Date</label>
-          <input type="date" ref={startDateRef} required />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>End Date</label>
-          <input type="date" ref={endDateRef} required />
-        </div>
-
-        <button type="submit" className={styles.submitButton}>
-          Submit Listing
-        </button>
-      </form>
-    </div>
+            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ padding: '15px', fontSize: '20px', marginTop: '20px' }}>
+              Submit Listing
+            </Button>
+          </form>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

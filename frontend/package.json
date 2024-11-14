@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development dotenvx run -f ../.env.development -- next dev",
+    "dev": "dotenvx run -f .env.development -- next dev",
     "build": "cross-env NODE_ENV=production next build",
     "prod": "cross-env NODE_ENV=production next start",
     "start": "next start",
@@ -27,14 +27,18 @@
     "node.js": "^0.0.1-security",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-material-ui-carousel": "^3.4.2",
+    "react-inner-image-zoom": "^3.0.2",
     "react-slick": "^0.30.2",
     "react-toastify": "^10.0.6",
+    "react-timer-hook": "^3.0.8",
     "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-inner-image-zoom": "^3.0.3",
     "@types/react-slick": "^0.23.13",
     "cross-env": "^7.0.3",
     "eslint": "^8",

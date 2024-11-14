@@ -6,7 +6,6 @@ import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
 import Auction from "@/pages/auction";
-import Bids from "@/pages/TEMPbids";
 import CreateBid from "@/pages/createbid";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
@@ -36,7 +35,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("login");
+  const [curPage, setCurPage] = useState<PageName>("create");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -65,14 +64,10 @@ export default function PageHandler() {
       title: "Signup | SuperBiddo",
       component: <h1 className={styles.title}>Signup</h1>,
     },
-    bids: {
-      title: "Bids | SuperBiddo",
-      component: <Bids setCurPage={setCurPage} setToast={setToast} />,
-    },
     auction: {
       title: "Auction | SuperBiddo",
       component: user ? (
-        <Auction user={user} setCurPage={setCurPage} />
+        <Auction user={user} setCurPage={setCurPage} setToast={setToast} />
       ) : (
         <div>Loading...</div>
       ),
@@ -91,7 +86,6 @@ export default function PageHandler() {
     changePageTitle(pages[curPage].title);
   }, [curPage]);
 
-  // TODO: Add navbar (unless page is login/signup)
   return (
     <>
       {toastMessage && toastSeverity && (

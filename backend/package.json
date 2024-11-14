@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prod": "cross-env NODE_ENV=production tsc ./configServices/envConfig.ts --moduleResolution node --module ESNext --target ES6 --outDir ./temp && cross-env NODE_ENV=production tsx --import=./temp/envConfig.js index.ts && rimraf ./temp",
-    "dev": "cross-env NODE_ENV=development dotenvx run -f ../.env.development -- tsx watch index.ts",
+    "dev": "dotenvx run -f .env.development -- tsx watch index.ts",
     "pretty": "prettier --write \"./**/*.{ts,js,jsx,json}\""
   },
   "keywords": [],

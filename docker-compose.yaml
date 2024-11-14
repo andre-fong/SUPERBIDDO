@@ -36,8 +36,6 @@ services:
       - VIRTUAL_HOST=${FRONTEND_DOMAIN}
       # certificate information for let's encrypt
       - LETSENCRYPT_HOST=${FRONTEND_DOMAIN}
-      # frontend environment variables
-      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 
   # express backend
   backend:

@@ -8,14 +8,6 @@ REMOTE_DEST_PATH=.env
 
 echo "Building and deploying the application to $SERVER..."
 
-echo "Building the frontend..."
-docker build -t frontend -f frontend.dockerfile .
-if [ $? -ne 0 ]; then
-  echo "Frontend build failed. Exiting..."
-  exit 1
-fi
-echo "Frontend build successful!"
-
 echo "Building the backend..."
 docker build -t backend -f backend.dockerfile .
 if [ $? -ne 0 ]; then
@@ -23,14 +15,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo "Backend build successful!"
-
-echo "Uploading the frontend image to $SERVER..."
-docker save frontend | bzip2 | pv | ssh $SERVER docker load
-if [ $? -ne 0 ]; then
-  echo "Frontend upload failed. Exiting..."
-  exit 1
-fi
-echo "Frontend upload successful!"
 
 echo "Uploading the backend image to $SERVER..."
 docker save backend | bzip2 | pv | ssh $SERVER docker load
