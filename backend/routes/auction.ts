@@ -137,7 +137,7 @@ router.post("/", async (req, res) => {
   // (openapi cannot define fields based on other fields)
 
   // must start in the future
-  if (auctionInput.startTime.getTime() < Date.now()) {
+  if (new Date(auctionInput.startTime).getTime() < Date.now()) {
     throw new BusinessError(
       400,
       "Invalid auction start time",
@@ -147,7 +147,8 @@ router.post("/", async (req, res) => {
 
   // must last at least 5 minutes
   if (
-    auctionInput.endTime.getTime() - auctionInput.startTime.getTime() <
+    new Date(auctionInput.endTime).getTime() -
+      new Date(auctionInput.startTime).getTime() <
     5 * 60 * 1000
   ) {
     throw new BusinessError(
@@ -168,7 +169,7 @@ router.post("/", async (req, res) => {
       [
         auctionInput.auctioneerId,
         auctionInput.name,
-        auctionInput.description ? auctionInput.description : "DEFAULT",
+        auctionInput.description,
         auctionInput.startPrice,
         auctionInput.spread,
         auctionInput.startTime,
@@ -197,7 +198,7 @@ router.post("/", async (req, res) => {
           auctionRecord.auctionId,
           bundleInput.game,
           bundleInput.name,
-          bundleInput.description ? bundleInput.description : "DEFAULT",
+          bundleInput.description,
           bundleInput.manufacturer,
           bundleInput.set,
         ]
@@ -241,7 +242,7 @@ router.post("/", async (req, res) => {
         auctionRecord.auctionId,
         card.game,
         card.name,
-        card.description ? card.description : "DEFAULT",
+        card.description,
         card.manufacturer,
         card.quality,
         card.rarity,
