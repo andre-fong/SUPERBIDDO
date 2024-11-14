@@ -46,7 +46,6 @@ router.get("/:auctionId", async (req, res) => {
     throw new BusinessError(404, "Auction not found");
   }
 
-  // get cards/bundle records
   if (auctionRecord.isBundle) {
     const bundleRecord = camelize(
       await pool.query<BundleDb>(
@@ -57,8 +56,9 @@ router.get("/:auctionId", async (req, res) => {
       )
     ).rows[0];
 
+    // bundle should exist based on auctionRecord.is_bundle
     if (!bundleRecord) {
-      throw new BusinessError(404, "Bundle not found");
+      throw new ServerError(500, "Error fetching auction");
     }
 
     const auction: Auction = {
@@ -71,20 +71,22 @@ router.get("/:auctionId", async (req, res) => {
       startTime: auctionRecord.startTime,
       endTime: auctionRecord.endTime,
       currentPrice: auctionRecord.currentPrice,
-      topBid: {
-        bidId: auctionRecord.bidId,
-        auctionId: auctionRecord.auctionId,
-        bidderId: auctionRecord.bidderId,
-        amount: auctionRecord.amount,
-        timestamp: auctionRecord.timestamp,
-      },
+      topBid: auctionRecord.bidId
+        ? {
+            bidId: auctionRecord.bidId,
+            auctionId: auctionRecord.auctionId,
+            bidderId: auctionRecord.bidderId,
+            amount: auctionRecord.amount,
+            timestamp: auctionRecord.timestamp,
+          }
+        : null,
       bundle: bundleRecord,
     };
     res.json(auction);
     return;
   }
 
-  const cardsRecord = camelize(
+  const cardsRecords = camelize(
     await pool.query<CardDb>(
       ` SELECT *
         FROM card
@@ -93,8 +95,9 @@ router.get("/:auctionId", async (req, res) => {
     )
   ).rows;
 
-  if (!cardsRecord) {
-    throw new BusinessError(404, "Cards not found");
+  // cards should exist based on !auctionRecord.is_bundle
+  if (!cardsRecords) {
+    throw new ServerError(500, "Error fetching auction");
   }
 
   const auction: Auction = {
@@ -107,14 +110,16 @@ router.get("/:auctionId", async (req, res) => {
     startTime: auctionRecord.startTime,
     endTime: auctionRecord.endTime,
     currentPrice: auctionRecord.currentPrice,
-    topBid: {
-      bidId: auctionRecord.bidId,
-      auctionId: auctionRecord.auctionId,
-      bidderId: auctionRecord.bidderId,
-      amount: auctionRecord.amount,
-      timestamp: auctionRecord.timestamp,
-    },
-    cards: cardsRecord,
+    topBid: auctionRecord.bidId
+      ? {
+          bidId: auctionRecord.bidId,
+          auctionId: auctionRecord.auctionId,
+          bidderId: auctionRecord.bidderId,
+          amount: auctionRecord.amount,
+          timestamp: auctionRecord.timestamp,
+        }
+      : null,
+    cards: cardsRecords,
   };
 
   res.json(auction);
