@@ -256,6 +256,28 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+  /api/v1/auctions/{auctionId}:
+    get:
+      summary: Get an auction by its auctionId.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: The auction with the provided auctionId.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auction"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
 components:
   schemas:
     Account:
