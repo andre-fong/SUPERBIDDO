@@ -11,7 +11,7 @@ import session from "express-session";
 import { BusinessError, ServerError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
-import { router as auctionRouter } from "./routes/auction.js";
+import { router as auctionRouter } from "./routes/auctions.js";
 import { router as biddingRouter } from "./routes/bidding.js";
 
 const PORT = process.env.PORT || 3001;
