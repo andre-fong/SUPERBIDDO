@@ -49,7 +49,7 @@ export default function PageHandler() {
     }
   };
 
-  const { user, loading } = useUser(setToast);
+  const { user, loading } = useUser();
 
   const pages: PageData = {
     home: {
@@ -78,7 +78,7 @@ export default function PageHandler() {
     },
     create: {
       title: "Create Auction | SuperBiddo",
-      component: <CreateBid />,
+      component: <CreateBid setToast={setToast} />,
     },
   };
 
