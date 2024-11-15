@@ -227,11 +227,15 @@ router.post("/", async (req, res) => {
   // openapi schema ensures exactly one of cards/bundle is present
   const cardsInput = auctionInput.cards;
 
-  // generate string of variables $1, $2, ... for query
-  const valuesString = `(${Array(cardsInput.length * 9)
-    .fill(0)
-    .map((_, i) => `$${i + 1}`)
-    .reduce((acc, val) => acc + ", " + val)})`;
+  // generate string of variables ($1, $2, ... $9), ($10, $11, ... $18) ... for query
+  const valuesString = cardsInput
+    .map(
+      (_, i) =>
+        `(${Array.from({ length: 9 }, (_, j) => `$${i * 9 + j + 1}`).join(
+          ", "
+        )})`
+    )
+    .join(", ");
 
   const cardsRecord = camelize(
     await pool.query<CardDb>(
