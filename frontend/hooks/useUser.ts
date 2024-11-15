@@ -3,13 +3,13 @@ import { fetchSession } from '@/utils/fetchFunctions';
 import { User } from '@/types/userTypes';
 import { ErrorType } from '@/types/errorTypes';
 
-function useUser(setToast: (error: ErrorType) => void) {
+function useUser() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         fetchSession((error: ErrorType) => {
-            setToast(error);
+            console.error(error);
             setUser(null);
             setLoading(false);
         })
