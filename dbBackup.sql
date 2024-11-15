@@ -84,6 +84,9 @@ $function$
 
 CREATE TABLE public.account (
 	account_id uuid NOT NULL DEFAULT gen_random_uuid(),
+	username varchar(30) NOT NULL,
+	email public.citext NOT NULL,
+	passhash bpchar(60) NOT NULL,
 	CONSTRAINT account_pk PRIMARY KEY (account_id)
 );
 
