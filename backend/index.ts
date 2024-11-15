@@ -30,7 +30,6 @@ app.use(
   })
 );
 
-console.log(sessionConfig);
 app.use(session(sessionConfig));
 
 app.use(
