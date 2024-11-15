@@ -8,6 +8,7 @@ import crypto from "crypto";
 export const router = express.Router();
 
 router.get("/", async (req, res, next) => {
+  console.log(req.session);
   if (!req.session.accountUid) {
     throw sessionNotFound();
   }
@@ -17,7 +18,6 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   // TEMP just make a new session with a random accountUid
-  console.log("creating new session");
   req.session.accountUid = crypto.randomUUID();
   res.status(201).json(req.session);
   //   const { username, password } = req.body;

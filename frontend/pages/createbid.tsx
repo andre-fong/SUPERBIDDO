@@ -6,9 +6,12 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Container, Typography, Box } from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
+import { createAuction } from "@/utils/fetchFunctions";
 import cardRarities, { qualityList } from "@/types/cardGameInfo";
 import styles from "@/styles/CardListing.module.css";
 import { ErrorType, Severity } from "@/types/errorTypes";
+import { User } from "@/types/userTypes";
+import { PageName } from "@/types/pageTypes";
 
 function SampleNextArrow(props: any) {
   const { className,  onClick } = props;
@@ -35,13 +38,16 @@ function SamplePrevArrow(props: any) {
 
 interface CardListingProps {
   setToast: (error: ErrorType) => void;
+  user: User;
+  setCurPage: (page: PageName) => void;
 }
 
-const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
+const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage }) => {
   const cardPhotosRef = useRef<File | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
   const [backPhotoPreview, setBackPreview] = useState<string>();
   const [cardType, setCardType] = useState<string>("MTG");
+  const [type, setType] = useState<string>("Card");
 
   const cardNameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +72,6 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
       });
 
       const data = await response.json();
-      console.log(data);
       const cardInfo = JSON.parse(data.response);
       const price = await fetchCardPrice(
         cardInfo.cardType,
@@ -78,36 +83,45 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
 
       let missingFields = [];
 
+      if (type === "Card") {
+        
+        if (qualityRef.current) {
+          qualityRef.current.value = cardInfo.quality;
+        } else {
+          missingFields.push("Quality");
+        }
+
+        if (isFoilRef.current) {
+          isFoilRef.current.value = cardInfo.foil === "Yes" ? "Yes" : "No";
+        } else {
+          missingFields.push("Foil information");
+        }
+
+        if (rarityRef.current) {
+          rarityRef.current.value = cardInfo.rarity;
+        } else {
+          missingFields.push("Rarity");
+        }
+      }
+
       if (cardNameRef.current) {
         cardNameRef.current.value = cardInfo.cardName;
       } else {
-        missingFields.push("Card name");
+        if (type === "Bundle") {
+          missingFields.push("Bundle name");
+        } else {
+          missingFields.push("Card name");
+        }
       }
 
       setCardType(cardInfo.cardType);
 
-      if (isFoilRef.current) {
-        isFoilRef.current.value = cardInfo.foil === "Yes" ? "Yes" : "No";
-      } else {
-        missingFields.push("Foil information");
-      }
+
 
       if (manufacturerRef.current) {
         manufacturerRef.current.value = cardInfo.manufacturer;
       } else {
         missingFields.push("Manufacturer");
-      }
-
-      if (qualityRef.current) {
-        qualityRef.current.value = cardInfo.quality;
-      } else {
-        missingFields.push("Quality");
-      }
-
-      if (rarityRef.current) {
-        rarityRef.current.value = cardInfo.rarity;
-      } else {
-        missingFields.push("Rarity");
       }
 
       if (setRef.current) {
@@ -126,7 +140,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
         setToast({ message: `Unable to get these fields: ${missingFields.join(", ")}`, severity: Severity.Warning });
       }
     } catch (error) {
-      setToast({message: "Error uploading card", severity: Severity.Critical}); 
+      setToast({message: "Error uploading retrieving fields for cards", severity: Severity.Critical}); 
     }
   };
 
@@ -159,22 +173,55 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = {
-      cardType: cardType,
-      cardName: cardNameRef.current?.value,
-      description: descriptionRef.current?.value,
-      cardPhotos: cardPhotosRef.current,
-      manufacturer: manufacturerRef.current?.value,
-      quality: qualityRef.current?.value,
-      rarity: rarityRef.current?.value,
-      set: setRef.current?.value,
-      isFoil: isFoilRef.current?.value,
-      startingPrice: startingPriceRef.current?.value,
-      spread: spreadRef.current?.value,
-      startDate: startDateRef.current?.value,
-      endDate: endDateRef.current?.value,
+    if (!frontPhotoPreview) {
+      setToast({ message: "Please upload a front photo", severity: Severity.Warning });
+      return;
+    }
+
+    if (startDateRef.current && endDateRef.current && new Date(startDateRef.current.value) >= new Date(endDateRef.current.value)) {
+      setToast({ message: "Start date must be before end date", severity: Severity.Warning });
+      return;
+    }
+
+    const auctionData: any = {
+      auctioneerId: user.accountUid,
+      name: cardNameRef.current?.value || "",
+      description: descriptionRef.current?.value || "",
+      startPrice: parseFloat(startingPriceRef.current?.value || "0"),
+      spread: parseFloat(spreadRef.current?.value || "0"),
+      startTime: new Date(startDateRef.current?.value || "").toISOString(),
+      endTime: new Date(endDateRef.current?.value || "").toISOString(),
+      type: type,
+      cards: type === "Card" ? {
+      game: cardType,
+      name: cardNameRef.current?.value || "",
+      description: descriptionRef.current?.value || "",
+      manufacturer: manufacturerRef.current?.value || "",
+      quality: qualityRef.current?.value || "Mint",
+      rarity: rarityRef.current?.value || "Common",
+      set: setRef.current?.value || "",
+      isFoil: isFoilRef.current?.value === "Yes"
+      } : undefined
     };
-  };
+
+    if (type === "Bundle") {
+      auctionData.bundle = {
+      game: cardType,
+      name: cardNameRef.current?.value || "",
+      description: descriptionRef.current?.value || "",
+      manufacturer: manufacturerRef.current?.value || "",
+      set: setRef.current?.value || "",
+      };
+    }
+    
+    console.log(auctionData);
+
+    createAuction(setToast, auctionData).then((auction) => 
+      //TODO: redirect to correct page
+      console.log(auction)
+    );
+
+  }
 
   const settings = {
     dots: true,
@@ -218,11 +265,63 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
                   </Select>
             </FormControl>
 
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="type-label">Type</InputLabel>
+                <Select
+                  labelId="type-label"
+                  value={type}
+                  onChange={(e) => {
+                    setType(e.target.value);
+                  }}
+                  required
+                >
+                  <MenuItem value="Bundle">Bundle</MenuItem>
+                  <MenuItem value="Card">Card</MenuItem>
+                </Select>
+                </FormControl>
+
+                {type === "Card" && (
+                  <>
+                   
+
+                    <FormControl fullWidth>
+                      <InputLabel>Quality</InputLabel>
+                      <Select inputRef={qualityRef} required>
+                        {qualityList.map((quality: string, index: number) => (
+                          <MenuItem value={quality} key={index}>
+                            {quality}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth sx={{ marginTop: '13px' }}>
+                      <InputLabel>Foil (y/n)</InputLabel>
+                      <Select inputRef={isFoilRef} required>
+                        <MenuItem value="No">No</MenuItem>
+                        <MenuItem value="Yes">Yes</MenuItem>
+                      </Select>
+                    </FormControl>
+                        
+                    <FormControl fullWidth sx={{ marginTop: '13px' }}>
+                      <InputLabel>Rarity</InputLabel>
+                      <Select inputRef={rarityRef} required>
+                        {cardRarities[cardType]?.rarities.map(
+                          (rarity: string, index: number) => (
+                            <MenuItem value={rarity} key={index}>
+                              {rarity}
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+                  </>
+                )}
             <TextField
-              label="Card Name"
+              label={type === "Bundle" ? "Bundle Name" : "Card Name"}
               inputRef={cardNameRef}
               fullWidth
-              sx={{ margin: "normal" }}
+              sx={{ marginTop: "10px" }}
               required
             />
 
@@ -274,30 +373,6 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
               required
             />
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Quality</InputLabel>
-              <Select inputRef={qualityRef} required>
-                {qualityList.map((quality: string, index: number) => (
-                  <MenuItem value={quality} key={index}>
-                    {quality}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Rarity</InputLabel>
-              <Select inputRef={rarityRef} required>
-                {cardRarities[cardType]?.rarities.map(
-                  (rarity: string, index: number) => (
-                    <MenuItem value={rarity} key={index}>
-                      {rarity}
-                    </MenuItem>
-                  )
-                )}
-              </Select>
-            </FormControl>
-
             <TextField
               label="Set"
               inputRef={setRef}
@@ -306,14 +381,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
               required
             />
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Foil (y/n)</InputLabel>
-              <Select inputRef={isFoilRef} required>
-                <MenuItem value="No">No</MenuItem>
-                <MenuItem value="Yes">Yes</MenuItem>
-              </Select>
-            </FormControl>
-
+  
             <TextField
               label="Starting Price"
               type="number"
@@ -321,6 +389,11 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
               fullWidth
               margin="normal"
               required
+              InputLabelProps={{ shrink: true }}
+              inputProps={{
+                step: "0.01",
+                min: "0",
+              }}
             />
 
             <TextField
@@ -330,26 +403,37 @@ const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
               fullWidth
               margin="normal"
               required
+              InputLabelProps={{ shrink: true }}
+              inputProps={{
+                step: "0.1",
+                min: "0",
+              }}
             />
 
             <TextField
-              label="Start Date"
-              type="date"
+              label="Start Date and Time"
+              type="datetime-local"
               inputRef={startDateRef}
               fullWidth
               margin="normal"
               InputLabelProps={{ shrink: true }}
               required
+              inputProps={{
+                min: new Date().toISOString().slice(0, 16),
+              }}
             />
 
             <TextField
-              label="End Date"
-              type="date"
+              label="End Date and Time"
+              type="datetime-local"
               inputRef={endDateRef}
               fullWidth
               margin="normal"
               InputLabelProps={{ shrink: true }}
               required
+              inputProps={{
+                min: new Date().toISOString().slice(0, 16),
+              }}
             />
 
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ padding: '15px', fontSize: '20px', marginTop: '20px' }}>

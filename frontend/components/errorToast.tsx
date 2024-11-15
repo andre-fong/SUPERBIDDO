@@ -6,17 +6,16 @@ import { ErrorType, Severity } from '@/types/errorTypes';
 
 function ErrorToast({ message, severity }: ErrorType) {
     useEffect(() => {
-        const toastOptions: ToastOptions = {
-            style: {
-                backgroundColor: 'white',
-                color: severity === Severity.Critical ? 'red' : 'yellow'
-            },
-            icon: severity === Severity.Critical ? <span>❗</span> : <span>⚠️</span>
-        };
+        // const toastOptions: ToastOptions = {
+        //     style: {
+        //         backgroundColor: 'white',
+        //     },
+        //     icon: severity === Severity.Critical ? <span>❗</span> : <span>⚠️</span>
+        // };
         if (severity === Severity.Critical) {
-            toast.error(message, toastOptions);
+            toast.error(message);
         } else if (severity === Severity.Warning) {
-            toast.warn(message, toastOptions);
+            toast.warn(message);
         }
     }, [message, severity]);
 

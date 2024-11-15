@@ -14,7 +14,6 @@ function useUser() {
             setLoading(false);
         })
         .then((user) => {
-            console.log(user);
             setUser(user);
             setLoading(false);
         })
