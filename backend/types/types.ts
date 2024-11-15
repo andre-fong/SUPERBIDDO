@@ -1,3 +1,15 @@
+type AccountInput = {
+  email: string;
+  password: string;
+  username: string;
+};
+
+type Account = {
+  accountId: string;
+  email: string;
+  username: string;
+};
+
 type AuctionInput = {
   auctioneerId: string;
   name: string;
