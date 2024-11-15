@@ -9,7 +9,7 @@ const store = new (pgSession(session))({
 // configure session data
 declare module "express-session" {
   interface SessionData {
-    accountUid?: string;
+    accountId?: string;
   }
 }
 
