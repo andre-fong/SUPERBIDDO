@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prod": "cross-env NODE_ENV=production tsc ./configServices/envConfig.ts --moduleResolution node --module ESNext --target ES6 --outDir ./temp && cross-env NODE_ENV=production tsx --import=./temp/envConfig.js index.ts && rimraf ./temp",
-    "dev": "dotenvx run -f .env.development -- tsx watch index.ts",
+    "dev": "cross-env NODE_ENV=development dotenvx run -f .env.development -- tsx watch index.ts",
     "pretty": "prettier --write \"./**/*.{ts,js,jsx,json}\""
   },
   "keywords": [],
@@ -33,6 +33,7 @@
     "typescript": "^5.6.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/camelize": "^1.0.1",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.0",

@@ -10,12 +10,6 @@ import {
 
 export const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  if (!req.session.accountUid) {
-    throw sessionNotFound();
-  }
-});
-
 router.get("/:auctionId", async (req, res) => {
   const auctionId = req.params.auctionId;
 
@@ -129,7 +123,7 @@ router.post("/", async (req, res) => {
   const auctionInput: AuctionInput = req.body;
 
   // can only post auctions for self
-  if (auctionInput.auctioneerId !== req.session.accountUid) {
+  if (auctionInput.auctioneerId !== req.session.accountId) {
     throw unauthorized();
   }
 

@@ -1,3 +1,10 @@
+type AccountDb = {
+  account_id: string;
+  username: string;
+  email: string;
+  passhash: string;
+};
+
 type AuctionDb = {
   auction_id: string;
   auctioneer_id: string;

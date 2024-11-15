@@ -11,7 +11,8 @@ import session from "express-session";
 import { BusinessError, ServerError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
-import { router as auctionRouter } from "./routes/auction.js";
+import { router as accountRouter } from "./routes/accounts.js";
+import { router as auctionRouter } from "./routes/auctions.js";
 import { router as biddingRouter } from "./routes/bidding.js";
 
 const PORT = process.env.PORT || 3001;
@@ -44,6 +45,7 @@ app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
 
+app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/bid", biddingRouter);
