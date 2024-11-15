@@ -8,6 +8,7 @@ import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Container
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
 import cardRarities, { qualityList } from "@/types/cardGameInfo";
 import styles from "@/styles/CardListing.module.css";
+import { ErrorType, Severity } from "@/types/errorTypes";
 
 function SampleNextArrow(props: any) {
   const { className,  onClick } = props;
@@ -32,7 +33,11 @@ function SamplePrevArrow(props: any) {
   );
 }
 
-const CardListing: React.FC = () => {
+interface CardListingProps {
+  setToast: (error: ErrorType) => void;
+}
+
+const CardListing: React.FC<CardListingProps> = ({ setToast }) => {
   const cardPhotosRef = useRef<File | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
   const [backPhotoPreview, setBackPreview] = useState<string>();
@@ -61,6 +66,7 @@ const CardListing: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log(data);
       const cardInfo = JSON.parse(data.response);
       const price = await fetchCardPrice(
         cardInfo.cardType,
@@ -70,19 +76,57 @@ const CardListing: React.FC = () => {
         cardInfo.foil === "Yes"
       );
 
-      if (cardNameRef.current) cardNameRef.current.value = cardInfo.cardName;
+      let missingFields = [];
+
+      if (cardNameRef.current) {
+        cardNameRef.current.value = cardInfo.cardName;
+      } else {
+        missingFields.push("Card name");
+      }
+
       setCardType(cardInfo.cardType);
-      if (isFoilRef.current)
+
+      if (isFoilRef.current) {
         isFoilRef.current.value = cardInfo.foil === "Yes" ? "Yes" : "No";
-      if (manufacturerRef.current)
+      } else {
+        missingFields.push("Foil information");
+      }
+
+      if (manufacturerRef.current) {
         manufacturerRef.current.value = cardInfo.manufacturer;
-      if (qualityRef.current) qualityRef.current.value = cardInfo.quality;
-      if (rarityRef.current) rarityRef.current.value = cardInfo.rarity;
-      if (setRef.current) setRef.current.value = cardInfo.set;
-      if (startingPriceRef.current)
+      } else {
+        missingFields.push("Manufacturer");
+      }
+
+      if (qualityRef.current) {
+        qualityRef.current.value = cardInfo.quality;
+      } else {
+        missingFields.push("Quality");
+      }
+
+      if (rarityRef.current) {
+        rarityRef.current.value = cardInfo.rarity;
+      } else {
+        missingFields.push("Rarity");
+      }
+
+      if (setRef.current) {
+        setRef.current.value = cardInfo.set;
+      } else {
+        missingFields.push("Set");
+      }
+
+      if (startingPriceRef.current) {
         startingPriceRef.current.value = price || "";
+      } else {
+        missingFields.push("Starting price");
+      }
+
+      if (missingFields.length > 0) {
+        setToast({ message: `Unable to get these fields: ${missingFields.join(", ")}`, severity: Severity.Warning });
+      }
     } catch (error) {
-      console.error("Error:", error);
+      setToast({message: "Error uploading card", severity: Severity.Critical}); 
     }
   };
 
