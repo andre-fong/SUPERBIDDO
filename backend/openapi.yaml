@@ -17,6 +17,24 @@ paths:
                 properties:
                   version:
                     type: string
+  /api/v1/accounts:
+    post:
+      summary: Create a new account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+      responses:
+        201:
+          description: The newly created account.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/BadRequest"
   /api/v1/session:
     get:
       summary: Get the current session details.
@@ -284,18 +302,22 @@ components:
       type: object
       description: All data associated with an account.
       required:
+        - username
         - email
         - password
-        - address
+        # - address
       properties:
+        username:
+          type: string
+          maxLength: 30
         email:
           $ref: "#/components/schemas/Email"
         password:
           writeOnly: true
           allOf:
             - $ref: "#/components/schemas/Password"
-        address:
-          $ref: "#/components/schemas/Address"
+        # address:
+        #   $ref: "#/components/schemas/Address"
     Address:
       type: object
       required:
