@@ -9,8 +9,7 @@ export const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   if (!req.session.accountUid) {
-    next(sessionNotFound);
-    return;
+    throw sessionNotFound();
   }
   req.session.touch();
   res.json(req.session);

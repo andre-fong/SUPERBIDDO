@@ -8,9 +8,10 @@ import helmet from "helmet";
 import { sessionConfig } from "./configServices/sessionConfig.js";
 import { corsConfig } from "./configServices/corsConfig.js";
 import session from "express-session";
-import { BusinessError } from "./utils/errors.js";
+import { BusinessError, ServerError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
+import { router as auctionRouter } from "./routes/auction.js";
 import { router as biddingRouter } from "./routes/bidding.js";
 
 const PORT = process.env.PORT || 3001;
@@ -29,22 +30,22 @@ app.use(
   })
 );
 
-console.log(sessionConfig);
 app.use(session(sessionConfig));
 
-// app.use(
-//   OpenApiValidator.middleware({
-//     apiSpec: "./openapi.yaml",
-//     validateRequests: true, // (default)
-//     validateResponses: false, // false by default
-//   })
-// );
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: "./openapi.yaml",
+    validateRequests: true, // (default)
+    validateResponses: false, // false by default
+  })
+);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
 
 app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/bid", biddingRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
@@ -53,6 +54,11 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   console.log("-----\nError: \n" + err + "\n-----");
   // BusinessError is a class for my custom errors
   if (err instanceof BusinessError) {
+    console.log("err instanceof BusinessError");
+    err.path = req.originalUrl;
+    const errors = [err];
+    res.status(err.status).json(errors);
+  } else if (err instanceof ServerError) {
     console.log("err instanceof BusinessError");
     err.path = req.originalUrl;
     const errors = [err];
@@ -71,7 +77,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // other errors are unknown system errors
   else {
     console.log("err is unknown system error");
-    throw err;
+    console.log(err);
     res.status(500).json({
       path: req.originalUrl,
       message: "unknown server error",

@@ -1,3 +1,16 @@
+type AuctionInput = {
+  auctioneerId: string;
+  name: string;
+  description?: string;
+  startPrice: number;
+  spread: number;
+  startTime: Date;
+  endTime: Date;
+} & (
+  | { cards: CardInput[]; bundle?: never }
+  | { cards?: never; bundle: BundleInput }
+);
+
 type Auction = {
   auctionId: string;
   auctioneerId: string;
@@ -5,11 +18,21 @@ type Auction = {
   description?: string;
   startPrice: number;
   spread: number;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
   currentPrice: number;
-  cards?: Card[];
-  bundle?: Bundle;
+  topBid: Bid;
+} & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
+
+type CardInput = {
+  game: Game;
+  name: string;
+  description?: string;
+  manufacturer: string;
+  quality: Quality;
+  rarity: Rarity;
+  set: string;
+  isFoil: boolean;
 };
 
 type Card = {
@@ -24,6 +47,14 @@ type Card = {
   isFoil: boolean;
 };
 
+type BundleInput = {
+  game: Game;
+  name: string;
+  description?: string;
+  manufacturer: string;
+  set: string;
+};
+
 type Bundle = {
   bundleId: string;
   game: Game;
@@ -31,6 +62,20 @@ type Bundle = {
   description?: string;
   manufacturer: string;
   set: string;
+};
+
+type BidInput = {
+  auctionId: string;
+  bidderId: string;
+  amount: number;
+};
+
+type Bid = {
+  bidId: string;
+  auctionId: string;
+  bidderId: string;
+  amount: number;
+  timestamp: Date;
 };
 
 enum Game {
