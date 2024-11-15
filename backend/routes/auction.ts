@@ -191,9 +191,10 @@ router.post("/", async (req, res) => {
   if (isBundle) {
     const bundleInput = auctionInput.bundle;
     const bundleRecord = camelize(
-      await pool.query(
+      await pool.query<BundleDb>(
         ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
-          VALUES ($1, $2, $3, $4, $5, $6)`,
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING *`,
         [
           auctionRecord.auctionId,
           bundleInput.game,
