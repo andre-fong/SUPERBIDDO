@@ -1,13 +1,16 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import { AuctionStatusEnum, AuctionStatusColorEnum } from "@/types/auctionTypes";
+import { AuctionStatusEnum, AuctionStatusColorEnum, BiddingStatusColorEnum, BiddingStatusEnum } from "@/types/auctionTypes";
 
 interface StatusLabelProps {
-  status: AuctionStatusEnum;
+  status: AuctionStatusEnum | BiddingStatusEnum;
 }
 
 const StatusLabel: React.FC<StatusLabelProps> = ({ status }) => {
-  const statusColor = AuctionStatusColorEnum[status === "Not scheduled" ? "NotScheduled" : status];
+  const statusColor = 
+    status in AuctionStatusEnum 
+      ? AuctionStatusColorEnum[status === "Not scheduled" ? "NotScheduled" : status as keyof typeof AuctionStatusColorEnum]
+      : BiddingStatusColorEnum[status as BiddingStatusEnum];
 
   return (
     <Box display="flex" alignItems="center" padding="5px 10px" borderRadius="20px" bgcolor="#f0f0f0">

@@ -1,74 +1,74 @@
 import React, { useState, useEffect } from "react";
 import { Container, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, ListItemText, OutlinedInput, Box, Typography, Grid, Card, CardMedia, CardContent, SelectChangeEvent, Pagination } from "@mui/material";
 import { User } from "@/types/userTypes";
-import { AuctionStatus, AuctionStatusEnum, Auction } from "@/types/auctionTypes";
+import { BiddingStatus, BiddingStatusEnum, Auction } from "@/types/auctionTypes";
 import ListingsGallery from "@/components/listingsGallery";
 
 const cardPerPage = 9;
 
-interface YourListingsProps {
+interface YourBiddingsProps {
   user: User | null;
 }
 
-const auctionStatuses: AuctionStatus[] = Object.values(AuctionStatusEnum).map(status => status.toString() as AuctionStatus);
+const auctionStatuses: BiddingStatus[] = Object.values(BiddingStatusEnum).map(status => status.toString() as BiddingStatus);
 
 const auctionsDB: Auction[] = [
   {
-    auctionId: 1, name: "Auction 1", status: AuctionStatusEnum.Scheduled, image: null, description: "Brief details about Auction 1",
+    auctionId: 1, name: "Auction 1", status: BiddingStatusEnum.Lost, image: null, description: "Brief details about Auction 1",
     topBid: null,
     numberOfBids: 0,
     endDate: new Date('2023-12-01T10:00:00Z')
   },
   {
-    auctionId: 2, name: "Auction 2", status: AuctionStatusEnum.Ongoing, image: "frontend/app/api/bf954e31-015a-4646-8333-40225c847bcc_1024x1024.webp", description: "Brief details about Auction 2",
+    auctionId: 2, name: "Auction 2", status: BiddingStatusEnum.Outbidded, image: "frontend/app/api/bf954e31-015a-4646-8333-40225c847bcc_1024x1024.webp", description: "Brief details about Auction 2",
     topBid: null,
     numberOfBids: 0,
     endDate: new Date('2023-12-02T15:00:00Z')
   },
   {
-    auctionId: 3, name: "Auction 3", status: AuctionStatusEnum.Ongoing, image: "image3.jpg", description: "Brief details about Auction 3",
+    auctionId: 3, name: "Auction 3", status: BiddingStatusEnum.Winning, image: "image3.jpg", description: "Brief details about Auction 3",
     topBid: 0.34,
     numberOfBids: 0,
     endDate: new Date('2023-12-03T20:00:00Z')
   },
   {
-    auctionId: 4, name: "Auction 4asdasdasdasdasdasdasdasdasdsadasdsad", status: AuctionStatusEnum.Ongoing, image: "image4.jpg", description: "Brief details about Auadssssssssssssssssssssction 4",
+    auctionId: 4, name: "Auction 4asdasdasdasdasdasdasdasdasdsadasdsad", status: BiddingStatusEnum.Won , image: "image4.jpg", description: "Brief details about Auadssssssssssssssssssssction 4",
     topBid: 1,
     numberOfBids: 0,
     endDate: new Date('2023-12-04T18:00:00Z')
   },
 {
-  auctionId: 5, name: "Auction 5", status: AuctionStatusEnum.Successful, image: "image5.jpg", description: "Brief details about Auction 5",
+  auctionId: 5, name: "Auction 5", status: BiddingStatusEnum.Won, image: "image5.jpg", description: "Brief details about Auction 5",
   topBid: 5.00,
   numberOfBids: 10,
   endDate: new Date('2023-12-05T12:00:00Z')
 },
 {
-  auctionId: 6, name: "Auction 6", status: AuctionStatusEnum.Scheduled, image: "image6.jpg", description: "Brief details about Auction 6",
+  auctionId: 6, name: "Auction 6", status: BiddingStatusEnum.Won, image: "image6.jpg", description: "Brief details about Auction 6",
   topBid: null,
   numberOfBids: 0,
   endDate: new Date('2023-12-06T14:00:00Z')
 },
 {
-  auctionId: 7, name: "Auction 7", status: AuctionStatusEnum.Ongoing, image: "image7.jpg", description: "Brief details about Auction 7",
+  auctionId: 7, name: "Auction 7", status: BiddingStatusEnum.Won, image: "image7.jpg", description: "Brief details about Auction 7",
   topBid: 2.50,
   numberOfBids: 5,
   endDate: new Date('2023-12-07T16:00:00Z')
 },
 {
-  auctionId: 8, name: "Auction 8", status: AuctionStatusEnum.Unsuccessful, image: "image8.jpg", description: "Brief details about Auction 8",
+  auctionId: 8, name: "Auction 8", status: BiddingStatusEnum.Won, image: "image8.jpg", description: "Brief details about Auction 8",
   topBid: 3.75,
   numberOfBids: 8,
   endDate: new Date('2023-12-08T18:00:00Z')
 },
 {
-  auctionId: 9, name: "Auction 9", status: AuctionStatusEnum.Scheduled, image: "image9.jpg", description: "Brief details about Auction 9",
+  auctionId: 9, name: "Auction 9", status: BiddingStatusEnum.Won, image: "image9.jpg", description: "Brief details about Auction 9",
   topBid: null,
   numberOfBids: 0,
   endDate: new Date('2023-12-09T20:00:00Z')
 },
 {
-  auctionId: 10, name: "Auction 10", status: AuctionStatusEnum.Ongoing, image: "image10.jpg", description: "Brief details about Auction 10",
+  auctionId: 10, name: "Auction 10", status: BiddingStatusEnum.Won, image: "image10.jpg", description: "Brief details about Auction 10",
   topBid: 1.25,
   numberOfBids: 3,
   endDate: new Date('2023-12-10T22:00:00Z')
@@ -77,7 +77,7 @@ const auctionsDB: Auction[] = [
 
 const numAuctions = auctionsDB.length;
 
-const YourListings: React.FC<YourListingsProps> = ({ user }) => {
+const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -110,7 +110,7 @@ const YourListings: React.FC<YourListingsProps> = ({ user }) => {
     <Container sx={{ mt: 1 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={0}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Your Listings
+          Your Bids
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Page {currentPage} / {totalPages}
@@ -118,12 +118,12 @@ const YourListings: React.FC<YourListingsProps> = ({ user }) => {
       </Box>
 
       <FormControl fullWidth margin="normal">
-        <InputLabel>Auction Status</InputLabel>
+        <InputLabel>Bidding Status</InputLabel>
         <Select
           multiple
           value={selectedStatuses}
           onChange={handleStatusChange}
-          input={<OutlinedInput label="Auction Status" />}
+          input={<OutlinedInput label="Bidding Status" />}
           renderValue={(selected) => (selected as string[]).join(', ')}
         >
           {auctionStatuses.map((status) => (
@@ -144,7 +144,7 @@ const YourListings: React.FC<YourListingsProps> = ({ user }) => {
       sx={{ mt: 1, mb: 2 }}
     />
 
-      <ListingsGallery auctions={auctions} />
+    <ListingsGallery auctions={auctions} />
 
       <Box display="flex" justifyContent="center" marginTop={3}>
         <Pagination
@@ -158,4 +158,4 @@ const YourListings: React.FC<YourListingsProps> = ({ user }) => {
   );
 };
 
-export default YourListings;
+export default YourBiddings;
