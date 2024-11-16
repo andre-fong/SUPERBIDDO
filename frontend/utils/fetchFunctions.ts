@@ -5,7 +5,7 @@ const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
-  TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
+  TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
 */
 
 export async function fetchLogin() {
@@ -95,9 +95,11 @@ export async function pollForAuctionUpdates(
     });
 
     if (response.ok) {
-      const newBid = await response.json();
+      const newBid: AuctionBidHistory[] = await response.json();
       console.log(`POLLING New bid received for auction ${auctionId}:`, newBid);
       setBids(newBid);
+    } else if (response.status === 502) {
+      console.log(`Polling for auction ${auctionId} timed out`);
     } else if (response.status === 404) {
       errorFcn({
         message: "Error initiating connection for an auction",
@@ -108,11 +110,8 @@ export async function pollForAuctionUpdates(
         response.statusText
       );
     }
-    // Re-initiate polling after receiving an update or timeout
-    setTimeout(
-      () => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids),
-      1000
-    );
+    // Re-initiate polling after receiving an update without any delay
+    pollForAuctionUpdates(errorFcn, auctionId, signal, setBids);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.name === "AbortError") {
