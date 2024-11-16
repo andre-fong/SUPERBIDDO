@@ -42,11 +42,6 @@ export default function PageHandler() {
   const setToast = (err: ErrorType) => {
     setToastMessage(err.message);
     setToastSeverity(err.severity);
-    if (err.severity === Severity.Critical) {
-      toast.error(err.message);
-    } else if (err.severity === Severity.Warning) {
-      toast.warn(err.message);
-    }
   };
 
   const { user, loading } = useUser();
@@ -76,7 +71,11 @@ export default function PageHandler() {
     },
     create: {
       title: "Create Auction | SuperBiddo",
-      component: <CreateBid setToast={setToast} />,
+      component: user ? (
+        <CreateBid setCurPage={setCurPage} user={user} setToast={setToast} />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
   };
 
