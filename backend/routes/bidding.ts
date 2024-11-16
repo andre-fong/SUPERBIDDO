@@ -19,11 +19,12 @@ function formatBids(bids) {
   let bidders = {};
   for (let bid of bids) {
     if (!bidders[bid.bidder]) {
-      bidders[bid.bidder] = { bids: 0, highBid: 0 };
+      bidders[bid.bidder] = { bids: 0, highBid: 0, lastBidTime: bid.date };
     }
     bidders[bid.bidder].bids++;
     if (bid.amount > bidders[bid.bidder].highBid) {
       bidders[bid.bidder].highBid = bid.amount;
+      bidders[bid.bidder].lastBidTime = bid.date;
     }
   }
 
@@ -33,7 +34,7 @@ function formatBids(bids) {
       bidder,
       bids: bidders[bidder].bids,
       highBid: bidders[bidder].highBid,
-      lastBidTime: bids[bids.length - 1].date,
+      lastBidTime: bidders[bidder].lastBidTime,
     });
   }
 
