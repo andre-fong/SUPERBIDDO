@@ -1,0 +1,211 @@
+import React, { useState, useEffect } from "react";
+import { Container, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, ListItemText, OutlinedInput, Box, Typography, Grid, Card, CardMedia, CardContent, SelectChangeEvent, Pagination } from "@mui/material";
+import { User } from "@/types/userTypes";
+import { AuctionStatus, AuctionStatusEnum } from "@/types/auctionTypes";
+import StatusLabel from "@/components/statusLabel";
+import { styled } from "@mui/material/styles";
+import { set } from "@dotenvx/dotenvx";
+
+const cardPerPage = 9;
+
+const CardContentNoPadding = styled(CardContent)(`
+  padding: 6px;
+  &:last-child {
+    padding-bottom: 0;
+    margin-bottom: 10px;
+  }
+`);
+
+interface Auction {
+  auctionId: number;
+  name: string;
+  status: AuctionStatusEnum;
+  image: string | null;
+  description: string;
+  topBid: number | null;
+  numberOfBids: number;
+  endDate: Date;
+}
+
+interface YourListingsProps {
+  user: User | null;
+}
+
+const auctionStatuses: AuctionStatus[] = Object.values(AuctionStatusEnum).map(status => status.toString() as AuctionStatus);
+
+const auctionsDB: Auction[] = [
+  {
+    auctionId: 1, name: "Auction 1", status: AuctionStatusEnum.Scheduled, image: null, description: "Brief details about Auction 1",
+    topBid: null,
+    numberOfBids: 0,
+    endDate: new Date('2023-12-01T10:00:00Z')
+  },
+  {
+    auctionId: 2, name: "Auction 2", status: AuctionStatusEnum.Ongoing, image: "frontend/app/api/bf954e31-015a-4646-8333-40225c847bcc_1024x1024.webp", description: "Brief details about Auction 2",
+    topBid: null,
+    numberOfBids: 0,
+    endDate: new Date('2023-12-02T15:00:00Z')
+  },
+  {
+    auctionId: 3, name: "Auction 3", status: AuctionStatusEnum.Ongoing, image: "image3.jpg", description: "Brief details about Auction 3",
+    topBid: 0.34,
+    numberOfBids: 0,
+    endDate: new Date('2023-12-03T20:00:00Z')
+  },
+  {
+    auctionId: 4, name: "Auction 4asdasdasdasdasdasdasdasdasdsadasdsad", status: AuctionStatusEnum.Ongoing, image: "image4.jpg", description: "Brief details about Auadssssssssssssssssssssction 4",
+    topBid: 1,
+    numberOfBids: 0,
+    endDate: new Date('2023-12-04T18:00:00Z')
+  },
+{
+  auctionId: 5, name: "Auction 5", status: AuctionStatusEnum.Successful, image: "image5.jpg", description: "Brief details about Auction 5",
+  topBid: 5.00,
+  numberOfBids: 10,
+  endDate: new Date('2023-12-05T12:00:00Z')
+},
+{
+  auctionId: 6, name: "Auction 6", status: AuctionStatusEnum.Scheduled, image: "image6.jpg", description: "Brief details about Auction 6",
+  topBid: null,
+  numberOfBids: 0,
+  endDate: new Date('2023-12-06T14:00:00Z')
+},
+{
+  auctionId: 7, name: "Auction 7", status: AuctionStatusEnum.Ongoing, image: "image7.jpg", description: "Brief details about Auction 7",
+  topBid: 2.50,
+  numberOfBids: 5,
+  endDate: new Date('2023-12-07T16:00:00Z')
+},
+{
+  auctionId: 8, name: "Auction 8", status: AuctionStatusEnum.Unsuccessful, image: "image8.jpg", description: "Brief details about Auction 8",
+  topBid: 3.75,
+  numberOfBids: 8,
+  endDate: new Date('2023-12-08T18:00:00Z')
+},
+{
+  auctionId: 9, name: "Auction 9", status: AuctionStatusEnum.Scheduled, image: "image9.jpg", description: "Brief details about Auction 9",
+  topBid: null,
+  numberOfBids: 0,
+  endDate: new Date('2023-12-09T20:00:00Z')
+},
+{
+  auctionId: 10, name: "Auction 10", status: AuctionStatusEnum.Ongoing, image: "image10.jpg", description: "Brief details about Auction 10",
+  topBid: 1.25,
+  numberOfBids: 3,
+  endDate: new Date('2023-12-10T22:00:00Z')
+}
+];
+
+const numAuctions = auctionsDB.length;
+
+const YourListings: React.FC<YourListingsProps> = ({ user }) => {
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+
+  const handleStatusChange = (event: SelectChangeEvent<string[]>) => {
+    setSelectedStatuses(event.target.value as string[]);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  useEffect(() => {
+    //TODO: initial fetch for pages
+    setAuctions(auctionsDB.slice(0, cardPerPage));
+  }, [])
+
+  const totalPages = Math.ceil(numAuctions / cardPerPage);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page:  number): void => {
+    setCurrentPage(page);
+    //TODO: fetch data for new page
+    setAuctions(auctionsDB.slice((page - 1) * cardPerPage, page * cardPerPage));
+
+  };
+
+  //TODO: andre countdown timer
+  return (
+    <Container sx={{ mb: 5 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Your Listings
+      </Typography>
+
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Auction Status</InputLabel>
+        <Select
+          multiple
+          value={selectedStatuses}
+          onChange={handleStatusChange}
+          input={<OutlinedInput label="Auction Status" />}
+          renderValue={(selected) => (selected as string[]).join(', ')}
+        >
+          {auctionStatuses.map((status) => (
+            <MenuItem key={status} value={status}>
+              <Checkbox checked={selectedStatuses.indexOf(status) > -1} />
+              <ListItemText primary={status} />
+            </MenuItem>
+          ))}
+        </Select>
+    </FormControl>
+    
+    <TextField
+      label="Search by Auction Name"
+      fullWidth
+      margin="normal"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      sx={{ mt: 1, mb: 2 }}
+    />
+
+      <Grid container spacing={2}>
+        {auctions.map((auction) => (
+          <Grid item xs={12} sm={6} md={4} key={auction.auctionId}>
+            <Card>
+              <CardMedia
+              component="img"
+              height="140"
+              image={auction.image ? auction.image : "https://via.placeholder.com/300"}
+              alt={auction.name}
+              sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+              />
+              <CardContentNoPadding sx={{ padding: '12px' }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" component="div" noWrap sx={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                {auction.name}
+                </Typography>
+                <StatusLabel status={auction.status} />
+              </Box>
+              <Typography variant="h6" color="text.primary" sx={{ mb: '4px' }}>
+                {auction.topBid !== null ? `$${auction.topBid}` : 'No bids yet'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {auction.description}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Number of Bids:</strong> {auction.numberOfBids}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>End Date:</strong> {auction.endDate.toLocaleString()}
+              </Typography>
+              </CardContentNoPadding>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Box display="flex" justifyContent="center" marginTop={3}>
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Box>
+    </Container>
+  );
+};
+
+export default YourListings;
