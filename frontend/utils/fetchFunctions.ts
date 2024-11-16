@@ -1,5 +1,7 @@
 import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
+import { Email } from "@mui/icons-material";
+import { use } from "react";
 
 
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
@@ -10,9 +12,36 @@ const unkownError = "An unknown error occurred";
   TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
 */
 
+export async function fetchSignup(errorFcn: (error: ErrorType) => void, username: string, password: string, email: string) {
+  try {
+    const response = await fetch(`${url}/accounts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ username, password, email }),
+    });
+
+    if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    const data = await response.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+}
+
+
 export async function fetchLogin() {
-  // errorFcn
-  console.log(url);
   const response = await fetch(`${url}/session`, {
     method: "POST",
     headers: {
@@ -37,6 +66,7 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
     const response = await fetch(`${url}/session`, {
       method: "GET",
       credentials: "include",
+ 
     });
 
 

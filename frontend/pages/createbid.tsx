@@ -188,7 +188,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
     }
 
     const auctionData: any = {
-      auctioneerId: user.accountUid,
+      auctioneerId: user.accountId,
       name: cardNameRef.current?.value || "",
       description: descriptionRef.current?.value || "",
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
