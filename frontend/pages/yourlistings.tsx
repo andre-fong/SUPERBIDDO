@@ -121,17 +121,22 @@ const YourListings: React.FC<YourListingsProps> = ({ user }) => {
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, page:  number): void => {
     setCurrentPage(page);
-    //TODO: fetch data for new page
+        //TODO: fetch data for new page
     setAuctions(auctionsDB.slice((page - 1) * cardPerPage, page * cardPerPage));
 
   };
 
   //TODO: andre countdown timer
   return (
-    <Container sx={{ mb: 5 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Your Listings
-      </Typography>
+    <Container sx={{ mt: 1 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={0}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Your Listings
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Page {currentPage} / {totalPages}
+        </Typography>
+      </Box>
 
       <FormControl fullWidth margin="normal">
         <InputLabel>Auction Status</InputLabel>
