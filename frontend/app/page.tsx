@@ -11,6 +11,7 @@ import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
+import Navbar from "@/components/navbar";
 
 // https://mui.com/material-ui/customization/palette/
 /**
@@ -35,7 +36,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const [curPage, setCurPage] = useState<PageName>("home");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -85,11 +86,14 @@ export default function PageHandler() {
   }, [curPage]);
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       {toastMessage && toastSeverity && (
         <ErrorToast message={toastMessage} severity={toastSeverity} />
       )}
-      <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
-    </>
+      {curPage !== "login" && curPage !== "signup" && (
+        <Navbar user={user} setCurPage={setCurPage} />
+      )}
+      {pages[curPage].component}
+    </ThemeProvider>
   );
 }
