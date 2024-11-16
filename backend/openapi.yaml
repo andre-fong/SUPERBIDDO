@@ -388,8 +388,6 @@ components:
             - startPrice
             - spread
             - minNewBidPrice
-            - startTime
-            - endTime
             - topBid
             - numBids
           properties:
@@ -415,15 +413,10 @@ components:
               format: float
               minimum: 0
             minNewBidPrice:
+              readOnly: true
               type: number
               format: float
               minimum: 0
-            startTime:
-              type: string
-              format: date-time
-            endTime:
-              type: string
-              format: date-time
             topBid:
               readOnly: true
               allOf:
@@ -451,6 +444,25 @@ components:
               properties:
                 bundle:
                   $ref: "#/components/schemas/Bundle"
+        - oneOf:
+            - type: object
+              required:
+                - startTime
+                - endTime
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+            - type: object
+              not:
+                anyOf:
+                  - required:
+                      - startTime
+                  - required:
+                      - endTime
     Card:
       type: object
       required:
