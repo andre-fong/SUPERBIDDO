@@ -30,10 +30,11 @@ type Auction = {
   description?: string;
   startPrice: number;
   spread: number;
+  minNewBidPrice: number;
   startTime: Date;
   endTime: Date;
-  currentPrice: number;
   topBid: Bid;
+  numBids: number;
 } & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
 
 type CardInput = {

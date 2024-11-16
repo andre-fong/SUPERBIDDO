@@ -1,12 +1,7 @@
 import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
-import {
-  sessionNotFound,
-  unauthorized,
-  ServerError,
-  BusinessError,
-} from "../utils/errors.js";
+import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
 
 export const router = express.Router();
 
@@ -15,17 +10,26 @@ router.get("/:auctionId", async (req, res) => {
 
   // get auction record
   const auctionRecord = camelize(
-    await pool.query<AuctionDb & BidDb & { is_bundle: boolean }>(
-      ` SELECT auction.*, top_bid.bid_id, top_bid.bidder_id, top_bid.amount, 
-        top_bid.timestamp, COALESCE(is_bundle.is_bundle, FALSE) AS is_bundle
+    await pool.query<
+      AuctionDb & BidDb & { num_bids: number; is_bundle: boolean }
+    >(
+      ` WITH bid_agg AS (
+          SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
+          FROM bid
+          WHERE auction_id = $1
+          GROUP BY auction_id
+        )
+        SELECT auction.*, top_bid.bid_id, top_bid.bidder_id, top_bid.amount, 
+        top_bid.timestamp, bid_agg.num_bids, 
+        COALESCE(is_bundle.is_bundle, FALSE) AS is_bundle
         FROM auction
         LEFT JOIN (
           SELECT *
           FROM bid
           WHERE auction_id = $1
-          ORDER BY timestamp DESC
-          LIMIT 1
+          AND amount = (SELECT max_bid_amount FROM bid_agg)
         ) top_bid USING (auction_id)
+        LEFT JOIN bid_agg USING (auction_id)
         LEFT JOIN (
           SELECT auction_id, true as is_bundle
           FROM bundle
@@ -62,9 +66,11 @@ router.get("/:auctionId", async (req, res) => {
       description: auctionRecord.description,
       startPrice: auctionRecord.startPrice,
       spread: auctionRecord.spread,
+      minNewBidPrice: auctionRecord.bidId
+        ? auctionRecord.amount + auctionRecord.spread
+        : auctionRecord.startPrice + auctionRecord.spread,
       startTime: auctionRecord.startTime,
       endTime: auctionRecord.endTime,
-      currentPrice: auctionRecord.currentPrice,
       topBid: auctionRecord.bidId
         ? {
             bidId: auctionRecord.bidId,
@@ -74,6 +80,7 @@ router.get("/:auctionId", async (req, res) => {
             timestamp: auctionRecord.timestamp,
           }
         : null,
+      numBids: auctionRecord.numBids,
       bundle: bundleRecord,
     };
     res.json(auction);
@@ -101,9 +108,11 @@ router.get("/:auctionId", async (req, res) => {
     description: auctionRecord.description,
     startPrice: auctionRecord.startPrice,
     spread: auctionRecord.spread,
+    minNewBidPrice: auctionRecord.bidId
+      ? auctionRecord.amount + auctionRecord.spread
+      : auctionRecord.startPrice + auctionRecord.spread,
     startTime: auctionRecord.startTime,
     endTime: auctionRecord.endTime,
-    currentPrice: auctionRecord.currentPrice,
     topBid: auctionRecord.bidId
       ? {
           bidId: auctionRecord.bidId,
@@ -113,6 +122,7 @@ router.get("/:auctionId", async (req, res) => {
           timestamp: auctionRecord.timestamp,
         }
       : null,
+    numBids: auctionRecord.numBids,
     cards: cardsRecords,
   };
 
@@ -211,7 +221,9 @@ router.post("/", async (req, res) => {
 
     const auction: Auction = {
       ...auctionRecord,
+      minNewBidPrice: auctionRecord.startPrice + auctionRecord.spread,
       topBid: null,
+      numBids: 0,
       bundle: bundleRecord,
     };
 
@@ -262,7 +274,9 @@ router.post("/", async (req, res) => {
 
   const auction: Auction = {
     ...auctionRecord,
+    minNewBidPrice: auctionRecord.startPrice + auctionRecord.spread,
     topBid: null,
+    numBids: 0,
     cards: cardsRecord,
   };
 

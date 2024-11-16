@@ -125,20 +125,6 @@ paths:
             type: number
             format: float
         - in: query
-          name: minCurrentPrice
-          description: The minimum current price of an auction. If provided, auctions with current prices below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxCurrentPrice
-          description: The maximum current price of an auction. If provided, auctions with current prices above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
           name: minSpread
           description: The minimum spread of an auction. If provided, auctions with spreads below this value will be excluded.
           required: false
@@ -153,14 +139,14 @@ paths:
             type: number
             format: float
         - in: query
-          name: minBidPrice
+          name: minMinNewBidPrice
           description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
           required: false
           schema:
             type: number
             format: float
         - in: query
-          name: maxBidPrice
+          name: maxMinNewBidPrice
           description: The maximum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids above this value will be excluded.
           required: false
           schema:
@@ -209,30 +195,31 @@ paths:
             enum:
               - startPriceAsc
               - startPriceDesc
-              - currentPriceAsc
-              - currentPriceDesc
               - currentBidAsc
               - currentBidDesc
+              - minNewBidPriceAsc
+              - minNewBidPriceDesc
               - startTimeAsc
               - startTimeDesc
               - endTimeAsc
               - endTimeDesc
         - in: query
-          name: key
-          description: The pagination key. If provided, results will start from AFTER the auction with this auctionId. If not provided, results will start from the beginning.
-          required: false
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: limit
-          description: The maximum number of auctions to return. If provided, at most this many auctions will be returned. If not provided, default of 20 will be used.
+          name: page
+          description: The page of auctions to return. If provided, the auctions will be paginated and only the auctions on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
           required: false
           schema:
             type: integer
             format: int32
             minimum: 1
-            maximum: 100
+            default: 1
+        - in: query
+          name: pageSize
+          description: The number of auctions to return per page. If provided, the auctions will be paginated and only this many auctions will be returned per page. If not provided, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
             default: 20
       responses:
         200:
@@ -246,9 +233,9 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Auction"
-                  key:
-                    type: string
-                    format: uuid
+                  totalNumAuctions:
+                    type: integer
+                    minimum: 0
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -400,10 +387,11 @@ components:
             - name
             - startPrice
             - spread
+            - minNewBidPrice
             - startTime
             - endTime
-            - currentPrice
             - topBid
+            - numBids
           properties:
             auctionId:
               readOnly: true
@@ -426,21 +414,24 @@ components:
               type: number
               format: float
               minimum: 0
+            minNewBidPrice:
+              type: number
+              format: float
+              minimum: 0
             startTime:
               type: string
               format: date-time
             endTime:
               type: string
               format: date-time
-            currentPrice:
-              readOnly: true
-              type: number
-              format: float
-              minimum: 0
             topBid:
               readOnly: true
               allOf:
                 - $ref: "#/components/schemas/Bid"
+            numBids:
+              readOnly: true
+              type: integer
+              minimum: 0
           not:
             required:
               - cards

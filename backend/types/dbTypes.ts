@@ -14,7 +14,6 @@ type AuctionDb = {
   spread: number;
   start_time: Date;
   end_time: Date;
-  current_price: number;
 };
 
 type CardDb = {
