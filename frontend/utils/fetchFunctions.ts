@@ -36,10 +36,10 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
     });
 
     if (response.status === 404) {
-      // errorFcn({
-      //   message: "Session info not found",
-      //   severity: Severity.Critical,
-      // });
+      errorFcn({
+        message: "Session info not found",
+        severity: Severity.Critical,
+      });
       return null;
     } else if (!response.ok) {
       errorFcn({ message: unkownError, severity: Severity.Critical });
