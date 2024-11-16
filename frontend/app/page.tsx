@@ -7,15 +7,12 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
 import Auction from "@/pages/auction";
 import CreateBid from "@/pages/createbid";
+import YourListings from "@/pages/yourlistings";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 
-// https://mui.com/material-ui/customization/palette/
-/**
- * SUPERBIDDO COLOR PALETTE
- */
 const theme = createTheme({
   palette: {
     primary: {
@@ -35,7 +32,7 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("auction");
+  const [curPage, setCurPage] = useState<PageName>("yourListings");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -76,6 +73,12 @@ export default function PageHandler() {
       ) : (
         <div>Loading...</div>
       ),
+    },
+    yourListings: {
+      title: "Your Listings | SuperBiddo",
+      component:(
+        <YourListings user={user} />
+      ) 
     },
   };
 

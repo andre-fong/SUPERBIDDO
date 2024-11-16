@@ -13,3 +13,21 @@ export type AuctionBidHistory = {
    */
   lastBidTime: string;
 };
+
+export enum AuctionStatusEnum {
+  NotScheduled = "Not scheduled",
+  Scheduled = "Scheduled",
+  Ongoing = "Ongoing",
+  Successful = "Successful",
+  Unsuccessful = "Unsuccessful"
+}
+
+export enum AuctionStatusColorEnum {
+  NotScheduled = "gray",
+  Scheduled = "blue",
+  Ongoing = "green",
+  Successful = "gold",
+  Unsuccessful = "red"
+}
+
+export type AuctionStatus = keyof typeof AuctionStatusEnum;

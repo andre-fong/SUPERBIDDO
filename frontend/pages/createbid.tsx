@@ -182,6 +182,11 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       return;
     }
 
+    if ((startDateRef.current && !endDateRef.current) || (endDateRef.current && !startDateRef.current) ) {
+      setToast({ message: "Please set either both start date and end date or neither", severity: Severity.Warning });
+      return;
+    }    
+
     if (startDateRef.current && endDateRef.current && new Date(startDateRef.current.value) >= new Date(endDateRef.current.value)) {
       setToast({ message: "Start date must be before end date", severity: Severity.Warning });
       return;
@@ -421,7 +426,6 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
               fullWidth
               margin="normal"
               InputLabelProps={{ shrink: true }}
-              required
               inputProps={{
                 min: new Date().toISOString().slice(0, 16),
               }}
@@ -434,7 +438,6 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
               fullWidth
               margin="normal"
               InputLabelProps={{ shrink: true }}
-              required
               inputProps={{
                 min: new Date().toISOString().slice(0, 16),
               }}
