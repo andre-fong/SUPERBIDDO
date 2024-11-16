@@ -30,4 +30,31 @@ export enum AuctionStatusColorEnum {
   Unsuccessful = "red"
 }
 
+export enum BiddingStatusEnum {
+  Winning = "Winning",
+  Outbidded = "Outbidded",
+  Won = "Won",
+  Lost = "Lost"
+}
+
+export enum BiddingStatusColorEnum {
+  Winning = "green",
+  Outbidded = "orange",
+  Won = "gold",
+  Lost = "red"
+}
+
+export type BiddingStatus = keyof typeof BiddingStatusEnum;
 export type AuctionStatus = keyof typeof AuctionStatusEnum;
+
+export interface Auction {
+  auctionId: number;
+  name: string;
+  status: AuctionStatusEnum | BiddingStatusEnum;
+  image: string | null;
+  description: string;
+  topBid: number | null;
+  numberOfBids: number;
+  endDate: Date;
+}
+
