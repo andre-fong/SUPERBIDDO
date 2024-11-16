@@ -118,7 +118,7 @@ export async function pollForAuctionUpdates(
       console.log(`Polling for auction ${auctionId} aborted`);
       return;
     } else {
-      // errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unkownError, severity: Severity.Critical });
     }
   }
 }
