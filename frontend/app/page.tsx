@@ -34,9 +34,23 @@ const theme = createTheme({
 const pageVariants = {
   hidden: {
     opacity: 0,
+    x: "10px",
   },
   visible: {
     opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: "-10px",
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
   },
 };
 
@@ -126,9 +140,10 @@ export default function PageHandler() {
           key={curPage}
           initial="hidden"
           animate="visible"
-          exit="hidden"
+          exit="exit"
           className={styles.page_container}
         >
+          {/* CURRENT PAGE BEING RENDERED */}
           {pages[curPage].component}
         </motion.div>
       </AnimatePresence>
