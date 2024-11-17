@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
+import { AnimatePresence, motion } from "motion/react";
 
 const theme = createTheme({
   palette: {
@@ -29,6 +30,29 @@ const theme = createTheme({
     fontFamily: "'Inter', 'Inter Fallback'",
   },
 });
+
+const pageVariants = {
+  hidden: {
+    opacity: 0,
+    x: "10px",
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: "-10px",
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+};
 
 // TODO: Use Framer Motion for page transitions
 /**
@@ -123,10 +147,26 @@ export default function PageHandler() {
       {toastMessage && toastSeverity && (
         <ErrorToast message={toastMessage} severity={toastSeverity} />
       )}
-      {curPage !== "login" && curPage !== "signup" && (
-        <Navbar user={user} setCurPage={setCurPage} curPage={curPage} />
-      )}
-      {pages[curPage].component}
+
+      <AnimatePresence>
+        {curPage !== "login" && curPage !== "signup" && (
+          <Navbar user={user} setCurPage={setCurPage} curPage={curPage} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          variants={pageVariants}
+          key={curPage}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={styles.page_container}
+        >
+          {/* CURRENT PAGE BEING RENDERED */}
+          {pages[curPage].component}
+        </motion.div>
+      </AnimatePresence>
     </ThemeProvider>
   );
 }

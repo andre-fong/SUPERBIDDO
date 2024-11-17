@@ -3,8 +3,9 @@
   --foreground: #171717;
 
   /* SUPERBIDDO COLOR PALETTE */
-  --primary: #f44336;
-  --secondary: #3f51b5;
+  --primary: #ff7066;
+  --secondary: #f6b02c;
+  --accent: #86bbd8;
 }
 
 html,
