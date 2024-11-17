@@ -64,10 +64,20 @@ export default function Navbar({
       <div className={styles.links_container}>
         <ul className={styles.links}>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Your Listings</button>
+            <button
+              className={styles.page_button}
+              onClick={() => setCurPage("yourListings")}
+            >
+              Your Listings
+            </button>
           </li>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Your Bids</button>
+            <button
+              className={styles.page_button}
+              onClick={() => setCurPage("yourBiddings")}
+            >
+              Your Bids
+            </button>
           </li>
           <li className={styles.page_link}>
             <button className={styles.page_button}>Watch List</button>
