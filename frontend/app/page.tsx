@@ -75,7 +75,7 @@ export default function PageHandler() {
     setPageContext(data);
   }
 
-  const { user, loading } = useUser();
+  const { user, loading, setUser } = useUser();
 
   const pages: PageData = {
     home: {
@@ -84,22 +84,22 @@ export default function PageHandler() {
     },
     login: {
       title: "Login | SuperBiddo",
-      component: <Login setCurPage={setCurPage} context={pageContext} />,
+      component: <Login setUser={setUser} setToast={setToast} setCurPage={setCurPage} context={pageContext} />,
     },
     signup: {
       title: "Signup | SuperBiddo",
-      component: <Signup setCurPage={setCurPage} context={pageContext} />,
+      component: <Signup setUser={setUser} setToast={setToast} setCurPage={setCurPage} context={pageContext} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: (
+      component: user ? (
         <Auction
           user={user}
           setCurPage={setCurPage}
           setToast={setToast}
           context={pageContext}
         />
-      ),
+      ): <div>Loading...</div>,
     },
     profile: {
       title: "Profile | SuperBiddo",
@@ -120,21 +120,21 @@ export default function PageHandler() {
     },
     yourListings: {
       title: "Your Listings | SuperBiddo",
-      component: (
+      component: user ? (
         <YourListings
           user={user}
           // context={pageContext}
         />
-      ),
+      ): <div>Loading...</div>,
     },
     yourBiddings: {
       title: "Your Biddings | SuperBiddo",
-      component: (
+      component: user ? (
         <YourBiddings
           user={user}
           // context={pageContext}
         />
-      ),
+      ): <div>Loading...</div>,
     },
   };
 
@@ -150,7 +150,7 @@ export default function PageHandler() {
 
       <AnimatePresence>
         {curPage !== "login" && curPage !== "signup" && (
-          <Navbar user={user} setCurPage={setCurPage} curPage={curPage} />
+          <Navbar user={user} setCurPage={setCurPage} curPage={curPage} setToast={setToast} setUser={setUser} />
         )}
       </AnimatePresence>
 

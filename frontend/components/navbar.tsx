@@ -7,6 +7,8 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import { PageName } from "@/types/pageTypes";
 import { motion } from "motion/react";
 import { useInView, useScroll, useMotionValueEvent } from "motion/react";
+import { fetchLogout } from "@/utils/fetchFunctions";
+import { ErrorType } from "@/types/errorTypes";
 
 const navVariants = {
   hidden: {
@@ -27,13 +29,17 @@ export default function Navbar({
   user,
   setCurPage,
   curPage,
+  setUser,
+  setToast
 }: {
   user: User | null;
   setCurPage: (page: PageName, context?: string) => void;
   curPage: PageName;
+  setUser: (user: User | null) => void,
+  setToast: (error: ErrorType) => void
 }) {
   // TODO: Mock data
-  const username = "Victo";
+  const username = user ? user.username : "";
   const notificationCount = 2;
 
   // Track scroll position to make navbar sticky
@@ -60,6 +66,15 @@ export default function Navbar({
       linksRef.current.style.marginBottom = "120px";
     }
   }, [navInView, vertScroll, ref, linksRef]);
+
+  function handleSignout(event: React.MouseEvent<HTMLButtonElement>): void {
+    if (!user) { return }
+
+    fetchLogout(setToast, (user: User | null) => {
+      setUser(user)
+      setCurPage("home")
+    })
+  }
 
   return (
     <motion.nav
@@ -90,6 +105,7 @@ export default function Navbar({
               <>
                 <div className={styles.user_avatar}></div>
                 <div className={styles.user_name}>{username}</div>
+                <button onClick={handleSignout}>Signout</button>
               </>
             ) : (
               <p>

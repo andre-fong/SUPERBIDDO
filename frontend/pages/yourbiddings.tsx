@@ -107,7 +107,7 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
 
   //TODO: andre countdown timer
   return (
-    <Container sx={{ mt: 1 }}>
+    <Container sx={{ mt: 1, width: '100vw', maxWidth: '1600px !important'}}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={0}>
         <Typography variant="h4" component="h1" gutterBottom>
           Your Bids
@@ -146,7 +146,7 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
 
     <ListingsGallery auctions={auctions} />
 
-      <Box display="flex" justifyContent="center" marginTop={3}>
+      <Box display="flex" justifyContent="center" marginTop={2} marginBottom={2}>
         <Pagination
           count={totalPages}
           page={currentPage}

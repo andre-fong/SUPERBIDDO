@@ -1,7 +1,6 @@
 import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
-import { Email } from "@mui/icons-material";
-import { use } from "react";
+import { User } from "@/types/userTypes";
 
 
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
@@ -31,9 +30,7 @@ export async function fetchSignup(errorFcn: (error: ErrorType) => void, username
       return null;
     }
 
-    const data = await response.json();
-    console.log(data);
-    return data;
+    return await fetchLogin(errorFcn, email, password);
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return null;
@@ -41,24 +38,35 @@ export async function fetchSignup(errorFcn: (error: ErrorType) => void, username
 }
 
 
-export async function fetchLogin() {
-  const response = await fetch(`${url}/session`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    // body: JSON.stringify({ username, password }),
-  });
+export async function fetchLogin(errorFcn: (error: ErrorType) => void, email: string, password: string) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Login failed");
-    // errorFcn(i love Senjougahara but Akane is better)
+    if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    }
+    else if (response.status === 401) {
+      errorFcn({ message: "Invalid login credentials", severity: Severity.Warning });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(error);
+    return null;
   }
-
-  const data = await response.json();
-  console.log(data);
-  return data;
 }
 
 export async function fetchSession(errorFcn: (error: ErrorType) => void) {
@@ -66,7 +74,6 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
     const response = await fetch(`${url}/session`, {
       method: "GET",
       credentials: "include",
- 
     });
 
 
@@ -86,6 +93,30 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return null;
+  }
+}
+
+export async function fetchLogout(errorFcn: (error: ErrorType) => void, successLogout: (user: User | null) => void) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (response.status === 404) {
+      errorFcn({
+        message: "Session info not found",
+        severity: Severity.Critical,
+      });
+      return
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return 
+    }
+
+    successLogout(null);
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
   }
 }
 

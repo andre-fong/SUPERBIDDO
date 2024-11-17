@@ -8,19 +8,32 @@ import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
+import { User } from "@/types/userTypes";
+import { ErrorType } from "@/types/errorTypes";
 
 export default function Login({
   setCurPage,
   context,
+  setUser,
+  setToast
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   context: string;
+  setUser: (user: User) => void,
+  setToast: (error: ErrorType) => void
 }) {
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: Save previous action and redirect to it after login
-    await fetchLogin();
-    setCurPage("auction");
+
+    const username = (e.currentTarget.elements.namedItem("username") as HTMLInputElement).value;
+    const password = (e.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
+
+    fetchLogin(setToast, username, password).then((loginData) => {
+      if (!loginData) { return }
+
+      setUser({accountId: loginData.accountId, username: username, email: `${username}@gmail.com`});
+      setCurPage("auction");
+    })
   }
 
   return (
