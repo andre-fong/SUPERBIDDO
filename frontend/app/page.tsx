@@ -60,16 +60,21 @@ export default function PageHandler() {
     },
     login: {
       title: "Login | SuperBiddo",
-      component: <Login setCurPage={setCurPage} />,
+      component: <Login setCurPage={setCurPage} context={pageContext} />,
     },
     signup: {
       title: "Signup | SuperBiddo",
-      component: <Signup setCurPage={setCurPage} />,
+      component: <Signup setCurPage={setCurPage} context={pageContext} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
       component: (
-        <Auction user={user} setCurPage={setCurPage} setToast={setToast} />
+        <Auction
+          user={user}
+          setCurPage={setCurPage}
+          setToast={setToast}
+          context={pageContext}
+        />
       ),
     },
     profile: {
@@ -79,23 +84,34 @@ export default function PageHandler() {
     create: {
       title: "Create Auction | SuperBiddo",
       component: user ? (
-        <CreateBid setCurPage={setCurPage} user={user} setToast={setToast} />
+        <CreateBid
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
+          context={pageContext}
+        />
       ) : (
         <div>Loading...</div>
       ),
     },
     yourListings: {
       title: "Your Listings | SuperBiddo",
-      component:(
-        <YourListings user={user} />
-      ) 
+      component: (
+        <YourListings
+          user={user}
+          // context={pageContext}
+        />
+      ),
     },
     yourBiddings: {
       title: "Your Biddings | SuperBiddo",
       component: (
-        <YourBiddings user={user} />
-    ),
-    }
+        <YourBiddings
+          user={user}
+          // context={pageContext}
+        />
+      ),
+    },
   };
 
   useEffect(() => {
@@ -108,7 +124,7 @@ export default function PageHandler() {
         <ErrorToast message={toastMessage} severity={toastSeverity} />
       )}
       {curPage !== "login" && curPage !== "signup" && (
-        <Navbar user={user} setCurPage={setCurPage} />
+        <Navbar user={user} setCurPage={setCurPage} curPage={curPage} />
       )}
       {pages[curPage].component}
     </ThemeProvider>

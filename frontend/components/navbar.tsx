@@ -8,9 +8,11 @@ import { PageName } from "@/types/pageTypes";
 export default function Navbar({
   user,
   setCurPage,
+  curPage,
 }: {
   user: User | null;
-  setCurPage: (page: PageName) => void;
+  setCurPage: (page: PageName, context?: string) => void;
+  curPage: PageName;
 }) {
   // TODO: Mock data
   const username = "Victo";
@@ -45,14 +47,18 @@ export default function Navbar({
                 Hello!{" "}
                 <button
                   className={styles.link}
-                  onClick={() => setCurPage("login")}
+                  onClick={() =>
+                    setCurPage("login", JSON.stringify({ next: curPage }))
+                  }
                 >
                   Login
                 </button>{" "}
                 or{" "}
                 <button
                   className={styles.link}
-                  onClick={() => setCurPage("signup")}
+                  onClick={() =>
+                    setCurPage("signup", JSON.stringify({ next: curPage }))
+                  }
                 >
                   signup
                 </button>

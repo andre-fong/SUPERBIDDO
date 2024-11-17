@@ -4,7 +4,17 @@ import React, { useRef, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { TextField, Button, Select, MenuItem, FormControl, InputLabel, Container, Typography, Box } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Container,
+  Typography,
+  Box,
+} from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
 import { createAuction } from "@/utils/fetchFunctions";
 import cardRarities, { qualityList } from "@/types/cardGameInfo";
@@ -20,8 +30,7 @@ function SampleNextArrow(props: any) {
       className={className}
       style={{ display: "block", background: "#f44336", borderRadius: "30%" }}
       onClick={onClick}
-    >
-    </div>
+    ></div>
   );
 }
 
@@ -39,10 +48,16 @@ function SamplePrevArrow(props: any) {
 interface CardListingProps {
   setToast: (error: ErrorType) => void;
   user: User;
-  setCurPage: (page: PageName) => void;
+  setCurPage: (page: PageName, context?: string) => void;
+  context: string;
 }
 
-const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage }) => {
+const CardListing: React.FC<CardListingProps> = ({
+  setToast,
+  user,
+  setCurPage,
+  context,
+}) => {
   const cardPhotosRef = useRef<File | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
   const [backPhotoPreview, setBackPreview] = useState<string>();
@@ -71,7 +86,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       const data = await response.json();
       const cardInfo = JSON.parse(data.response);
       setType(cardInfo.type === "bundle" ? "Bundle" : "Card");
-      
+
       let price;
       if (cardInfo.type != "bundle") {
         price = await fetchCardPrice(
@@ -106,7 +121,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       }
 
       if (cardNameRef.current) {
-        console
+        console;
         if (cardInfo.type === "bundle") {
           cardNameRef.current.value = cardInfo.bundleName;
         } else {
@@ -141,10 +156,16 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       }
 
       if (missingFields.length > 0) {
-        setToast({ message: `Unable to get these fields: ${missingFields.join(", ")}`, severity: Severity.Warning });
+        setToast({
+          message: `Unable to get these fields: ${missingFields.join(", ")}`,
+          severity: Severity.Warning,
+        });
       }
     } catch (error) {
-      setToast({ message: "Error uploading retrieving fields for cards", severity: Severity.Critical });
+      setToast({
+        message: "Error uploading retrieving fields for cards",
+        severity: Severity.Critical,
+      });
     }
   };
 
@@ -178,17 +199,33 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
     e.preventDefault();
 
     if (!frontPhotoPreview) {
-      setToast({ message: "Please upload a front photo", severity: Severity.Warning });
+      setToast({
+        message: "Please upload a front photo",
+        severity: Severity.Warning,
+      });
       return;
     }
 
-    if ((startDateRef.current && !endDateRef.current) || (endDateRef.current && !startDateRef.current) ) {
-      setToast({ message: "Please set either both start date and end date or neither", severity: Severity.Warning });
+    if (
+      (startDateRef.current && !endDateRef.current) ||
+      (endDateRef.current && !startDateRef.current)
+    ) {
+      setToast({
+        message: "Please set either both start date and end date or neither",
+        severity: Severity.Warning,
+      });
       return;
-    }    
+    }
 
-    if (startDateRef.current && endDateRef.current && new Date(startDateRef.current.value) >= new Date(endDateRef.current.value)) {
-      setToast({ message: "Start date must be before end date", severity: Severity.Warning });
+    if (
+      startDateRef.current &&
+      endDateRef.current &&
+      new Date(startDateRef.current.value) >= new Date(endDateRef.current.value)
+    ) {
+      setToast({
+        message: "Start date must be before end date",
+        severity: Severity.Warning,
+      });
       return;
     }
 
@@ -201,16 +238,19 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       startTime: new Date(startDateRef.current?.value || "").toISOString(),
       endTime: new Date(endDateRef.current?.value || "").toISOString(),
       type: type,
-      cards: type === "Card" ? {
-        game: cardType,
-        name: cardNameRef.current?.value || "",
-        description: descriptionRef.current?.value || "",
-        manufacturer: manufacturerRef.current?.value || "",
-        quality: quality,
-        rarity: rarity,
-        set: setRef.current?.value || "",
-        isFoil: isFoil === "Yes"
-      } : undefined
+      cards:
+        type === "Card"
+          ? {
+              game: cardType,
+              name: cardNameRef.current?.value || "",
+              description: descriptionRef.current?.value || "",
+              manufacturer: manufacturerRef.current?.value || "",
+              quality: quality,
+              rarity: rarity,
+              set: setRef.current?.value || "",
+              isFoil: isFoil === "Yes",
+            }
+          : undefined,
     };
 
     if (type === "Bundle") {
@@ -229,8 +269,7 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
       //TODO: redirect to correct page
       console.log(auction)
     );
-
-  }
+  };
 
   const settings = {
     dots: true,
@@ -245,23 +284,48 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
 
   return (
     <Container maxWidth={false} style={{ padding: 40 }}>
-      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3}>
+      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
         <Box flex={1} maxWidth="50%">
-          {(frontPhotoPreview || backPhotoPreview) &&
-            <Box border={1} borderRadius={2} boxShadow={3} padding={1} paddingBottom={1} borderColor="grey.500">
+          {(frontPhotoPreview || backPhotoPreview) && (
+            <Box
+              border={1}
+              borderRadius={2}
+              boxShadow={3}
+              padding={1}
+              paddingBottom={1}
+              borderColor="grey.500"
+            >
               <Slider {...settings}>
-                {frontPhotoPreview && <img src={frontPhotoPreview} alt="Front Preview" />}
-                {backPhotoPreview && <img src={backPhotoPreview} alt="Back Preview" />}
+                {frontPhotoPreview && (
+                  <img src={frontPhotoPreview} alt="Front Preview" />
+                )}
+                {backPhotoPreview && (
+                  <img src={backPhotoPreview} alt="Back Preview" />
+                )}
               </Slider>
             </Box>
-          }
+          )}
         </Box>
         <Box flex={1} maxWidth="50%">
-          <form onSubmit={handleSubmit} style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', height: '100%', gap: '5px' }}>
-            <Typography variant="h3" component="h1" gutterBottom style={{ fontWeight: 'bold' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              height: "100%",
+              gap: "5px",
+            }}
+          >
+            <Typography
+              variant="h3"
+              component="h1"
+              gutterBottom
+              style={{ fontWeight: "bold" }}
+            >
               Card Listing Form
             </Typography>
-            <FormControl fullWidth margin="normal" >
+            <FormControl fullWidth margin="normal">
               <InputLabel>Card Type</InputLabel>
               <Select
                 value={cardType}
@@ -293,7 +357,11 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
               <>
                 <FormControl fullWidth>
                   <InputLabel>Quality</InputLabel>
-                  <Select value={quality} onChange={(e) => setQuality(e.target.value)} required>
+                  <Select
+                    value={quality}
+                    onChange={(e) => setQuality(e.target.value)}
+                    required
+                  >
                     {qualityList.map((quality: string, index: number) => (
                       <MenuItem value={quality} key={index}>
                         {quality}
@@ -302,17 +370,25 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
                   </Select>
                 </FormControl>
 
-                <FormControl fullWidth sx={{ marginTop: '13px' }}>
+                <FormControl fullWidth sx={{ marginTop: "13px" }}>
                   <InputLabel>Foil (y/n)</InputLabel>
-                  <Select value={isFoil} onChange={(e) => setIsFoil(e.target.value)} required>
+                  <Select
+                    value={isFoil}
+                    onChange={(e) => setIsFoil(e.target.value)}
+                    required
+                  >
                     <MenuItem value="No">No</MenuItem>
                     <MenuItem value="Yes">Yes</MenuItem>
                   </Select>
                 </FormControl>
 
-                <FormControl fullWidth sx={{ marginTop: '13px' }}>
+                <FormControl fullWidth sx={{ marginTop: "13px" }}>
                   <InputLabel>Rarity</InputLabel>
-                  <Select value={rarity} onChange={(e) => setRarity(e.target.value)} required>
+                  <Select
+                    value={rarity}
+                    onChange={(e) => setRarity(e.target.value)}
+                    required
+                  >
                     {cardRarities[cardType]?.rarities.map(
                       (rarity: string, index: number) => (
                         <MenuItem value={rarity} key={index}>
@@ -443,7 +519,13 @@ const CardListing: React.FC<CardListingProps> = ({ setToast, user, setCurPage })
               }}
             />
 
-            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ padding: '15px', fontSize: '20px', marginTop: '20px' }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ padding: "15px", fontSize: "20px", marginTop: "20px" }}
+            >
               Submit Listing
             </Button>
           </form>
