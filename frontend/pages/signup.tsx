@@ -4,6 +4,7 @@ import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { fetchLogin } from "@/utils/fetchFunctions";
+import Image from "next/image";
 
 export default function Signup({
   setCurPage,
@@ -22,7 +23,12 @@ export default function Signup({
     <main className={styles.main}>
       <div className={styles.container}>
         <form className={styles.form_container} onSubmit={handleSignupSubmit}>
-          {/* LOGO */}
+          <Image
+            src="/superbiddo-icon.svg"
+            alt="SuperBiddo icon"
+            width={40}
+            height={40}
+          />
 
           <h2 className={styles.title}>Nice to meet you!</h2>
           <p className={styles.subtitle}>
