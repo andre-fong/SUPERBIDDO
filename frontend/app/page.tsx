@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 import Auction from "@/pages/auction";
 import CreateBid from "@/pages/createbid";
 import useUser from "@/hooks/useUser";
@@ -36,7 +37,9 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("home");
+  const [curPage, setCurPageState] = useState<PageName>("home");
+  // Stringified JSON context for pages to use
+  const [pageContext, setPageContext] = useState<string>("{}");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -49,6 +52,11 @@ export default function PageHandler() {
       toast.warn(err.message);
     }
   };
+
+  function setCurPage(page: PageName, data = "{}") {
+    setCurPageState(page);
+    setPageContext(data);
+  }
 
   const { user, loading } = useUser();
 
@@ -63,7 +71,7 @@ export default function PageHandler() {
     },
     signup: {
       title: "Signup | SuperBiddo",
-      component: <h1 className={styles.title}>Signup</h1>,
+      component: <Signup setCurPage={setCurPage} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
