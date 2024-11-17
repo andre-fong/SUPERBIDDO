@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { User } from "@/types/userTypes";
 import styles from "@/styles/navbar.module.css";
 import Image from "next/image";
@@ -5,6 +6,7 @@ import IconButton from "@mui/material/IconButton";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { PageName } from "@/types/pageTypes";
 import { motion } from "motion/react";
+import { useInView, useScroll, useMotionValueEvent } from "motion/react";
 
 const navVariants = {
   hidden: {
@@ -32,6 +34,27 @@ export default function Navbar({
   const username = "Victo";
   const notificationCount = 2;
 
+  // Track scroll position to make navbar sticky
+  const { scrollY } = useScroll();
+  const ref = useRef<HTMLDivElement | null>(null);
+  const navInView = useInView(ref);
+
+  const [vertScroll, setVertScroll] = useState(0);
+
+  useMotionValueEvent(scrollY, "change", (y) => {
+    setVertScroll(y);
+  });
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    if (navInView && vertScroll === 0) {
+      ref.current.style.position = "static";
+    } else if (!navInView && vertScroll > 0) {
+      ref.current.style.position = "fixed";
+    }
+  }, [navInView, vertScroll, ref]);
+
   return (
     <motion.nav
       className={styles.container}
@@ -40,7 +63,7 @@ export default function Navbar({
       animate="visible"
       exit="hidden"
     >
-      <div className={styles.main}>
+      <motion.div className={styles.main} ref={ref}>
         <button className={styles.logo} onClick={() => setCurPage("home")}>
           <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
         </button>
@@ -82,7 +105,7 @@ export default function Navbar({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
       <div className={styles.links_container}>
         <ul className={styles.links}>
           <li className={styles.page_link}>

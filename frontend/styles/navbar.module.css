@@ -3,12 +3,15 @@
 }
 
 .main {
+  width: 100%;
+  background-color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 30px;
   gap: 20px;
   border-bottom: 1px solid lightgray;
+  z-index: 99;
 }
 
 .right {
@@ -68,8 +71,9 @@
 }
 
 .links_container {
-  padding: 7px 30px;
+  padding: 7px 30px 9px 30px;
   border-bottom: 1px solid lightgray;
+  background-color: white;
 }
 
 .links {
