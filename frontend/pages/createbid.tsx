@@ -321,7 +321,7 @@ const CardListing: React.FC<CardListingProps> = ({
               variant="h3"
               component="h1"
               gutterBottom
-              style={{ fontWeight: "bold" }}
+              style={{ fontWeight: "bold", marginTop: "-20px" }}
             >
               Card Listing Form
             </Typography>
@@ -338,7 +338,7 @@ const CardListing: React.FC<CardListingProps> = ({
               </Select>
             </FormControl>
 
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth sx={{ marginTop: "8px" }}>
               <InputLabel id="type-label">Type</InputLabel>
               <Select
                 labelId="type-label"
@@ -355,7 +355,7 @@ const CardListing: React.FC<CardListingProps> = ({
 
             {type === "Card" && (
               <>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={{ marginTop: "11px" }}>
                   <InputLabel>Quality</InputLabel>
                   <Select
                     value={quality}
@@ -370,7 +370,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   </Select>
                 </FormControl>
 
-                <FormControl fullWidth sx={{ marginTop: "13px" }}>
+                <FormControl fullWidth sx={{ marginTop: "14px" }}>
                   <InputLabel>Foil (y/n)</InputLabel>
                   <Select
                     value={isFoil}
@@ -382,7 +382,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   </Select>
                 </FormControl>
 
-                <FormControl fullWidth sx={{ marginTop: "13px" }}>
+                <FormControl fullWidth sx={{ marginTop: "14px" }}>
                   <InputLabel>Rarity</InputLabel>
                   <Select
                     value={rarity}
@@ -404,7 +404,7 @@ const CardListing: React.FC<CardListingProps> = ({
               label={type === "Bundle" ? "Bundle Name" : "Card Name"}
               inputRef={cardNameRef}
               fullWidth
-              sx={{ marginTop: "10px" }}
+              sx={{ marginTop: "13px" }}
               required
               InputLabelProps={{ shrink: true }}
             />

@@ -3,25 +3,38 @@ import React from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { fetchLogin } from "@/utils/fetchFunctions";
+import { fetchSignup } from "@/utils/fetchFunctions"
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
+import { ErrorType } from "@/types/errorTypes";
+import { User } from "@/types/userTypes";
 
 export default function Signup({
   setCurPage,
   context,
+  setToast,
+  setUser
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   context: string;
+  setToast: (error: ErrorType) => void
+  setUser: (user: User) => void
 }) {
   // TODO: Save previous action and redirect to it after signup
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: SIGNUP LOGIC HERE!
-    // await fetchSignup();
-    setCurPage("home");
+
+    const username = (e.currentTarget.elements.namedItem("username") as HTMLInputElement).value;
+    const password = (e.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
+
+    fetchSignup(setToast, username, password, `${username}@gmail.com`).then((loginData) => {
+      if (!loginData) { return }
+
+      setUser({accountId: loginData.accountId, username: username, email: `${username}@gmail.com`});
+      setCurPage("home");
+    });
   }
 
   return (

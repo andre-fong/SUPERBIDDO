@@ -19,7 +19,7 @@ function useUser() {
     });
   }, []);
 
-  return { user, loading };
+  return { user, loading, setUser };
 }
 
 export default useUser;
