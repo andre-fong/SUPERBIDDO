@@ -4,6 +4,22 @@ import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { PageName } from "@/types/pageTypes";
+import { motion } from "motion/react";
+
+const navVariants = {
+  hidden: {
+    opacity: 0,
+    y: "-20px",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeInOut",
+    },
+  },
+};
 
 export default function Navbar({
   user,
@@ -17,7 +33,13 @@ export default function Navbar({
   const notificationCount = 2;
 
   return (
-    <nav className={styles.container}>
+    <motion.nav
+      className={styles.container}
+      variants={navVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
       <div className={styles.main}>
         <button className={styles.logo} onClick={() => setCurPage("home")}>
           <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
@@ -92,6 +114,6 @@ export default function Navbar({
           </li>
         </ul>
       </div>
-    </nav>
+    </motion.nav>
   );
 }
