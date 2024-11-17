@@ -5,6 +5,9 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { fetchLogin } from "@/utils/fetchFunctions";
 import Image from "next/image";
+import IconButton from "@mui/material/IconButton";
+import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
+import { motion } from "motion/react";
 
 export default function Login({
   setCurPage,
@@ -19,8 +22,18 @@ export default function Login({
   }
 
   return (
-    <main className={styles.main}>
-      <div className={styles.container}>
+    <motion.main className={styles.main}>
+      <motion.div
+        className={styles.container}
+        initial={{ opacity: 0, y: "-10px" }}
+        animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
+      >
+        <div className={styles.back}>
+          <IconButton onClick={() => setCurPage("home")}>
+            <ArrowBackIcon />
+          </IconButton>
+        </div>
+
         <form className={styles.form_container} onSubmit={handleLoginSubmit}>
           <Image
             src="/superbiddo-icon.svg"
@@ -84,15 +97,19 @@ export default function Login({
             Register here
           </button>
         </p>
-      </div>
+      </motion.div>
 
-      <div className={styles.image_container}>
+      <motion.div
+        className={styles.image_container}
+        initial={{ opacity: 0, y: "-10px" }}
+        animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
+      >
         <img
           src="https://images2.alphacoders.com/136/thumb-1920-1368422.jpeg"
           alt="SuperBiddo"
           className={styles.TEMP_img}
         />
-      </div>
-    </main>
+      </motion.div>
+    </motion.main>
   );
 }
