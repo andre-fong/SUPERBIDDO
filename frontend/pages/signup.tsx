@@ -11,8 +11,10 @@ import { motion } from "motion/react";
 
 export default function Signup({
   setCurPage,
+  context,
 }: {
-  setCurPage: (page: PageName) => void;
+  setCurPage: (page: PageName, context?: string) => void;
+  context: string;
 }) {
   // TODO: Save previous action and redirect to it after signup
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -94,7 +96,10 @@ export default function Signup({
 
         <p className={styles.redirect_text}>
           Already have an account?{" "}
-          <button className={styles.link} onClick={() => setCurPage("login")}>
+          <button
+            className={styles.link}
+            onClick={() => setCurPage("login", context)}
+          >
             Login here
           </button>
         </p>

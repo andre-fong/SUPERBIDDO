@@ -34,10 +34,12 @@ export default function Auction({
   setCurPage,
   user,
   setToast,
+  context,
 }: {
-  setCurPage: (page: PageName) => void;
+  setCurPage: (page: PageName, context?: string) => void;
   user: User | null;
   setToast: (err: ErrorType) => void;
+  context: string;
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);

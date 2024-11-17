@@ -11,8 +11,10 @@ import { motion } from "motion/react";
 
 export default function Login({
   setCurPage,
+  context,
 }: {
-  setCurPage: (page: PageName) => void;
+  setCurPage: (page: PageName, context?: string) => void;
+  context: string;
 }) {
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -93,7 +95,10 @@ export default function Login({
 
         <p className={styles.redirect_text}>
           Don&apos;t have an account?{" "}
-          <button className={styles.link} onClick={() => setCurPage("signup")}>
+          <button
+            className={styles.link}
+            onClick={() => setCurPage("signup", context)}
+          >
             Register here
           </button>
         </p>
