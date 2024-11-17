@@ -229,28 +229,39 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
 
+    if (
+      startDateRef.current &&
+      endDateRef.current &&
+      new Date(endDateRef.current.value).getTime() - new Date(startDateRef.current.value).getTime() < 5 * 60 * 1000
+    ) {
+      setToast({
+        message: "The auction duration must be at least 5 minutes",
+        severity: Severity.Warning,
+      });
+      return;
+    }
     const auctionData: any = {
       auctioneerId: user.accountId,
-      name: cardNameRef.current?.value || "",
-      description: descriptionRef.current?.value || "",
+      name: cardNameRef.current?.value || "Unknown Name",
+      description: descriptionRef.current?.value || "No description provided",
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
       spread: parseFloat(spreadRef.current?.value || "0"),
-      startTime: new Date(startDateRef.current?.value || "").toISOString(),
-      endTime: new Date(endDateRef.current?.value || "").toISOString(),
+      startTime: startDateRef.current && startDateRef.current.value != "" ? new Date(startDateRef.current.value).toISOString() : "",
+      endTime: endDateRef.current && endDateRef.current.value != "" ? new Date(endDateRef.current.value).toISOString() : "",
       type: type,
       cards:
-        type === "Card"
-          ? {
-              game: cardType,
-              name: cardNameRef.current?.value || "",
-              description: descriptionRef.current?.value || "",
-              manufacturer: manufacturerRef.current?.value || "",
-              quality: quality,
-              rarity: rarity,
-              set: setRef.current?.value || "",
-              isFoil: isFoil === "Yes",
-            }
-          : undefined,
+      type === "Card"
+      ? {
+        game: cardType,
+        name: cardNameRef.current?.value || "Unknown Card Name",
+        description: descriptionRef.current?.value || "No description provided",
+        manufacturer: manufacturerRef.current?.value || "Unknown Manufacturer",
+        quality: quality,
+        rarity: rarity,
+        set: setRef.current?.value || "Unknown Set",
+        isFoil: isFoil === "Yes",
+      }
+      : undefined,
     };
 
     if (type === "Bundle") {
@@ -263,11 +274,8 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
-    console.log(auctionData);
-
     createAuction(setToast, auctionData).then((auction) =>
-      //TODO: redirect to correct page
-      console.log(auction)
+      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
     );
   };
 
