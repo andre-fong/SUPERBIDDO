@@ -48,35 +48,35 @@ export default function Auction({
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
+  // useEffect(() => {
+  //   const controller = new AbortController();
+  //   const signal = controller.signal;
 
-    getAuctionBids(setToast, "auction1").then((bids: AuctionBidHistory[]) => {
-      setBids(bids);
-    });
-    pollForAuctionUpdates(setToast, "auction1", signal, setBids);
-    // pollForAuctionUpdates("auction2", signal, setBids);
+  //   getAuctionBids(setToast, "auction1").then((bids: AuctionBidHistory[]) => {
+  //     setBids(bids);
+  //   });
+  //   pollForAuctionUpdates(setToast, "auction1", signal, setBids);
+  //   // pollForAuctionUpdates("auction2", signal, setBids);
 
-    return () => {
-      controller.abort("Polling aborted");
-    };
-  }, []);
+  //   return () => {
+  //     controller.abort("Polling aborted");
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    setBidCount(bids.reduce((acc, cur) => acc + cur.bids, 0));
-  }, [bids]);
+  // useEffect(() => {
+  //   setBidCount(bids.reduce((acc, cur) => acc + cur.bids, 0));
+  // }, [bids]);
 
-  // TODO: Use actual loading data
-  useEffect(() => {
-    setTimeout(() => {
-      setBidsLoading(false);
-    }, 3000);
+  // // TODO: Use actual loading data
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setBidsLoading(false);
+  //   }, 3000);
 
-    return () => {
-      setBidsLoading(true);
-    };
-  }, []);
+  //   return () => {
+  //     setBidsLoading(true);
+  //   };
+  // }, []);
 
   // useEffect(() => {
   //   console.log(context)
@@ -96,22 +96,22 @@ export default function Auction({
     autoStart: true,
   });
 
-  /**
-   * Handles submitting a new bid
-   */
-  function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  // /**
+  //  * Handles submitting a new bid
+  //  */
+  // function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
 
-    if (auctionEnded || winning) {
-      console.warn("Cannot bid on an ended or winning auction");
-      return;
-    }
-    const formData = new FormData(e.currentTarget);
-    const bidAmount = parseFloat(formData.get("bid_amount") as string);
-    (e.currentTarget as HTMLFormElement).reset();
-    console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-    submitBid(setToast, "auction1", bidAmount, username);
-  }
+  //   if (auctionEnded || winning) {
+  //     console.warn("Cannot bid on an ended or winning auction");
+  //     return;
+  //   }
+  //   const formData = new FormData(e.currentTarget);
+  //   const bidAmount = parseFloat(formData.get("bid_amount") as string);
+  //   (e.currentTarget as HTMLFormElement).reset();
+  //   console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
+  //   submitBid(setToast, "auction1", bidAmount, username);
+  // }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SampleNextArrow(props: any) {
