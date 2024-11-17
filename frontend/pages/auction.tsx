@@ -78,6 +78,10 @@ export default function Auction({
     };
   }, []);
 
+  // useEffect(() => {
+  //   console.log(context)
+  // }, []);
+
   // TODO: Replace with actual data
   const spread = 0.5;
   const startingBid = 0.5;
