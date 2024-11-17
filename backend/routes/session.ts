@@ -3,8 +3,6 @@ import { pool } from "../configServices/dbConfig.js";
 import bcrypt from "bcrypt";
 import camelize from "camelize";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
-import crypto from "crypto";
-
 export const router = express.Router();
 
 router.get("/", async (req, res, next) => {

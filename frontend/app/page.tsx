@@ -8,16 +8,14 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Auction from "@/pages/auction";
 import CreateBid from "@/pages/createbid";
+import YourListings from "@/pages/yourlistings";
+import YourBiddings from "@/pages/yourbiddings";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
 
-// https://mui.com/material-ui/customization/palette/
-/**
- * SUPERBIDDO COLOR PALETTE
- */
 const theme = createTheme({
   palette: {
     primary: {
@@ -46,11 +44,6 @@ export default function PageHandler() {
   const setToast = (err: ErrorType) => {
     setToastMessage(err.message);
     setToastSeverity(err.severity);
-    if (err.severity === Severity.Critical) {
-      toast.error(err.message);
-    } else if (err.severity === Severity.Warning) {
-      toast.warn(err.message);
-    }
   };
 
   function setCurPage(page: PageName, data = "{}") {
@@ -85,8 +78,24 @@ export default function PageHandler() {
     },
     create: {
       title: "Create Auction | SuperBiddo",
-      component: <CreateBid setToast={setToast} />,
+      component: user ? (
+        <CreateBid setCurPage={setCurPage} user={user} setToast={setToast} />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
+    yourListings: {
+      title: "Your Listings | SuperBiddo",
+      component:(
+        <YourListings user={user} />
+      ) 
+    },
+    yourBiddings: {
+      title: "Your Biddings | SuperBiddo",
+      component: (
+        <YourBiddings user={user} />
+    ),
+    }
   };
 
   useEffect(() => {

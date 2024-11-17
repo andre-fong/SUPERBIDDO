@@ -1,15 +1,47 @@
 import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
+import { Email } from "@mui/icons-material";
+import { use } from "react";
 
-const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+
+// const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
   TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
 */
 
+export async function fetchSignup(errorFcn: (error: ErrorType) => void, username: string, password: string, email: string) {
+  try {
+    const response = await fetch(`${url}/accounts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ username, password, email }),
+    });
+
+    if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    const data = await response.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+}
+
+
 export async function fetchLogin() {
-  // errorFcn
   const response = await fetch(`${url}/session`, {
     method: "POST",
     headers: {
@@ -25,6 +57,7 @@ export async function fetchLogin() {
   }
 
   const data = await response.json();
+  console.log(data);
   return data;
 }
 
@@ -33,12 +66,14 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
     const response = await fetch(`${url}/session`, {
       method: "GET",
       credentials: "include",
+ 
     });
+
 
     if (response.status === 404) {
       errorFcn({
         message: "Session info not found",
-        severity: Severity.Critical,
+        severity: Severity.Warning,
       });
       return null;
     } else if (!response.ok) {
@@ -160,5 +195,69 @@ export async function submitBid(
     }
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
+  }
+}
+export async function createAuction(
+  errorFcn: (error: ErrorType) => void,
+  auctionData: {
+    auctioneerId: string;
+    name: string;
+    description: string;
+    startPrice: number;
+    spread: number;
+    startTime: string;
+    endTime: string;
+    type: string;
+    bundle?: {
+      game: string;
+      name: string;
+      description: string;
+      manufacturer: string;
+      set: string;
+    };
+    cards?: {
+      game: string;
+      name: string;
+      description: string;
+      manufacturer: string;
+      quality: string;
+      rarity: string;
+      set: string;
+      isFoil: boolean;
+    };
+  }
+) {
+  try {
+    const response = await fetch(`${url}/auctions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",  
+        credentials: "include",
+      },
+      body: JSON.stringify({
+      ...auctionData,
+      cards: auctionData.cards ? [auctionData.cards] : undefined,
+    }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      } else if (response.status === 401) {
+      errorFcn({ message: "Action requires authentication", severity: Severity.Warning });
+      } else {
+      errorFcn({
+        message: unkownError,
+        severity: Severity.Critical,
+      });
+      }
+      return null;
+    }
+
+    const auction = await response.json();
+    return auction;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null
   }
 }

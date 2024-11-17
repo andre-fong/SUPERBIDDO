@@ -9,8 +9,8 @@ export async function POST(request: Request) {
 
   const fileManager = new GoogleAIFileManager(geminiApiKey);
 
-  const uploadResult = await fileManager.uploadFile("app/api/s-l1600.webp", {
-    mimeType: "image/webp",
+  const uploadResult = await fileManager.uploadFile("app/api/818oG9FyRDL.jpg", {
+    mimeType: "image/jpeg",
     displayName: "Sample Image",
   });
 
@@ -28,6 +28,15 @@ export async function POST(request: Request) {
                 cardName:
                 collectorNumber:
                 setCode:
+                type: "card"
+                OR RETURN IT AS A BUNDLE LIKE THIS IF ITS NOT A CARD
+                type: "bundle"
+                cardType: 
+                manufacturer:
+                set: 
+                collectorNumber:
+                setCode:
+                bundleName:
             } 
         Ex.
             {
@@ -40,6 +49,7 @@ export async function POST(request: Request) {
                 "cardName": "Dark Armed Dragon"
                 "collectorNumber": "PTDN-EN019"
                 "setCode": "PTDN"
+                "type": "card"
             },
             {
                 "card-type": "Magic: The Gathering",
@@ -51,6 +61,7 @@ export async function POST(request: Request) {
                 "foil": "Yes",
                 "cardName": "Elspeth, Conquering Hero"
                 "collectorNumber": "9"
+                "type": "card"
             },
             {
                 "card-type": "Pokémon",
@@ -62,8 +73,38 @@ export async function POST(request: Request) {
                 "cardName": "Rayquaza" (Just the pokemon name not the full card name)
                 "collectorNumber": "56"
                 "setCode": "sm3.5" (set code in pokemon tcg api)
+                "type": "card"
+            },
+            {
+              "type": "bundle",
+              "cardType": "Yu-Gi-Oh!",
+              "manufacturer": "Konami",
+              "set": "Legendary Collection",
+              "collectorNumber": "LC01-EN001",
+              "setCode": "LC01",
+              "bundleName": "Legendary Collection Kaiba"
+            },
+            {
+              "type": "bundle",
+              "cardType": "Magic: The Gathering",
+              "manufacturer": "Wizards of the Coast",
+              "set": "Zendikar Rising",
+              "collectorNumber": "60",
+              "setCode": "ZNR",
+              "bundleName": "Zendikar Rising Bundle"
+            },
+            {
+              "type": "bundle",
+              "cardType": "Pokémon",
+              "manufacturer": "The Pokémon Company",
+              "set": "Hidden Fates",
+              "collectorNumber": "SV49",
+              "setCode": "sm115",
+              "bundleName": "Hidden Fates Elite Trainer Box"
             }
             NOTE
+            If you return undefined for a value instead just return ''
+            - type: The type of card or bundle
             - cardType: The type of card
                 Return either:
                 MTG
@@ -84,6 +125,7 @@ export async function POST(request: Request) {
             - collectorNumber: The collector number of the card
             - setCode: The set code of the card (For pokemon put the equivlient one for the pokemon tcg api)
             - For pokemon Only do the pure pokemon name not the full card name
+            - bundleName: The name of the bundle
         `,
     {
       fileData: {
