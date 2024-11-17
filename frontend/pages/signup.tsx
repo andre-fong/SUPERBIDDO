@@ -6,22 +6,23 @@ import Button from "@mui/material/Button";
 import { fetchLogin } from "@/utils/fetchFunctions";
 import Image from "next/image";
 
-export default function Login({
+export default function Signup({
   setCurPage,
 }: {
   setCurPage: (page: PageName) => void;
 }) {
-  async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // TODO: Save previous action and redirect to it after signup
+  async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: Save previous action and redirect to it after login
-    await fetchLogin();
-    setCurPage("auction");
+    // TODO: SIGNUP LOGIC HERE!
+    // await fetchSignup();
+    setCurPage("home");
   }
 
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <form className={styles.form_container} onSubmit={handleLoginSubmit}>
+        <form className={styles.form_container} onSubmit={handleSignupSubmit}>
           <Image
             src="/superbiddo-icon.svg"
             alt="SuperBiddo icon"
@@ -29,9 +30,9 @@ export default function Login({
             height={40}
           />
 
-          <h2 className={styles.title}>Welcome back!</h2>
+          <h2 className={styles.title}>Nice to meet you!</h2>
           <p className={styles.subtitle}>
-            Log in to continue using all of SuperBiddo&apos;s features.
+            Sign up to continue using all of SuperBiddo&apos;s features.
           </p>
 
           <label
@@ -66,7 +67,7 @@ export default function Login({
           />
 
           <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
-            Log in
+            Sign up
           </Button>
         </form>
 
@@ -79,9 +80,9 @@ export default function Login({
         {/* OAUTH */}
 
         <p className={styles.redirect_text}>
-          Don&apos;t have an account?{" "}
-          <button className={styles.link} onClick={() => setCurPage("signup")}>
-            Register here
+          Already have an account?{" "}
+          <button className={styles.link} onClick={() => setCurPage("login")}>
+            Login here
           </button>
         </p>
       </div>

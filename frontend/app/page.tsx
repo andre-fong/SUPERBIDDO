@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 import Auction from "@/pages/auction";
 import CreateBid from "@/pages/createbid";
 import YourListings from "@/pages/yourlistings";
@@ -13,6 +14,7 @@ import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
+import Navbar from "@/components/navbar";
 
 const theme = createTheme({
   palette: {
@@ -33,7 +35,9 @@ const theme = createTheme({
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("yourBiddings");
+  const [curPage, setCurPageState] = useState<PageName>("home");
+  // Stringified JSON context for pages to use
+  const [pageContext, setPageContext] = useState<string>("{}");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
@@ -41,6 +45,11 @@ export default function PageHandler() {
     setToastMessage(err.message);
     setToastSeverity(err.severity);
   };
+
+  function setCurPage(page: PageName, data = "{}") {
+    setCurPageState(page);
+    setPageContext(data);
+  }
 
   const { user, loading } = useUser();
 
@@ -55,7 +64,7 @@ export default function PageHandler() {
     },
     signup: {
       title: "Signup | SuperBiddo",
-      component: <h1 className={styles.title}>Signup</h1>,
+      component: <Signup setCurPage={setCurPage} />,
     },
     auction: {
       title: "Auction | SuperBiddo",
@@ -94,11 +103,14 @@ export default function PageHandler() {
   }, [curPage]);
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       {toastMessage && toastSeverity && (
         <ErrorToast message={toastMessage} severity={toastSeverity} />
       )}
-      <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
-    </>
+      {curPage !== "login" && curPage !== "signup" && (
+        <Navbar user={user} setCurPage={setCurPage} />
+      )}
+      {pages[curPage].component}
+    </ThemeProvider>
   );
 }
