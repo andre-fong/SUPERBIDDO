@@ -9,6 +9,9 @@ import { motion } from "motion/react";
 import { useInView, useScroll, useMotionValueEvent } from "motion/react";
 import { fetchLogout } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import SearchIcon from "@mui/icons-material/Search";
 
 const navVariants = {
   hidden: {
@@ -30,13 +33,13 @@ export default function Navbar({
   setCurPage,
   curPage,
   setUser,
-  setToast
+  setToast,
 }: {
   user: User | null;
   setCurPage: (page: PageName, context?: string) => void;
   curPage: PageName;
-  setUser: (user: User | null) => void,
-  setToast: (error: ErrorType) => void
+  setUser: (user: User | null) => void;
+  setToast: (error: ErrorType) => void;
 }) {
   // TODO: Mock data
   const username = user ? user.username : "";
@@ -68,13 +71,20 @@ export default function Navbar({
   }, [navInView, vertScroll, ref, linksRef]);
 
   function handleSignout(event: React.MouseEvent<HTMLButtonElement>): void {
-    if (!user) { return }
+    if (!user) {
+      return;
+    }
 
     fetchLogout(setToast, (user: User | null) => {
-      setUser(user)
-      setCurPage("home")
-    })
+      setUser(user);
+      setCurPage("home");
+    });
   }
+
+  // TODO: Remove log
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
 
   return (
     <motion.nav
@@ -88,7 +98,41 @@ export default function Navbar({
         <button className={styles.logo} onClick={() => setCurPage("home")}>
           <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
         </button>
-        <div className={styles.search}>{/* TODO: Complex search bar!!! */}</div>
+        <div className={styles.search}>
+          <Autocomplete
+            freeSolo
+            disableClearable
+            selectOnFocus
+            handleHomeEndKeys
+            options={["Search for items"]}
+            // TODO: Use filterOptions to add a "search for ___ in ____" option
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Search SuperBiddo"
+                variant="outlined"
+                slotProps={{
+                  input: {
+                    ...params.InputProps, // NOT inputProps
+                    endAdornment: (
+                      <IconButton
+                        sx={{
+                          // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                          backgroundColor: "primary.main",
+                          color: "white",
+                          "&:hover": { backgroundColor: "primary.dark" },
+                        }}
+                        // TODO: Implement search functionality
+                      >
+                        <SearchIcon />
+                      </IconButton>
+                    ),
+                  },
+                }}
+              />
+            )}
+          />
+        </div>
 
         <div className={styles.right}>
           <div className={styles.notifications}>
