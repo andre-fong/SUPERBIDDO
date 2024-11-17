@@ -3,7 +3,7 @@ import React from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { fetchSignup } from "@/utils/fetchFunctions"
+import { fetchSignup } from "@/utils/fetchFunctions";
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -15,26 +15,38 @@ export default function Signup({
   setCurPage,
   context,
   setToast,
-  setUser
+  setUser,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   context: string;
-  setToast: (error: ErrorType) => void
-  setUser: (user: User) => void
+  setToast: (error: ErrorType) => void;
+  setUser: (user: User) => void;
 }) {
   // TODO: Save previous action and redirect to it after signup
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const username = (e.currentTarget.elements.namedItem("username") as HTMLInputElement).value;
-    const password = (e.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
+    const password = (
+      e.currentTarget.elements.namedItem("password") as HTMLInputElement
+    ).value;
 
-    fetchSignup(setToast, username, password, `${username}@gmail.com`).then((loginData) => {
-      if (!loginData) { return }
+    fetchSignup(setToast, username, password, `${username}@gmail.com`).then(
+      (loginData) => {
+        if (!loginData) {
+          return;
+        }
 
-      setUser({accountId: loginData.accountId, username: username, email: `${username}@gmail.com`});
-      setCurPage("home");
-    });
+        setUser({
+          accountId: loginData.accountId,
+          username: username,
+          email: `${username}@gmail.com`,
+        });
+        setCurPage("home");
+      }
+    );
   }
 
   return (
