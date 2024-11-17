@@ -37,6 +37,8 @@ export default function Navbar({
   // Track scroll position to make navbar sticky
   const { scrollY } = useScroll();
   const ref = useRef<HTMLDivElement | null>(null);
+  const linksRef = useRef<HTMLDivElement | null>(null);
+
   const navInView = useInView(ref);
 
   const [vertScroll, setVertScroll] = useState(0);
@@ -46,14 +48,16 @@ export default function Navbar({
   });
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current || !linksRef.current) return;
 
     if (navInView && vertScroll === 0) {
       ref.current.style.position = "static";
+      linksRef.current.style.marginBottom = "0";
     } else if (!navInView && vertScroll > 0) {
       ref.current.style.position = "fixed";
+      linksRef.current.style.marginBottom = "120px";
     }
-  }, [navInView, vertScroll, ref]);
+  }, [navInView, vertScroll, ref, linksRef]);
 
   return (
     <motion.nav
@@ -106,7 +110,7 @@ export default function Navbar({
           </div>
         </div>
       </motion.div>
-      <div className={styles.links_container}>
+      <div className={styles.links_container} ref={linksRef}>
         <ul className={styles.links}>
           <li className={styles.page_link}>
             <button
