@@ -4,7 +4,7 @@
 SERVER=35.208.53.6
 FRONTEND_ENV_PATH=frontend/.env.production
 BACKEND_ENV_PATH=backend/.env.production
-REMOTE_DEST_PATH=.env
+REMOTE_DEST_PATH=/var/lib/superbiddo/.env
 
 echo "Building and deploying the application to $SERVER..."
 
@@ -41,13 +41,13 @@ fi
 echo "Backend upload successful!"
 
 echo "Stopping all containers on $SERVER..."
-ssh $SERVER docker compose down --remove-orphans
+ssh $SERVER "cd /var/lib/superbiddo && docker compose down --remove-orphans"
 
 echo "Removing dangling images on $SERVER..."
 ssh $SERVER docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
 echo "Copying docker-compose.yaml to $SERVER..."
-scp docker-compose.yaml $SERVER:.
+scp docker-compose.yaml $SERVER:/var/lib/superbiddo/docker-compose.yaml
 if [ $? -ne 0 ]; then
   echo "docker-compose.yaml copy failed. Exiting..."
   exit 1
@@ -67,7 +67,7 @@ fi
 echo "Environment file copy successful!"
 
 echo "Starting the application on $SERVER..."
-ssh $SERVER docker compose up -d
+ssh $SERVER "cd /var/lib/superbiddo && docker compose up -d"
 if [ $? -ne 0 ]; then
   echo "Application start failed. Exiting..."
   exit 1
