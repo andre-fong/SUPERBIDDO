@@ -17,6 +17,7 @@ import Paper from "@mui/material/Paper";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Fade } from "@mui/material";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const navVariants = {
   hidden: {
@@ -128,9 +129,10 @@ export default function Navbar({
                       <IconButton
                         sx={{
                           // Filled IconButton: https://github.com/mui/material-ui/issues/37443
-                          backgroundColor: "secondary.main",
+                          backgroundColor: "primary.main",
                           color: "white",
-                          "&:hover": { backgroundColor: "secondary.dark" },
+                          "&:hover": { backgroundColor: "primary.dark" },
+                          "&:focus": { backgroundColor: "primary.dark" },
                         }}
                         title="Search SuperBiddo"
                         // TODO: Implement search functionality
@@ -185,20 +187,126 @@ export default function Navbar({
                 >
                   {({ TransitionProps }) => (
                     <Fade {...TransitionProps} timeout={350}>
-                      <Paper elevation={3}>
+                      <Paper elevation={3} sx={{ marginTop: "10px" }}>
                         <div className={styles.account_popper}>
                           <Paper
                             variant="outlined"
                             sx={{
                               backgroundColor: "secondary.light",
                               borderStyle: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "10px 20px",
                             }}
                           >
-                            <AccountCircleIcon />
+                            <div className={styles.account_popper_avatar}>
+                              <AccountCircleIcon fontSize="inherit" />
+                            </div>
                             <p className={styles.account_popper_username}>
-                              Username (x)
+                              Username{" "}
+                              <span className={styles.user_sell_count}>
+                                (x)
+                              </span>
                             </p>
+
+                            <button
+                              className={styles.signout}
+                              onClick={handleSignout}
+                            >
+                              <p className={styles.signout_text}>Sign out</p>
+                              <ChevronRightIcon />
+                            </button>
                           </Paper>
+
+                          <div className={styles.account_popper_bottom}>
+                            <div className={styles.my_superbiddo}>
+                              <p
+                                className={
+                                  styles.account_popper_section_heading
+                                }
+                              >
+                                My SuperBiddo
+                              </p>
+                              <div
+                                className={styles.account_popper_section_list}
+                              >
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  My Listings
+                                </button>
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Bid History
+                                </button>
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Purchase History
+                                </button>
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Watch List
+                                </button>
+                                <div
+                                  className={
+                                    styles.account_popper_horizontal_divider
+                                  }
+                                />
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Sell
+                                </button>
+                              </div>
+                            </div>
+
+                            <div
+                              className={styles.account_popper_vertical_divider}
+                            />
+
+                            <div className={styles.my_account}>
+                              <p
+                                className={
+                                  styles.account_popper_section_heading
+                                }
+                              >
+                                My Account
+                              </p>
+                              <div
+                                className={styles.account_popper_section_list}
+                              >
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Switch Accounts
+                                </button>
+                                <button
+                                  className={styles.account_popper_section_item}
+                                  onClick={handleSignout}
+                                >
+                                  Sign Out
+                                </button>
+                                <div
+                                  className={
+                                    styles.account_popper_horizontal_divider
+                                  }
+                                />
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Settings
+                                </button>
+                                <button
+                                  className={styles.account_popper_section_item}
+                                >
+                                  Payment Settings
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </Paper>
                     </Fade>
@@ -207,7 +315,7 @@ export default function Navbar({
               </>
             ) : (
               <p className={styles.no_session_msg}>
-                Hello!{" "}
+                Hello guest! <br />
                 <button
                   className={styles.link}
                   onClick={() =>
