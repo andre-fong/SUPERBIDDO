@@ -44,7 +44,7 @@ export default function Signup({
           username: username,
           email: `${username}@gmail.com`,
         });
-        setCurPage("home");
+        setCurPage((JSON.parse(context)?.next as PageName) || "home");
       }
     );
   }
@@ -57,7 +57,11 @@ export default function Signup({
         animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
       >
         <div className={styles.back}>
-          <IconButton onClick={() => setCurPage("home")}>
+          <IconButton
+            onClick={() =>
+              setCurPage((JSON.parse(context)?.next as PageName) || "home")
+            }
+          >
             <ArrowBackIcon />
           </IconButton>
         </div>

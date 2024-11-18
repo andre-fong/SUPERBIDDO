@@ -247,6 +247,7 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
+                                    onClick={() => setCurPage("yourListings")}
                                   >
                                     My Listings
                                   </button>
@@ -254,6 +255,7 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
+                                    onClick={() => setCurPage("yourBiddings")}
                                   >
                                     Bid History
                                   </button>
@@ -261,6 +263,8 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
+                                    // TODO: Set my bids filter to "won"
+                                    onClick={() => setCurPage("yourBiddings")}
                                   >
                                     Purchase History
                                   </button>
@@ -268,6 +272,7 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
+                                    // TODO: Implement watch list
                                   >
                                     Watch List
                                   </button>
@@ -280,6 +285,7 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
+                                    onClick={() => setCurPage("create")}
                                   >
                                     Sell
                                   </button>
@@ -306,6 +312,12 @@ export default function Navbar({
                                   <button
                                     className={
                                       styles.account_popper_section_item
+                                    }
+                                    onClick={() =>
+                                      setCurPage(
+                                        "login",
+                                        JSON.stringify({ next: curPage })
+                                      )
                                     }
                                   >
                                     Switch Accounts
