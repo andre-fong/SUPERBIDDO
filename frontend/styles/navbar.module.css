@@ -22,6 +22,9 @@
 }
 
 .notifications {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 }
 
@@ -40,6 +43,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 
 .logo {
@@ -57,7 +61,36 @@
   flex: 1;
 }
 
-.user p {
+.user_avatar {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: 0;
+  border: none;
+  cursor: pointer;
+}
+
+.account_popper {
+  padding: 10px 15px;
+}
+
+.session_msg {
+  font-size: 0.85rem;
+  /* Hello, <username> */
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session_submsg {
+  display: flex;
+  align-items: flex-end;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.no_session_msg {
   font-size: 0.85rem;
 }
 

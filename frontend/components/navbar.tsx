@@ -12,6 +12,11 @@ import { ErrorType } from "@/types/errorTypes";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
+import Popper from "@mui/material/Popper";
+import Paper from "@mui/material/Paper";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { Fade } from "@mui/material";
 
 const navVariants = {
   hidden: {
@@ -41,6 +46,11 @@ export default function Navbar({
   setUser: (user: User | null) => void;
   setToast: (error: ErrorType) => void;
 }) {
+  const [accountPopperOpen, setAccountPopperOpen] = useState(false);
+  const [categoryPopperOpen, setCategoryPopperOpen] = useState(false);
+  const accountAnchor = useRef<HTMLButtonElement | null>(null);
+  const categoryAnchor = useRef<HTMLButtonElement | null>(null);
+
   // TODO: Mock data
   const username = user ? user.username : "";
   const notificationCount = 2;
@@ -118,10 +128,11 @@ export default function Navbar({
                       <IconButton
                         sx={{
                           // Filled IconButton: https://github.com/mui/material-ui/issues/37443
-                          backgroundColor: "primary.main",
+                          backgroundColor: "secondary.main",
                           color: "white",
-                          "&:hover": { backgroundColor: "primary.dark" },
+                          "&:hover": { backgroundColor: "secondary.dark" },
                         }}
+                        title="Search SuperBiddo"
                         // TODO: Implement search functionality
                       >
                         <SearchIcon />
@@ -135,24 +146,67 @@ export default function Navbar({
         </div>
 
         <div className={styles.right}>
-          <div className={styles.notifications}>
-            <IconButton>
-              <NotificationsIcon fontSize="large" />
-            </IconButton>
+          {user && (
+            <div className={styles.notifications}>
+              <IconButton title="My Notifications">
+                <NotificationsIcon fontSize="large" />
+              </IconButton>
 
-            <div className={styles.notifications_count}>
-              {notificationCount}
+              {notificationCount > 0 && (
+                <div className={styles.notifications_count}>
+                  {notificationCount}
+                </div>
+              )}
             </div>
-          </div>
+          )}
           <div className={styles.user}>
             {user ? (
               <>
-                <div className={styles.user_avatar}></div>
-                <div className={styles.user_name}>{username}</div>
-                <button onClick={handleSignout}>Signout</button>
+                <button
+                  className={styles.user_avatar}
+                  ref={accountAnchor}
+                  onMouseOver={() => setAccountPopperOpen(true)}
+                  onMouseOut={() => setAccountPopperOpen(false)}
+                  onClick={() => setAccountPopperOpen(!accountPopperOpen)}
+                >
+                  <p className={styles.session_msg}>Hello, username</p>
+                  <p className={styles.session_submsg}>
+                    Account & Lists <ArrowDropDownIcon fontSize="small" />
+                  </p>
+                </button>
+
+                <Popper
+                  open={accountPopperOpen}
+                  anchorEl={accountAnchor.current}
+                  placement="bottom-end"
+                  onMouseOver={() => setAccountPopperOpen(true)}
+                  onMouseOut={() => setAccountPopperOpen(false)}
+                  transition
+                >
+                  {({ TransitionProps }) => (
+                    <Fade {...TransitionProps} timeout={350}>
+                      <Paper elevation={3}>
+                        <div className={styles.account_popper}>
+                          <Paper
+                            variant="outlined"
+                            sx={{
+                              backgroundColor: "secondary.light",
+                              borderStyle: "none",
+                            }}
+                          >
+                            <AccountCircleIcon />
+                            <p className={styles.account_popper_username}>
+                              Username (x)
+                            </p>
+                          </Paper>
+                        </div>
+                      </Paper>
+                    </Fade>
+                  )}
+                </Popper>
               </>
             ) : (
-              <p>
+              <p className={styles.no_session_msg}>
                 Hello!{" "}
                 <button
                   className={styles.link}
