@@ -79,7 +79,7 @@ export default function PageHandler() {
     setPageContext(data);
   }
 
-  const { user, loading, setUser } = useUser();
+  const { user, loading: userLoading, setUser } = useUser();
 
   const pages: PageData = {
     home: {
@@ -176,6 +176,7 @@ export default function PageHandler() {
         {curPage !== "login" && curPage !== "signup" && (
           <Navbar
             user={user}
+            userLoading={userLoading}
             setCurPage={setCurPage}
             curPage={curPage}
             setToast={setToast}
