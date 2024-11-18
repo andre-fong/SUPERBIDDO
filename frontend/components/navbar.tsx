@@ -95,6 +95,14 @@ export default function Navbar({
     });
   }
 
+  function handleAccountPopperClick(event: React.MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+
+    if (target.classList.contains(styles.account_popper_section_item)) {
+      setAccountPopperOpen(false);
+    }
+  }
+
   // TODO: Remove log
   useEffect(() => {
     console.log(user);
@@ -194,8 +202,9 @@ export default function Navbar({
                     open={accountPopperOpen}
                     anchorEl={accountAnchor.current}
                     placement="bottom-end"
-                    onMouseOver={() => setAccountPopperOpen(true)}
-                    onMouseOut={() => setAccountPopperOpen(false)}
+                    onMouseEnter={() => setAccountPopperOpen(true)}
+                    onMouseLeave={() => setAccountPopperOpen(false)}
+                    onClick={handleAccountPopperClick}
                     transition
                   >
                     {({ TransitionProps }) => (
@@ -384,34 +393,23 @@ export default function Navbar({
           </div>
         )}
       </motion.div>
+      {/* TODO: Make links redirect to search results with appropriate filter */}
       <div className={styles.links_container} ref={linksRef}>
         <ul className={styles.links}>
           <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => setCurPage("yourListings")}
-            >
-              Your Listings
-            </button>
+            <button className={styles.page_button}>Pokémon</button>
           </li>
           <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => setCurPage("yourBiddings")}
-            >
-              Your Bids
-            </button>
+            <button className={styles.page_button}>Magic: The Gathering</button>
           </li>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Watch List</button>
+            <button className={styles.page_button}>Yu-Gi-Oh!</button>
           </li>
           <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => setCurPage("create")}
-            >
-              Sell
-            </button>
+            <button className={styles.page_button}>Bundles</button>
+          </li>
+          <li className={styles.page_link}>
+            <button className={styles.page_button}>Other Cards</button>
           </li>
         </ul>
       </div>
