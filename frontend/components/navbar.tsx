@@ -9,7 +9,7 @@ import { motion } from "motion/react";
 import { useInView, useScroll, useMotionValueEvent } from "motion/react";
 import { fetchLogout } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
-import Autocomplete from "@mui/material/Autocomplete";
+import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import Popper from "@mui/material/Popper";
@@ -19,6 +19,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Fade } from "@mui/material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Skeleton from "@mui/material/Skeleton";
+import Box from "@mui/material/Box";
 
 const navVariants = {
   hidden: {
@@ -33,6 +34,130 @@ const navVariants = {
       ease: "easeInOut",
     },
   },
+};
+
+// TODO: Use real search options
+type Option = {
+  game:
+    | "Pokémon"
+    | "Magic: The Gathering"
+    | "Yu-Gi-Oh!"
+    | "Bundles"
+    | "Other Cards"
+    | null;
+  name: string;
+};
+
+const options: Option[] = [
+  {
+    game: "Pokémon",
+    name: "Charizard",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Black Lotus",
+  },
+  {
+    game: "Yu-Gi-Oh!",
+    name: "Blue-Eyes White Dragon",
+  },
+  {
+    game: "Bundles",
+    name: "Booster Box",
+  },
+  {
+    game: "Other Cards",
+    name: "Base Set",
+  },
+  {
+    game: "Pokémon",
+    name: "Pikachu",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Sol Ring",
+  },
+  {
+    game: "Bundles",
+    name: "Starter Deck",
+  },
+  {
+    game: "Other Cards",
+    name: "Promo Card",
+  },
+  {
+    game: "Pokémon",
+    name: "Blastoise",
+  },
+  {
+    game: "Pokémon",
+    name: "Venusaur",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Mox Pearl",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Mox Sapphire",
+  },
+  {
+    game: "Yu-Gi-Oh!",
+    name: "Exodia",
+  },
+  {
+    game: "Yu-Gi-Oh!",
+    name: "Dark Magician",
+  },
+  {
+    game: "Bundles",
+    name: "Booster Pack",
+  },
+  {
+    game: "Bundles",
+    name: "Deck Box",
+  },
+  {
+    game: "Other Cards",
+    name: "Secret Rare",
+  },
+  {
+    game: "Pokémon",
+    name: "Mewtwo",
+  },
+  {
+    game: "Pokémon",
+    name: "Mew",
+  },
+  {
+    game: "Pokémon",
+    name: "Gengar",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Mox Jet",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Mox Ruby",
+  },
+  {
+    game: "Magic: The Gathering",
+    name: "Mox Emerald",
+  },
+  {
+    game: "Yu-Gi-Oh!",
+    name: "Blue-Eyes Ultimate Dragon",
+  },
+];
+
+const filter = createFilterOptions<Option>();
+
+const iconPaths = {
+  Pokémon: "/pokemon-logo.png",
+  "Magic: The Gathering": "/mtg-logo.png",
+  "Yu-Gi-Oh!": "/yugioh-logo.png",
+  Bundles: "/bundle-icon.png",
 };
 
 export default function Navbar({
@@ -124,9 +249,56 @@ export default function Navbar({
           <Autocomplete
             freeSolo
             disableClearable
-            selectOnFocus
             handleHomeEndKeys
-            options={["Search for items"]}
+            options={options}
+            getOptionLabel={(option) =>
+              typeof option === "string" ? option : option.name
+            }
+            filterOptions={(options, params) => {
+              // TODO: Stop using filter() once we have real search options
+              const filtered = filter(options, params);
+              if (params.inputValue !== "") {
+                filtered.push({
+                  game: null,
+                  name: `Search for "${params.inputValue}" in Pokémon`,
+                });
+                filtered.push({
+                  game: null,
+                  name: `Search for "${params.inputValue}" in Magic: The Gathering`,
+                });
+                filtered.push({
+                  game: null,
+                  name: `Search for "${params.inputValue}" in Yu-Gi-Oh!`,
+                });
+              }
+              return filtered;
+            }}
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
+              return (
+                <Box
+                  component="li"
+                  key={key}
+                  {...optionProps}
+                  title={
+                    !option.game ? undefined : `${option.name} (${option.game})`
+                  }
+                >
+                  {!option.game || option.game === "Other Cards" ? (
+                    <SearchIcon />
+                  ) : (
+                    <Image
+                      src={iconPaths[option.game]}
+                      alt={option.name}
+                      width={25}
+                      height={25}
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
+                  <div className={styles.search_option}>{option.name}</div>
+                </Box>
+              );
+            }}
             // TODO: Use filterOptions to add a "search for ___ in ____" option
             renderInput={(params) => (
               <TextField

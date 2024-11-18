@@ -226,3 +226,7 @@
   color: var(--primary);
   text-decoration: underline;
 }
+
+.search_option {
+  margin-left: 8px;
+}
