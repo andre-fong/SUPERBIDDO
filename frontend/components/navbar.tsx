@@ -246,6 +246,8 @@ export default function Navbar({
           <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
         </button>
         <div className={styles.search}>
+          {/* TODO: Extract autocomplete value from below component */}
+          {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
             freeSolo
             disableClearable
@@ -275,6 +277,7 @@ export default function Navbar({
             }}
             renderOption={(props, option) => {
               const { key, ...optionProps } = props;
+              // TODO: Clicking option should redirect to appropriate auction page
               return (
                 <Box
                   component="li"
@@ -299,7 +302,6 @@ export default function Navbar({
                 </Box>
               );
             }}
-            // TODO: Use filterOptions to add a "search for ___ in ____" option
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -377,6 +379,7 @@ export default function Navbar({
                     onMouseEnter={() => setAccountPopperOpen(true)}
                     onMouseLeave={() => setAccountPopperOpen(false)}
                     onClick={handleAccountPopperClick}
+                    sx={{ zIndex: 100 }}
                     transition
                   >
                     {({ TransitionProps }) => (
