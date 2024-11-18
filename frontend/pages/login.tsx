@@ -15,25 +15,35 @@ export default function Login({
   setCurPage,
   context,
   setUser,
-  setToast
+  setToast,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   context: string;
-  setUser: (user: User) => void,
-  setToast: (error: ErrorType) => void
+  setUser: (user: User) => void;
+  setToast: (error: ErrorType) => void;
 }) {
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const username = (e.currentTarget.elements.namedItem("username") as HTMLInputElement).value;
-    const password = (e.currentTarget.elements.namedItem("password") as HTMLInputElement).value;
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
+    const password = (
+      e.currentTarget.elements.namedItem("password") as HTMLInputElement
+    ).value;
 
     fetchLogin(setToast, username, password).then((loginData) => {
-      if (!loginData) { return }
+      if (!loginData) {
+        return;
+      }
 
-      setUser({accountId: loginData.accountId, username: username, email: `${username}@gmail.com`});
-      setCurPage("auction");
-    })
+      setUser({
+        accountId: loginData.accountId,
+        username: username,
+        email: `${username}@gmail.com`,
+      });
+      setCurPage((JSON.parse(context)?.next as PageName) || "home");
+    });
   }
 
   return (
@@ -44,7 +54,11 @@ export default function Login({
         animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
       >
         <div className={styles.back}>
-          <IconButton onClick={() => setCurPage("home")}>
+          <IconButton
+            onClick={() =>
+              setCurPage((JSON.parse(context)?.next as PageName) || "home")
+            }
+          >
             <ArrowBackIcon />
           </IconButton>
         </div>
