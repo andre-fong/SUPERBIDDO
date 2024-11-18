@@ -292,3 +292,31 @@ export async function createAuction(
     return null
   }
 }
+
+export async function fetchAuction(errorFcn: (error: ErrorType) => void, auctionId: string) {
+  try {
+    const response = await fetch(`${url}/auctions/${auctionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const auction = await response.json();
+      return auction;
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+      return null;
+    } else if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+}

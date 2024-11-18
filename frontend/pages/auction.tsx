@@ -1,5 +1,5 @@
 import { PageName } from "@/types/pageTypes";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
@@ -29,6 +29,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
+import { fetchAuction } from "@/utils/fetchFunctions";
 
 export default function Auction({
   setCurPage,
@@ -78,40 +79,53 @@ export default function Auction({
   //   };
   // }, []);
 
-  // useEffect(() => {
-  //   console.log(context)
-  // }, []);
-
-  // TODO: Replace with actual data
-  const spread = 0.5;
-  const startingBid = 0.5;
-  const username = "matt";
-  const winning = bids[0]?.bidder === username;
-  const watching = false;
-  const endTime = new Date();
-  endTime.setSeconds(endTime.getSeconds() + 300);
-  const { totalSeconds, seconds, minutes, hours, days } = useTimer({
-    expiryTimestamp: endTime,
+  //IDK what theese should be but constants wont work
+  const [spread, setSpread] = useState<number>(0.5);
+  const [startingBid, setStartingBid] = useState<number>(0.5);
+  const [username, setUsername] = useState<string>("matt");
+  const [winning, setWinning] = useState<boolean>(bids[0]?.bidder === username);
+  const [watching, setWatching] = useState<boolean>(false);
+  const [endTime, setEndTime] = useState<Date>(new Date());
+  const [startTime, setStartTime] = useState<Date>(new Date());
+  const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({  
+    expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
     autoStart: true,
   });
 
+  useEffect(() => {
+    const curBid = JSON.parse(context)
+
+    fetchAuction(setToast, curBid.auctionId).then((auction) => {
+      if (!auction) { return }
+
+      setSpread(parseFloat(auction.spread));
+      setStartingBid(parseFloat(auction.startPrice));
+      setEndTime(new Date(auction.endTime));
+      setStartTime(new Date(auction.startTime));
+      const adjustedEndTime = new Date(auction.endTime);
+      adjustedEndTime.setSeconds(adjustedEndTime.getSeconds() + 300);
+      restart(adjustedEndTime);
+      setBidsLoading(false);
+    })
+  }, []);
+
   // /**
   //  * Handles submitting a new bid
   //  */
-  // function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
-  //   e.preventDefault();
+  function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
+    // e.preventDefault();
 
-  //   if (auctionEnded || winning) {
-  //     console.warn("Cannot bid on an ended or winning auction");
-  //     return;
-  //   }
-  //   const formData = new FormData(e.currentTarget);
-  //   const bidAmount = parseFloat(formData.get("bid_amount") as string);
-  //   (e.currentTarget as HTMLFormElement).reset();
-  //   console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-  //   submitBid(setToast, "auction1", bidAmount, username);
-  // }
+    // if (auctionEnded || winning) {
+    //   console.warn("Cannot bid on an ended or winning auction");
+    //   return;
+    // }
+    // const formData = new FormData(e.currentTarget);
+    // const bidAmount = parseFloat(formData.get("bid_amount") as string);
+    // (e.currentTarget as HTMLFormElement).reset();
+    // console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
+    // submitBid(setToast, "auction1", bidAmount, username);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SampleNextArrow(props: any) {
@@ -340,11 +354,11 @@ export default function Auction({
               </div>
               <p className={styles.secondary_data_label}>Start date: </p>
               <p className={styles.start_date} title="10/31/2021">
-                10/31/2021
+                {startTime.toLocaleDateString("en-US", {})}
               </p>
               <p className={styles.secondary_data_label}>End date: </p>
               <p className={styles.end_date} title="11/31/2021">
-                11/31/2021
+                {endTime.toLocaleDateString("en-US", {})}
               </p>
             </div>
 
