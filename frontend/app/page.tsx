@@ -77,6 +77,9 @@ export default function PageHandler() {
   function setCurPage(page: PageName, data = "{}") {
     setCurPageState(page);
     setPageContext(data);
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 250);
   }
 
   const { user, loading: userLoading, setUser } = useUser();
