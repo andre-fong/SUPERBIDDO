@@ -571,29 +571,9 @@ components:
           format: float
           minimum: 0
         timestamp:
+          readOnly: true
           type: string
           format: date-time
-    Cookie:
-      type: object
-      required:
-        - originalMaxAge
-        - expires
-        - secure
-        - httpOnly
-        - path
-      properties:
-        originalMaxAge:
-          type: integer
-          format: int64
-        expires:
-          type: string
-          format: date-time
-        secure:
-          type: boolean
-        httpOnly:
-          type: boolean
-        path:
-          type: string
     Errors:
       type: array
       items:
