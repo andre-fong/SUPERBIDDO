@@ -263,12 +263,19 @@ paths:
           $ref: "#/components/responses/Unauthorized"
   /api/v1/auctions/{auctionId}:
     get:
-      summary: Get an auction by its auctionId.
+      summary: Get an auction by its auctionId. Long polling is supported by providing the id of the current leading bid.
       parameters:
         - name: auctionId
           in: path
           description: The uuid of an auction.
           required: true
+          schema:
+            type: string
+            format: uuid
+        - name: longPollMaxBidId
+          in: query
+          description: The uuid of the current bid. If provided, and the current leading bid on the auction is the provided id, the request will not return immediately. Instead, it will wait until a new bid is placed on the auction.
+          required: false
           schema:
             type: string
             format: uuid
@@ -283,6 +290,92 @@ paths:
           $ref: "#/components/responses/BadRequest"
         404:
           $ref: "#/components/responses/NotFound"
+  /api/v1/auctions/{auctionId}/bids:
+    get:
+      summary: Get bids for an auction by its auctionId.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: The page of bids to return. If provided, the bids will be paginated and only the bids on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: The number of bids to return per page. If provided, the bids will be paginated and only this many bids will be returned per page. If not provided, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 20
+      responses:
+        200:
+          description: Bids for the auction with the provided auctionId.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bids:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Bid"
+                  totalNumBids:
+                    type: integer
+                    minimum: 0
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create a new bid.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bidderId
+                - amount
+              properties:
+                bidderId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                  format: float
+                  minimum: 0
+      responses:
+        201:
+          description: The newly created bid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bid"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 components:
   schemas:
     Account:

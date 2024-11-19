@@ -13,7 +13,7 @@ import { HttpError } from "express-openapi-validator/dist/framework/types.js";
 import { router as sessionRouter } from "./routes/session.js";
 import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
-import { router as biddingRouter } from "./routes/bidding.js";
+import { router as bidRouter } from "./routes/bids.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -37,7 +37,7 @@ app.use(
   OpenApiValidator.middleware({
     apiSpec: "./openapi.yaml",
     validateRequests: true, // (default)
-    validateResponses: false, // false by default
+    validateResponses: true, // false by default
   })
 );
 
@@ -48,7 +48,7 @@ app.get("/api", (req, res) => {
 app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
-app.use("/api/v1/bid", biddingRouter);
+app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
