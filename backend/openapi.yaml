@@ -612,16 +612,8 @@ components:
         detail:
           type: string
     Session:
-      type: object
-      required:
-        - cookie
-        - accountUid
-      properties:
-        cookie:
-          $ref: "#/components/schemas/Cookie"
-        accountUid:
-          type: string
-          format: uuid
+      allOf:
+        - $ref: "#/components/schemas/Account"
   responses:
     BadRequest:
       description: request format is invalid
