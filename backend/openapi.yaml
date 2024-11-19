@@ -403,6 +403,7 @@ components:
               maxLength: 100
             description:
               type: string
+              nullable: true
               maxLength: 500
             startPrice:
               type: number
@@ -419,8 +420,10 @@ components:
               minimum: 0
             topBid:
               readOnly: true
-              allOf:
+              oneOf:
                 - $ref: "#/components/schemas/Bid"
+                - type: object
+                  nullable: true
             numBids:
               readOnly: true
               type: integer
@@ -487,6 +490,7 @@ components:
           maxLength: 100
         description:
           type: string
+          nullable: true
           maxLength: 500
         manufacturer:
           type: string
@@ -535,6 +539,7 @@ components:
           maxLength: 100
         description:
           type: string
+          nullable: true
           maxLength: 500
         manufacturer:
           type: string
