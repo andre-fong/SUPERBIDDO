@@ -16,6 +16,7 @@ import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
 import { AnimatePresence, motion } from "motion/react";
+import Results from "@/pages/results";
 
 const theme = createTheme({
   palette: {
@@ -27,7 +28,7 @@ const theme = createTheme({
       light: "#fef1da",
     },
     info: {
-      main: "#86bbd8",
+      main: "#46b0e9",
     },
   },
   typography: {
@@ -88,6 +89,17 @@ export default function PageHandler() {
     home: {
       title: "Home | SuperBiddo",
       component: <h1 className={styles.title}>Home</h1>,
+    },
+    results: {
+      title: "Results | SuperBiddo",
+      component: (
+        <Results
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
+          context={pageContext}
+        />
+      ),
     },
     login: {
       title: "Login | SuperBiddo",

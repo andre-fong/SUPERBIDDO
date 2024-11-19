@@ -1,0 +1,40 @@
+.main {
+  display: flex;
+  padding: 10px 30px;
+  gap: 20px;
+}
+
+.left_filters {
+  width: 200px;
+}
+
+.results {
+  flex: 1;
+}
+
+.results_num {
+  font-size: 1.2em;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+.bold {
+  font-weight: bold;
+}
+
+.filter_dropdowns {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.left_filter_dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter_selected_options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

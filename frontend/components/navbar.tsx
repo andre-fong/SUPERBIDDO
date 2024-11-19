@@ -228,6 +228,11 @@ export default function Navbar({
     }
   }
 
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCurPage("results");
+  }
+
   // TODO: Remove log
   useEffect(() => {
     console.log(user);
@@ -245,7 +250,7 @@ export default function Navbar({
         <button className={styles.logo} onClick={() => setCurPage("home")}>
           <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
         </button>
-        <div className={styles.search}>
+        <form className={styles.search} onSubmit={handleSearch}>
           {/* TODO: Extract autocomplete value from below component */}
           {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
@@ -320,6 +325,7 @@ export default function Navbar({
                           "&:focus": { backgroundColor: "primary.dark" },
                         }}
                         title="Search SuperBiddo"
+                        type="submit"
                         // TODO: Implement search functionality
                       >
                         <SearchIcon />
@@ -330,7 +336,7 @@ export default function Navbar({
               />
             )}
           />
-        </div>
+        </form>
 
         {userLoading ? (
           <div>

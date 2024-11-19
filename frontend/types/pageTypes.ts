@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 
 export type PageName =
   | "home"
+  | "results"
   | "login"
   | "signup"
   | "auction"
