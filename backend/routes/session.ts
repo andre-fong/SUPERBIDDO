@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import camelize from "camelize";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
 export const router = express.Router();
-import { sendEmail } from "../types/email.js";
+import { sendEmail } from "../utils/email.js";
 
 export async function findEmail(email: string) {
   const account = camelize(
