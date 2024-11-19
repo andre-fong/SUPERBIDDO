@@ -10,10 +10,12 @@ import { corsConfig } from "./configServices/corsConfig.js";
 import session from "express-session";
 import { BusinessError, ServerError } from "./utils/errors.js";
 import { HttpError } from "express-openapi-validator/dist/framework/types.js";
+import passport from 'passport';
 import { router as sessionRouter } from "./routes/session.js";
 import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
 import { router as biddingRouter } from "./routes/bidding.js";
+import { router as oauthRouter } from "./routes/oauth.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -32,14 +34,16 @@ app.use(
 );
 
 app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.use(
-  OpenApiValidator.middleware({
-    apiSpec: "./openapi.yaml",
-    validateRequests: true, // (default)
-    validateResponses: false, // false by default
-  })
-);
+// app.use(
+//   OpenApiValidator.middleware({
+//     apiSpec: "./openapi.yaml",
+//     validateRequests: true, // (default)
+//     validateResponses: false, // false by default
+//   })
+// );
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
@@ -49,6 +53,7 @@ app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/bid", biddingRouter);
+app.use("/api/v1/oauth", oauthRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
