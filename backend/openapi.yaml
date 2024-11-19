@@ -91,8 +91,8 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: biderId
-          description: The uuid of a bider. If provided, only auctions that this bider has bid on will be returned. Must match signed in user id.
+          name: bidderId
+          description: The uuid of a bidder. If provided, only auctions that this bidder has bid on will be returned. Must match signed in user id.
           required: false
           schema:
             type: string
