@@ -71,7 +71,7 @@ export default function Results({
     if (name === "default") {
       setQualitySearchFilters((prev) => ({
         ...prev,
-        default: checked,
+        default: checked || true,
         graded: false,
         psaGrade: false,
         ungraded: false,
@@ -189,7 +189,7 @@ export default function Results({
             {({ TransitionProps }) => (
               <Fade {...TransitionProps} timeout={200}>
                 <Paper
-                  elevation={3}
+                  elevation={2}
                   sx={{ borderRadius: "10px", overflow: "hidden" }}
                 >
                   <ClickAwayListener
@@ -357,7 +357,7 @@ export default function Results({
             {({ TransitionProps }) => (
               <Fade {...TransitionProps} timeout={200}>
                 <Paper
-                  elevation={3}
+                  elevation={2}
                   sx={{ borderRadius: "10px", overflow: "hidden" }}
                 >
                   <ClickAwayListener
