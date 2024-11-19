@@ -1,31 +1,72 @@
 import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
+import { User } from "@/types/userTypes";
 
-const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+
+// const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
 
 /*
-  TODO: ERROR CHECKING AND HANDLING FOR FRONTEND
+  TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
 */
 
-export async function fetchLogin() {
-  // errorFcn
-  const response = await fetch(`${url}/session`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    // body: JSON.stringify({ username, password }),
-  });
+export async function fetchSignup(errorFcn: (error: ErrorType) => void, username: string, password: string, email: string) {
+  try {
+    const response = await fetch(`${url}/accounts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ username, password, email }),
+    });
 
-  if (!response.ok) {
-    throw new Error("Login failed");
-    // errorFcn(i love Senjougahara but Akane is better)
+    if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    return await fetchLogin(errorFcn, email, password);
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
   }
+}
 
-  const data = await response.json();
-  return data;
+
+export async function fetchLogin(errorFcn: (error: ErrorType) => void, email: string, password: string) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    }
+    else if (response.status === 401) {
+      errorFcn({ message: "Invalid login credentials", severity: Severity.Warning });
+      return null;
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 export async function fetchSession(errorFcn: (error: ErrorType) => void) {
@@ -35,10 +76,11 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
       credentials: "include",
     });
 
+
     if (response.status === 404) {
       errorFcn({
         message: "Session info not found",
-        severity: Severity.Critical,
+        severity: Severity.Warning,
       });
       return null;
     } else if (!response.ok) {
@@ -51,6 +93,30 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return null;
+  }
+}
+
+export async function fetchLogout(errorFcn: (error: ErrorType) => void, successLogout: (user: User | null) => void) {
+  try {
+    const response = await fetch(`${url}/session`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (response.status === 404) {
+      errorFcn({
+        message: "Session info not found",
+        severity: Severity.Critical,
+      });
+      return
+    } else if (!response.ok) {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return 
+    }
+
+    successLogout(null);
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
   }
 }
 
@@ -95,9 +161,11 @@ export async function pollForAuctionUpdates(
     });
 
     if (response.ok) {
-      const newBid = await response.json();
+      const newBid: AuctionBidHistory[] = await response.json();
       console.log(`POLLING New bid received for auction ${auctionId}:`, newBid);
       setBids(newBid);
+    } else if (response.status === 502) {
+      console.log(`Polling for auction ${auctionId} timed out`);
     } else if (response.status === 404) {
       errorFcn({
         message: "Error initiating connection for an auction",
@@ -108,11 +176,8 @@ export async function pollForAuctionUpdates(
         response.statusText
       );
     }
-    // Re-initiate polling after receiving an update or timeout
-    setTimeout(
-      () => pollForAuctionUpdates(errorFcn, auctionId, signal, setBids),
-      1000
-    );
+    // Re-initiate polling after receiving an update without any delay
+    pollForAuctionUpdates(errorFcn, auctionId, signal, setBids);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.name === "AbortError") {
@@ -161,5 +226,97 @@ export async function submitBid(
     }
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
+  }
+}
+export async function createAuction(
+  errorFcn: (error: ErrorType) => void,
+  auctionData: {
+    auctioneerId: string;
+    name: string;
+    description: string;
+    startPrice: number;
+    spread: number;
+    startTime: string;
+    endTime: string;
+    type: string;
+    bundle?: {
+      game: string;
+      name: string;
+      description: string;
+      manufacturer: string;
+      set: string;
+    };
+    cards?: {
+      game: string;
+      name: string;
+      description: string;
+      manufacturer: string;
+      quality: string;
+      rarity: string;
+      set: string;
+      isFoil: boolean;
+    };
+  }
+) {
+  try {
+    const response = await fetch(`${url}/auctions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",  
+        credentials: "include",
+      },
+      body: JSON.stringify({
+      ...auctionData,
+      cards: auctionData.cards ? [auctionData.cards] : undefined,
+    }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      } else if (response.status === 401) {
+      errorFcn({ message: "Action requires authentication", severity: Severity.Warning });
+      } else {
+      errorFcn({
+        message: unkownError,
+        severity: Severity.Critical,
+      });
+      }
+      return null;
+    }
+
+    const auction = await response.json();
+    return auction;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null
+  }
+}
+
+export async function fetchAuction(errorFcn: (error: ErrorType) => void, auctionId: string) {
+  try {
+    const response = await fetch(`${url}/auctions/${auctionId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const auction = await response.json();
+      return auction;
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+      return null;
+    } else if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return null;
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return null;
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
   }
 }

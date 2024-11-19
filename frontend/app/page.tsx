@@ -5,24 +5,29 @@ import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 import Auction from "@/pages/auction";
 import CreateBid from "@/pages/createbid";
+import YourListings from "@/pages/yourlistings";
+import YourBiddings from "@/pages/yourbiddings";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
+import Navbar from "@/components/navbar";
+import { AnimatePresence, motion } from "motion/react";
 
-// https://mui.com/material-ui/customization/palette/
-/**
- * SUPERBIDDO COLOR PALETTE
- */
 const theme = createTheme({
   palette: {
     primary: {
       main: "#f44336",
     },
     secondary: {
-      main: "#3f51b5",
+      main: "#f6b02c",
+      light: "#fef1da",
+    },
+    info: {
+      main: "#86bbd8",
     },
   },
   typography: {
@@ -30,26 +35,54 @@ const theme = createTheme({
   },
 });
 
+const pageVariants = {
+  hidden: {
+    opacity: 0,
+    x: "10px",
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: "-10px",
+    transition: {
+      duration: 0.2,
+      ease: "easeInOut",
+    },
+  },
+};
+
 // TODO: Use Framer Motion for page transitions
 /**
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPage] = useState<PageName>("create");
+  const [curPage, setCurPageState] = useState<PageName>("home");
+  // Stringified JSON context for pages to use
+  const [pageContext, setPageContext] = useState<string>("{}");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSeverity, setToastSeverity] = useState<Severity | null>(null);
 
   const setToast = (err: ErrorType) => {
     setToastMessage(err.message);
     setToastSeverity(err.severity);
-    if (err.severity === Severity.Critical) {
-      toast.error(err.message);
-    } else if (err.severity === Severity.Warning) {
-      toast.warn(err.message);
-    }
   };
 
-  const { user, loading } = useUser();
+  function setCurPage(page: PageName, data = "{}") {
+    setCurPageState(page);
+    setPageContext(data);
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 250);
+  }
+
+  const { user, loading: userLoading, setUser } = useUser();
 
   const pages: PageData = {
     home: {
@@ -58,16 +91,35 @@ export default function PageHandler() {
     },
     login: {
       title: "Login | SuperBiddo",
-      component: <Login setCurPage={setCurPage} />,
+      component: (
+        <Login
+          setUser={setUser}
+          setToast={setToast}
+          setCurPage={setCurPage}
+          context={pageContext}
+        />
+      ),
     },
     signup: {
       title: "Signup | SuperBiddo",
-      component: <h1 className={styles.title}>Signup</h1>,
+      component: (
+        <Signup
+          setUser={setUser}
+          setToast={setToast}
+          setCurPage={setCurPage}
+          context={pageContext}
+        />
+      ),
     },
     auction: {
       title: "Auction | SuperBiddo",
       component: user ? (
-        <Auction user={user} setCurPage={setCurPage} setToast={setToast} />
+        <Auction
+          user={user}
+          setCurPage={setCurPage}
+          setToast={setToast}
+          context={pageContext}
+        />
       ) : (
         <div>Loading...</div>
       ),
@@ -78,7 +130,38 @@ export default function PageHandler() {
     },
     create: {
       title: "Create Auction | SuperBiddo",
-      component: <CreateBid setToast={setToast} />,
+      component: user ? (
+        <CreateBid
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
+          context={pageContext}
+        />
+      ) : (
+        <div>Loading...</div>
+      ),
+    },
+    yourListings: {
+      title: "Your Listings | SuperBiddo",
+      component: user ? (
+        <YourListings
+          user={user}
+          // context={pageContext}
+        />
+      ) : (
+        <div>Loading...</div>
+      ),
+    },
+    yourBiddings: {
+      title: "Your Biddings | SuperBiddo",
+      component: user ? (
+        <YourBiddings
+          user={user}
+          // context={pageContext}
+        />
+      ) : (
+        <div>Loading...</div>
+      ),
     },
   };
 
@@ -87,11 +170,37 @@ export default function PageHandler() {
   }, [curPage]);
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       {toastMessage && toastSeverity && (
         <ErrorToast message={toastMessage} severity={toastSeverity} />
       )}
-      <ThemeProvider theme={theme}>{pages[curPage].component}</ThemeProvider>
-    </>
+
+      <AnimatePresence>
+        {curPage !== "login" && curPage !== "signup" && (
+          <Navbar
+            user={user}
+            userLoading={userLoading}
+            setCurPage={setCurPage}
+            curPage={curPage}
+            setToast={setToast}
+            setUser={setUser}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          variants={pageVariants}
+          key={curPage}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={styles.page_container}
+        >
+          {/* CURRENT PAGE BEING RENDERED */}
+          {pages[curPage].component}
+        </motion.div>
+      </AnimatePresence>
+    </ThemeProvider>
   );
 }

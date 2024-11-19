@@ -3,30 +3,29 @@ import React from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { fetchLogin } from "@/utils/fetchFunctions";
+import { fetchSignup } from "@/utils/fetchFunctions";
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
-import { User } from "@/types/userTypes";
 import { ErrorType } from "@/types/errorTypes";
+import { User } from "@/types/userTypes";
 
-export default function Login({
+export default function Signup({
   setCurPage,
   context,
-  setUser,
   setToast,
+  setUser,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   context: string;
-  setUser: (user: User) => void;
   setToast: (error: ErrorType) => void;
+  setUser: (user: User) => void;
 }) {
-  async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // TODO: Save previous action and redirect to it after signup
+  async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    //This is for logging in with Google OAuth
-    //window.location.href = 'http://localhost:3001/api/v1/oauth/google';
-    
+
     const username = (
       e.currentTarget.elements.namedItem("username") as HTMLInputElement
     ).value;
@@ -34,18 +33,20 @@ export default function Login({
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
 
-    fetchLogin(setToast, username, password).then((loginData) => {
-      if (!loginData) {
-        return;
-      }
+    fetchSignup(setToast, username, password, `${username}@gmail.com`).then(
+      (loginData) => {
+        if (!loginData) {
+          return;
+        }
 
-      setUser({
-        accountId: loginData.accountId,
-        username: username,
-        email: `${username}@gmail.com`,
-      });
-      setCurPage((JSON.parse(context)?.next as PageName) || "home");
-    });
+        setUser({
+          accountId: loginData.accountId,
+          username: username,
+          email: `${username}@gmail.com`,
+        });
+        setCurPage((JSON.parse(context)?.next as PageName) || "home");
+      }
+    );
   }
 
   return (
@@ -65,7 +66,7 @@ export default function Login({
           </IconButton>
         </div>
 
-        <form className={styles.form_container} onSubmit={handleLoginSubmit}>
+        <form className={styles.form_container} onSubmit={handleSignupSubmit}>
           <Image
             src="/superbiddo-icon.svg"
             alt="SuperBiddo icon"
@@ -73,9 +74,9 @@ export default function Login({
             height={40}
           />
 
-          <h2 className={styles.title}>Welcome back!</h2>
+          <h2 className={styles.title}>Nice to meet you!</h2>
           <p className={styles.subtitle}>
-            Log in to continue using all of SuperBiddo&apos;s features.
+            Sign up to continue using all of SuperBiddo&apos;s features.
           </p>
 
           <label
@@ -110,7 +111,7 @@ export default function Login({
           />
 
           <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
-            Log in
+            Sign up
           </Button>
         </form>
 
@@ -123,12 +124,12 @@ export default function Login({
         {/* OAUTH */}
 
         <p className={styles.redirect_text}>
-          Don&apos;t have an account?{" "}
+          Already have an account?{" "}
           <button
             className={styles.link}
-            onClick={() => setCurPage("signup", context)}
+            onClick={() => setCurPage("login", context)}
           >
-            Register here
+            Login here
           </button>
         </p>
       </motion.div>

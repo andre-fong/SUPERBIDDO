@@ -4,7 +4,9 @@
 
   /* SUPERBIDDO COLOR PALETTE */
   --primary: #f44336;
-  --secondary: #3f51b5;
+  --secondary: #f6b02c;
+  --secondary-light: #f6e1bc;
+  --accent: #86bbd8;
 }
 
 html,

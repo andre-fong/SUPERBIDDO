@@ -3,11 +3,28 @@ import { pool } from "../configServices/dbConfig.js";
 import bcrypt from "bcrypt";
 import camelize from "camelize";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
-import crypto from "crypto";
-
 export const router = express.Router();
 
+export async function findEmail(email: string) {
+  const account = camelize(
+    await pool.query<AccountDb>(
+      `SELECT *
+      FROM account
+      WHERE email=$1`,
+      [email]
+    )
+  ).rows[0];
+
+  return account;
+}
+
 router.get("/", async (req, res, next) => {
+  //OAuth user
+  if (req.user) {
+    res.json(req.user);
+    return;
+  }
+
   if (!req.session.accountId) {
     throw sessionNotFound();
   }
@@ -30,15 +47,7 @@ router.post("/", async (req, res, next) => {
   const sessionInput: Omit<AccountInput, "username"> = req.body;
   const { email, password } = sessionInput;
 
-  const accountRecord = camelize(
-    await pool.query<AccountDb>(
-      `SELECT *
-      FROM account
-      WHERE email=$1`,
-      [email]
-    )
-  ).rows[0];
-
+  const accountRecord = await findEmail(email);
   // no account with email
   if (!accountRecord) {
     throw invalidLogin();
@@ -61,7 +70,7 @@ router.post("/", async (req, res, next) => {
 });
 
 router.delete("/", async (req, res, next) => {
-  if (!req.session.accountId) {
+  if (!req.session.accountId && !req.user) {
     throw sessionNotFound();
   }
   req.session.destroy(() => {
