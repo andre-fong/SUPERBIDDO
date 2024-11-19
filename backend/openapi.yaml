@@ -329,8 +329,12 @@ paths:
           description: The uuid of the current bid. If provided, and the current leading bid on the auction is the provided id, the request will not return immediately. Instead, it will wait until a new bid is placed on the auction.
           required: false
           schema:
-            type: string
-            format: uuid
+            oneOf:
+              - type: string
+                format: uuid
+              - type: string
+                enum:
+                  - "null"
       responses:
         200:
           description: The auction with the provided auctionId.
