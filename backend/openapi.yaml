@@ -605,6 +605,7 @@ components:
                 bundle:
                   $ref: "#/components/schemas/Bundle"
         - oneOf:
+            # both present
             - type: object
               required:
                 - startTime
@@ -616,6 +617,7 @@ components:
                 endTime:
                   type: string
                   format: date-time
+            # neither present
             - type: object
               not:
                 anyOf:
@@ -623,6 +625,24 @@ components:
                       - startTime
                   - required:
                       - endTime
+            # both present and both null (neither not null)
+            - type: object
+              required:
+                - startTime
+                - endTime
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  enum:
+                    - null
+                endTime:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  enum:
+                    - null
     Card:
       type: object
       required:
