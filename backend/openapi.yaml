@@ -111,34 +111,6 @@ paths:
           schema:
             type: string
         - in: query
-          name: minStartPrice
-          description: The minimum start price of an auction. If provided, auctions with start prices below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxStartPrice
-          description: The maximum start price of an auction. If provided, auctions with start prices above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: minSpread
-          description: The minimum spread of an auction. If provided, auctions with spreads below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxSpread
-          description: The maximum spread of an auction. If provided, auctions with spreads above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
           name: minMinNewBidPrice
           description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
           required: false
