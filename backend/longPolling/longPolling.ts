@@ -1,27 +1,45 @@
 import { Response } from "express";
+import { LpTypes } from "../types/lpTypes";
+import { handleCloseAuctionRequest } from "./auctionLongPolling";
 
-const pendingLpRequests: { [key: string]: Response[] } = {};
+const pendingLpRequests: {
+  [key: string]: { clients: Response[]; type: LpTypes };
+} = {};
 
 export function addLpClient(reqId: string, client: Response) {
   if (!pendingLpRequests[reqId]) {
-    pendingLpRequests[reqId] = [];
+    pendingLpRequests[reqId] = { clients: [], type: LpTypes.AUCTION };
   }
-  pendingLpRequests[reqId].push(client);
-}
-
-export function removeLpClient(reqId: string, client: Response) {
-  pendingLpRequests[reqId] = pendingLpRequests[reqId].filter(
-    (c) => c !== client
+  pendingLpRequests[reqId].clients.push(client);
+  console.log(
+    "added client to pendingLpRequests[reqId].clients: ",
+    pendingLpRequests[reqId].clients
   );
 }
 
-export function closeLpRequest(
-  reqId: string,
-  closeFn: (client: Response) => void
-) {
-  if (!pendingLpRequests[reqId]) {
+export function removeLpClient(reqId: string, client: Response) {
+  // will this work? aren't these objects
+  console.log("removeLpClient: ", reqId, client);
+  console.log(
+    "pendingLpRequests[reqId].clients before: ",
+    pendingLpRequests[reqId].clients
+  );
+  pendingLpRequests[reqId].clients = pendingLpRequests[reqId].clients.filter(
+    (c) => c !== client
+  );
+  console.log(
+    "pendingLpRequests[reqId].clients after: ",
+    pendingLpRequests[reqId].clients
+  );
+}
+
+export function closeLpRequest(reqId: string) {
+  if (!pendingLpRequests[reqId].clients) {
     return;
   }
-  pendingLpRequests[reqId].forEach((client) => closeFn(client));
+  switch (pendingLpRequests[reqId].type) {
+    case LpTypes.AUCTION:
+      handleCloseAuctionRequest(reqId, pendingLpRequests[reqId].clients);
+  }
   delete pendingLpRequests[reqId];
 }

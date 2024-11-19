@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
+import { addLpClient } from "../longPolling/longPolling.js";
 
 export const router = express.Router();
 
@@ -414,6 +415,51 @@ router.get("/", async (req, res) => {
 
 router.get("/:auctionId", async (req, res) => {
   const auctionId = req.params.auctionId;
+
+  // TODO can pass longPoll object of current state with more than just bid
+  // and hold response if state matches entirely
+  const longPollMaxBidId = req.query.longPollMaxBidId;
+
+  if (longPollMaxBidId) {
+    const currentMaxBidIdRecord = camelize(
+      await pool.query<{ bid_id: string }>(
+        `SELECT bid_id FROM bid WHERE auction_id = $1 ORDER BY amount DESC LIMIT 1`,
+        [auctionId]
+      )
+    ).rows[0];
+
+    // no bids on auction or no auction
+    if (!currentMaxBidIdRecord) {
+      const auctionRecord = camelize(
+        await pool.query<AuctionDb>(
+          `SELECT * FROM auction WHERE auction_id = $1`,
+          [auctionId]
+        )
+      ).rows[0];
+
+      if (!auctionRecord) {
+        throw new BusinessError(404, "Auction not found");
+      }
+
+      // no bids on auction - poll if client state is no bids
+      if (longPollMaxBidId === "null") {
+        addLpClient(auctionId, res);
+        return;
+      }
+
+      // bid id provided is not a bid
+      throw new BusinessError(404, "Bid not found");
+    }
+    // auction exists and has bids
+    const currentMaxBidId = currentMaxBidIdRecord.bidId;
+    const pollUpdateReady = longPollMaxBidId !== currentMaxBidId;
+
+    if (!pollUpdateReady) {
+      // add client to auctionClients
+      addLpClient(auctionId, res);
+      return;
+    }
+  }
 
   // get auction record
   const auctionRecord = camelize(

@@ -104,9 +104,7 @@ router.post(
       timestamp: bidRecord.timestamp,
     };
 
-    closeLpRequest(auctionId, (res) => {
-      res.json(bid);
-    });
+    closeLpRequest(auctionId);
 
     res.status(201).json(bid);
   }
