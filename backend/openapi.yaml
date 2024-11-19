@@ -659,20 +659,3 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Errors"
-  parameters:
-    AccountUid:
-      name: accountUid
-      description: The uuid of an account
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    SwapperUid:
-      name: swapperUid
-      description: The uuid of a swapper
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
