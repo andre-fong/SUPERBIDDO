@@ -471,7 +471,8 @@ components:
               format: uuid
             auctioneer:
               readOnly: true
-              $ref: "#/components/schemas/Account"
+              allOf:
+                - $ref: "#/components/schemas/Account"
             name:
               type: string
               maxLength: 100
@@ -644,7 +645,8 @@ components:
           format: uuid
         bidder:
           readOnly: true
-          $ref: "#/components/schemas/Account"
+          allOf:
+            - $ref: "#/components/schemas/Account"
         amount:
           type: number
           format: float
