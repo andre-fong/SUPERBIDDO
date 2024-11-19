@@ -7,7 +7,10 @@ DECLARE
     auction_spread NUMERIC(12,2);
     min_valid_bid NUMERIC(12,2);
 BEGIN
-	SELECT COALESCE(MAX(amount), 0) INTO max_current_bid
+	SELECT COALESCE(
+			MAX(amount), 
+			(SELECT start_price FROM auction WHERE auction_id = NEW.auction_id)
+		) INTO max_current_bid
 	FROM bid WHERE auction_id = NEW.auction_id;
 	
 	SELECT spread INTO auction_spread FROM auction WHERE auction_id = NEW.auction_id;
@@ -17,7 +20,9 @@ BEGIN
 	
 	IF 
 	    NEW.amount < min_valid_bid THEN
-        RAISE EXCEPTION 'bid_ammount_insufficient';
+        RAISE EXCEPTION 'bid_amount_insufficient'
+       	USING CONSTRAINT = 'bid_amount_insufficient',
+       	HINT = FORMAT('Must bid at least %s (current bid amount + spread).', min_valid_bid);
     END IF;
    
     RETURN NEW;
@@ -25,29 +30,35 @@ END;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.check_highest_bid()
+CREATE OR REPLACE FUNCTION public.check_bidder_not_auctioneer()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
-DECLARE
-    max_current_bid MONEY;
-    spread MONEY;
-    min_valid_bid MONEY;
+DECLARE _auctioneer_id uuid;
 BEGIN
-	SELECT COALESCE(MAX(amount), 0.00::MONEY) INTO max_current_bid
-	FROM bid WHERE auction_id = NEW.auction_id;
-	
-	SELECT spread INTO spread FROM auction WHERE auction_id = NEW.auction_id;
 
-	min_valid_bid := max_current_bid + spread;
-	
-	
+	SELECT auctioneer_id INTO _auctioneer_id FROM auction WHERE auction_id = NEW.auction_id;
+
 	IF 
-	    NEW.bid_amount < min_valid_bid THEN
-        RAISE EXCEPTION 'bid_ammount_insufficient';
+	    NEW.bidder_id = _auctioneer_id THEN
+        RAISE EXCEPTION 'bidder_same_as_auctioneer' 
+        USING CONSTRAINT = 'bidder_same_as_auctioneer';
     END IF;
    
     RETURN NEW;
+END;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.check_start_timestamp_in_future()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+		IF NEW.start_time < now() THEN
+				RAISE EXCEPTION 'start_time_in_past';
+		END IF;
+		RETURN NEW;
 END;
 $function$
 ;
@@ -64,18 +75,6 @@ END;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.set_initial_current_price()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-    -- Set target_column to the value of source_column
-    NEW.current_price := NEW.start_price;
-    RETURN NEW;
-END;
-$function$
-;
-
 -- public.account definition
 
 -- Drop table
@@ -85,9 +84,11 @@ $function$
 CREATE TABLE public.account (
 	account_id uuid NOT NULL DEFAULT gen_random_uuid(),
 	username varchar(40) NOT NULL,
-	email public.citext NOT NULL,
+	email public."citext" NOT NULL,
 	passhash bpchar(60) NOT NULL,
-	CONSTRAINT account_pk PRIMARY KEY (account_id)
+	CONSTRAINT account_email_un UNIQUE (email),
+	CONSTRAINT account_pk PRIMARY KEY (account_id),
+	CONSTRAINT account_username_un UNIQUE (username)
 );
 
 
@@ -119,9 +120,8 @@ CREATE TABLE public.auction (
 	description varchar(500) NULL,
 	start_price numeric(12, 2) NOT NULL,
 	spread numeric(12, 2) NOT NULL,
-	start_time timestamptz NOT NULL DEFAULT now(),
-	end_time timestamptz NOT NULL,
-	current_price numeric(12, 2) NOT NULL DEFAULT 0,
+	start_time timestamptz NULL DEFAULT now(),
+	end_time timestamptz NULL,
 	CONSTRAINT auction_check_min_duration CHECK (((end_time - '00:05:00'::interval) >= start_time)),
 	CONSTRAINT auction_check_spread_positive CHECK ((spread >= (0)::numeric)),
 	CONSTRAINT auction_check_start_price_positive CHECK ((start_price >= (0)::numeric)),
@@ -130,6 +130,13 @@ CREATE TABLE public.auction (
 	CONSTRAINT auction_fk_auctioneer FOREIGN KEY (auctioneer_id) REFERENCES public.account(account_id)
 );
 CREATE INDEX auction_auctioneer_id_idx ON public.auction USING btree (auctioneer_id);
+
+-- Table Triggers
+
+CREATE TRIGGER check_start_time_in_future_trigger BEFORE
+INSERT
+    ON
+    public.auction FOR EACH ROW EXECUTE FUNCTION check_start_timestamp_in_future();
 
 
 -- public.bid definition
@@ -161,6 +168,10 @@ CREATE TRIGGER check_bid_valid_trigger BEFORE
 INSERT
     ON
     public.bid FOR EACH ROW EXECUTE FUNCTION check_bid_valid();
+CREATE TRIGGER check_bidder_not_auctioneer_trigger BEFORE
+INSERT
+    ON
+    public.bid FOR EACH ROW EXECUTE FUNCTION check_bidder_not_auctioneer();
 
 
 -- public.bundle definition
