@@ -64,23 +64,23 @@ router.get("/:auctionId", async (req, res) => {
       auctioneerId: auctionRecord.auctioneerId,
       name: auctionRecord.name,
       description: auctionRecord.description,
-      startPrice: auctionRecord.startPrice,
-      spread: auctionRecord.spread,
+      startPrice: parseFloat(auctionRecord.startPrice),
+      spread: parseFloat(auctionRecord.spread),
       minNewBidPrice: auctionRecord.bidId
-        ? auctionRecord.amount + auctionRecord.spread
-        : auctionRecord.startPrice + auctionRecord.spread,
+        ? parseFloat(auctionRecord.amount) + parseFloat(auctionRecord.spread)
+        : parseFloat(auctionRecord.startPrice) +
+          parseFloat(auctionRecord.spread),
       startTime: auctionRecord.startTime,
       endTime: auctionRecord.endTime,
       topBid: auctionRecord.bidId
         ? {
             bidId: auctionRecord.bidId,
             auctionId: auctionRecord.auctionId,
-            bidderId: auctionRecord.bidderId,
-            amount: auctionRecord.amount,
+            amount: parseFloat(auctionRecord.amount),
             timestamp: auctionRecord.timestamp,
           }
         : null,
-      numBids: auctionRecord.numBids,
+      numBids: parseInt(auctionRecord.numBids),
       bundle: bundleRecord,
     };
     res.json(auction);
@@ -106,23 +106,22 @@ router.get("/:auctionId", async (req, res) => {
     auctioneerId: auctionRecord.auctioneerId,
     name: auctionRecord.name,
     description: auctionRecord.description,
-    startPrice: auctionRecord.startPrice,
-    spread: auctionRecord.spread,
+    startPrice: parseFloat(auctionRecord.startPrice),
+    spread: parseFloat(auctionRecord.spread),
     minNewBidPrice: auctionRecord.bidId
-      ? auctionRecord.amount + auctionRecord.spread
-      : auctionRecord.startPrice + auctionRecord.spread,
+      ? parseFloat(auctionRecord.amount) + parseFloat(auctionRecord.spread)
+      : parseFloat(auctionRecord.startPrice) + parseFloat(auctionRecord.spread),
     startTime: auctionRecord.startTime,
     endTime: auctionRecord.endTime,
     topBid: auctionRecord.bidId
       ? {
           bidId: auctionRecord.bidId,
           auctionId: auctionRecord.auctionId,
-          bidderId: auctionRecord.bidderId,
-          amount: auctionRecord.amount,
+          amount: parseFloat(auctionRecord.amount),
           timestamp: auctionRecord.timestamp,
         }
       : null,
-    numBids: auctionRecord.numBids,
+    numBids: parseInt(auctionRecord.numBids),
     cards: cardsRecords,
   };
 
@@ -220,8 +219,16 @@ router.post("/", async (req, res) => {
     await pool.query(`COMMIT`);
 
     const auction: Auction = {
-      ...auctionRecord,
-      minNewBidPrice: auctionRecord.startPrice + auctionRecord.spread,
+      auctionId: auctionRecord.auctionId,
+      auctioneerId: auctionRecord.auctioneerId,
+      name: auctionRecord.name,
+      description: auctionRecord.description,
+      startPrice: parseFloat(auctionRecord.startPrice),
+      spread: parseFloat(auctionRecord.spread),
+      minNewBidPrice:
+        parseFloat(auctionRecord.startPrice) + parseFloat(auctionRecord.spread),
+      startTime: auctionRecord.startTime,
+      endTime: auctionRecord.endTime,
       topBid: null,
       numBids: 0,
       bundle: bundleRecord,
