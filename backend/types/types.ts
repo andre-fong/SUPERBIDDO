@@ -78,7 +78,6 @@ type Bundle = {
 };
 
 type BidInput = {
-  auctionId: string;
   bidderId: string;
   amount: number;
 };
