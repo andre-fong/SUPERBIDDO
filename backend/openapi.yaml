@@ -575,9 +575,12 @@ components:
               minimum: 0
             topBid:
               readOnly: true
-              nullable: true
               oneOf:
                 - $ref: "#/components/schemas/Bid"
+                - type: string
+                  nullable: true
+                  enum:
+                    - null
             numBids:
               readOnly: true
               type: integer
