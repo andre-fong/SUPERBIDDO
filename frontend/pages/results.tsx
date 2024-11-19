@@ -19,6 +19,7 @@ import {
   AuctionFoilFilters,
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
 export default function Results({
   setCurPage,
@@ -121,6 +122,25 @@ export default function Results({
     }
   }
 
+  function handlePSAChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+    let grade = parseInt(value);
+
+    if (value === "") {
+      setQualitySearchFilters((prev) => ({
+        ...prev,
+        [name]: null,
+      }));
+    } else if (isNaN(grade) || grade < 1 || grade > 10) {
+      // TODO: Show error message
+    } else {
+      setQualitySearchFilters((prev) => ({
+        ...prev,
+        [name]: grade,
+      }));
+    }
+  }
+
   function handleFoilChange(event: React.ChangeEvent<HTMLInputElement>) {
     setFoilSearchFilter(event.target.value as AuctionFoilFilters);
   }
@@ -209,22 +229,50 @@ export default function Results({
                                 size="small"
                               />
                               <TextField
-                                placeholder="Min PSA"
+                                placeholder="Low"
+                                name="lowGrade"
+                                title="Min PSA grade to filter by"
+                                value={qualitySearchFilters.lowGrade || ""}
+                                onChange={handlePSAChange}
+                                autoComplete="off"
                                 variant="standard"
                                 size="small"
                                 sx={{
-                                  width: "7ch",
+                                  width: "8ch",
                                   marginRight: "1ch",
+                                }}
+                                slotProps={{
+                                  input: {
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        PSA
+                                      </InputAdornment>
+                                    ),
+                                  },
                                 }}
                               />
                               <span className={styles.psa_grade_to}>to</span>
                               <TextField
-                                placeholder="Max PSA"
+                                placeholder="High"
+                                name="highGrade"
+                                title="Max PSA grade to filter by"
+                                value={qualitySearchFilters.highGrade || ""}
+                                onChange={handlePSAChange}
+                                autoComplete="off"
                                 variant="standard"
                                 size="small"
                                 sx={{
-                                  width: "7ch",
+                                  width: "8ch",
                                   marginLeft: "1ch",
+                                }}
+                                slotProps={{
+                                  input: {
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        PSA
+                                      </InputAdornment>
+                                    ),
+                                  },
                                 }}
                               />
                             </div>
