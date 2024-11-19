@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import camelize from "camelize";
 import { sessionNotFound, invalidLogin } from "../utils/errors.js";
 export const router = express.Router();
+import { sendEmail } from "../types/email.js";
 
 export async function findEmail(email: string) {
   const account = camelize(
@@ -37,11 +38,14 @@ router.post("/", async (req, res, next) => {
   const sessionInput: Omit<AccountInput, "username"> = req.body;
   const { email, password } = sessionInput;
 
+  console.log(email)
   const account = await findEmail(email);
   // no account with email
   if (!account) {
     throw invalidLogin();
   }
+
+  //await sendEmail(email, 'Welcome to Our Service', 'Thank you for signing up!', '<h1>Welcome to Our Service</h1><p>Thank you for signing up!</p>');
 
   // wrong password
   if (!(await bcrypt.compare(password, account.passhash))) {
