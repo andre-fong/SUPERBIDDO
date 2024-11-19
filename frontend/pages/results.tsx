@@ -83,7 +83,7 @@ export default function Results({
     } else if (name === "graded") {
       setQualitySearchFilters((prev) => ({
         ...prev,
-        default: false,
+        default: !(checked || prev.ungraded),
         graded: checked,
         psaGrade: checked && prev.psaGrade,
       }));
@@ -97,7 +97,7 @@ export default function Results({
     } else if (name === "ungraded") {
       setQualitySearchFilters((prev) => ({
         ...prev,
-        default: false,
+        default: !(checked || prev.graded),
         ungraded: checked,
         nearMint: checked,
         excellent: checked,
@@ -110,7 +110,13 @@ export default function Results({
 
         return {
           ...prev,
-          default: false,
+          default: !(
+            newFilters.graded ||
+            newFilters.nearMint ||
+            newFilters.excellent ||
+            newFilters.veryGood ||
+            newFilters.poor
+          ),
           ungraded:
             newFilters.nearMint ||
             newFilters.excellent ||
