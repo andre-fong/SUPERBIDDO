@@ -603,7 +603,6 @@ components:
       required:
         - path
         - message
-        - detail
       properties:
         path:
           type: string
