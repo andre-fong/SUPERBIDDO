@@ -19,7 +19,7 @@ export enum AuctionStatusEnum {
   Scheduled = "Scheduled",
   Ongoing = "Ongoing",
   Successful = "Successful",
-  Unsuccessful = "Unsuccessful"
+  Unsuccessful = "Unsuccessful",
 }
 
 export enum AuctionStatusColorEnum {
@@ -27,21 +27,21 @@ export enum AuctionStatusColorEnum {
   Scheduled = "blue",
   Ongoing = "green",
   Successful = "gold",
-  Unsuccessful = "red"
+  Unsuccessful = "red",
 }
 
 export enum BiddingStatusEnum {
   Winning = "Winning",
   Outbidded = "Outbidded",
   Won = "Won",
-  Lost = "Lost"
+  Lost = "Lost",
 }
 
 export enum BiddingStatusColorEnum {
   Winning = "green",
   Outbidded = "orange",
   Won = "gold",
-  Lost = "red"
+  Lost = "red",
 }
 
 export type BiddingStatus = keyof typeof BiddingStatusEnum;
@@ -58,3 +58,17 @@ export interface Auction {
   endDate: Date;
 }
 
+export type AuctionQualityFilters = {
+  default: boolean;
+  graded: boolean;
+  psaGrade: boolean;
+  lowGrade: number | null;
+  highGrade: number | null;
+  ungraded: boolean;
+  nearMint: boolean;
+  excellent: boolean;
+  veryGood: boolean;
+  poor: boolean;
+};
+
+export type AuctionFoilFilters = "default" | "foil" | "noFoil";

@@ -15,7 +15,7 @@
 .results_num {
   font-size: 1.2em;
   font-weight: 400;
-  margin-bottom: 10px;
+  margin-bottom: 25px;
 }
 .bold {
   font-weight: bold;
@@ -25,6 +25,22 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
+}
+
+.filter_dropdown {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  padding: 5px 10px 5px 15px;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--secondary-light);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.filter_dropdown:hover,
+.filter_dropdown:focus-visible {
+  filter: brightness(0.95);
 }
 
 .left_filter_dropdowns {
@@ -37,4 +53,23 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.filter_dropdown_content {
+  background-color: white;
+  padding: 10px 15px;
+}
+
+.grade_range {
+  display: flex;
+  flex-direction: column;
+  margin-left: 15px;
+}
+
+.psa_grade {
+  display: flex;
+  align-items: center;
+}
+.psa_grade_to {
+  margin-bottom: -7px;
 }
