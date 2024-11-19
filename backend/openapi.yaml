@@ -289,14 +289,18 @@ components:
       type: object
       description: All data associated with an account.
       required:
+        - accountId
         - username
         - email
         - password
         # - address
       properties:
-        username:
+        accountId:
+          readOnly: true
           type: string
-          maxLength: 40
+          format: uuid
+        username:
+          $ref: "#/components/schemas/Username"
         email:
           $ref: "#/components/schemas/Email"
         password:
