@@ -24,7 +24,9 @@ export default function Login({
 }) {
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
+    //This is for logging in with Google OAuth
+    //window.location.href = 'http://localhost:3001/api/v1/oauth/google';
+    
     const username = (
       e.currentTarget.elements.namedItem("username") as HTMLInputElement
     ).value;
