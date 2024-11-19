@@ -388,6 +388,7 @@ components:
           required:
             - auctionId
             - auctioneerId
+            - auctioneer
             - name
             - startPrice
             - spread
@@ -400,8 +401,12 @@ components:
               type: string
               format: uuid
             auctioneerId:
+              writeOnly: true
               type: string
               format: uuid
+            auctioneer:
+              readOnly: true
+              $ref: "#/components/schemas/Account"
             name:
               type: string
               maxLength: 100
@@ -557,6 +562,7 @@ components:
         - bidId
         - auctionId
         - bidderId
+        - bidder
         - amount
         - timestamp
       properties:
@@ -568,8 +574,12 @@ components:
           type: string
           format: uuid
         bidderId:
+          writeOnly: true
           type: string
           format: uuid
+        bidder:
+          readOnly: true
+          $ref: "#/components/schemas/Account"
         amount:
           type: number
           format: float

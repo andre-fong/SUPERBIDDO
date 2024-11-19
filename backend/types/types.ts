@@ -25,7 +25,7 @@ type AuctionInput = {
 
 type Auction = {
   auctionId: string;
-  auctioneerId: string;
+  auctioneer: Account;
   name: string;
   description?: string;
   startPrice: number;
@@ -86,7 +86,7 @@ type BidInput = {
 type Bid = {
   bidId: string;
   auctionId: string;
-  bidderId: string;
+  bidder: Account;
   amount: number;
   timestamp: Date;
 };

@@ -11,24 +11,44 @@ router.get("/:auctionId", async (req, res) => {
   // get auction record
   const auctionRecord = camelize(
     await pool.query<
-      AuctionDb & BidDb & { num_bids: number; is_bundle: boolean }
+      AuctionDb &
+        BidDb & { auctioneer_username: string; auctioneer_email: string } & {
+          bidder_username: string;
+          bidder_email: string;
+        } & {
+          num_bids: string;
+          is_bundle: boolean;
+        }
     >(
       ` WITH bid_agg AS (
           SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
           FROM bid
           WHERE auction_id = $1
           GROUP BY auction_id
-        )
-        SELECT auction.*, top_bid.bid_id, top_bid.bidder_id, top_bid.amount, 
-        top_bid.timestamp, bid_agg.num_bids, 
-        COALESCE(is_bundle.is_bundle, FALSE) AS is_bundle
+        ),
+        filled_auction AS (
+          SELECT auction.auction_id, account.account_id as auctioneer_id, 
+          account.username as auctioneer_username, 
+          account.email as auctioneer_email, auction.name, auction.description,
+          auction.start_price, auction.spread, auction.start_time, 
+          auction.end_time
         FROM auction
-        LEFT JOIN (
-          SELECT *
-          FROM bid
+          JOIN account ON account.account_id = auction.auctioneer_id
           WHERE auction_id = $1
-          AND amount = (SELECT max_bid_amount FROM bid_agg)
-        ) top_bid USING (auction_id)
+        ),
+        top_bid AS (
+          SELECT bid.bid_id, bid.bidder_id, 
+          account.username as bidder_username, account.email as bidder_email,
+          bid.amount, bid.timestamp
+          FROM bid
+          JOIN account ON account.account_id = bid.bidder_id
+          WHERE auction_id = $1
+          AND bid.amount = (SELECT max_bid_amount FROM bid_agg)
+        )
+        SELECT filled_auction.*, top_bid.*, 
+        COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle
+        FROM filled_auction
+        LEFT JOIN top_bid ON true
         LEFT JOIN bid_agg USING (auction_id)
         LEFT JOIN (
           SELECT auction_id, true as is_bundle
@@ -61,7 +81,11 @@ router.get("/:auctionId", async (req, res) => {
 
     const auction: Auction = {
       auctionId: auctionRecord.auctionId,
-      auctioneerId: auctionRecord.auctioneerId,
+      auctioneer: {
+        accountId: auctionRecord.auctioneerId,
+        username: auctionRecord.auctioneerUsername,
+        email: auctionRecord.auctioneerEmail,
+      },
       name: auctionRecord.name,
       description: auctionRecord.description,
       startPrice: parseFloat(auctionRecord.startPrice),
@@ -76,6 +100,11 @@ router.get("/:auctionId", async (req, res) => {
         ? {
             bidId: auctionRecord.bidId,
             auctionId: auctionRecord.auctionId,
+            bidder: {
+              accountId: auctionRecord.bidderId,
+              username: auctionRecord.bidderUsername,
+              email: auctionRecord.bidderEmail,
+            },
             amount: parseFloat(auctionRecord.amount),
             timestamp: auctionRecord.timestamp,
           }
@@ -103,7 +132,11 @@ router.get("/:auctionId", async (req, res) => {
 
   const auction: Auction = {
     auctionId: auctionRecord.auctionId,
-    auctioneerId: auctionRecord.auctioneerId,
+    auctioneer: {
+      accountId: auctionRecord.auctioneerId,
+      username: auctionRecord.auctioneerUsername,
+      email: auctionRecord.auctioneerEmail,
+    },
     name: auctionRecord.name,
     description: auctionRecord.description,
     startPrice: parseFloat(auctionRecord.startPrice),
@@ -117,6 +150,11 @@ router.get("/:auctionId", async (req, res) => {
       ? {
           bidId: auctionRecord.bidId,
           auctionId: auctionRecord.auctionId,
+          bidder: {
+            accountId: auctionRecord.bidderId,
+            username: auctionRecord.bidderUsername,
+            email: auctionRecord.bidderEmail,
+          },
           amount: parseFloat(auctionRecord.amount),
           timestamp: auctionRecord.timestamp,
         }
@@ -188,6 +226,21 @@ router.post("/", async (req, res) => {
     throw new ServerError(500, "Error creating auction");
   }
 
+  const auctioneerRecord = camelize(
+    await pool.query<AccountDb>(
+      ` SELECT username, email
+        FROM account
+        WHERE account_id = $1`,
+      [auctionInput.auctioneerId]
+    )
+  ).rows[0];
+
+  if (!auctioneerRecord) {
+    await pool.query(`ROLLBACK`);
+    console.error("Error fetching auctioneer");
+    throw new ServerError(500, "Error creating auction");
+  }
+
   // openapi schema ensures exactly one of cards/bundle is present
   const isBundle = auctionInput.cards ? false : true;
 
@@ -220,7 +273,11 @@ router.post("/", async (req, res) => {
 
     const auction: Auction = {
       auctionId: auctionRecord.auctionId,
-      auctioneerId: auctionRecord.auctioneerId,
+      auctioneer: {
+        accountId: auctionRecord.auctioneerId,
+        username: auctioneerRecord.username,
+        email: auctioneerRecord.email,
+      },
       name: auctionRecord.name,
       description: auctionRecord.description,
       startPrice: parseFloat(auctionRecord.startPrice),
@@ -280,8 +337,20 @@ router.post("/", async (req, res) => {
   await pool.query(`COMMIT`);
 
   const auction: Auction = {
-    ...auctionRecord,
-    minNewBidPrice: auctionRecord.startPrice + auctionRecord.spread,
+    auctionId: auctionRecord.auctionId,
+    auctioneer: {
+      accountId: auctionRecord.auctioneerId,
+      username: auctioneerRecord.username,
+      email: auctioneerRecord.email,
+    },
+    name: auctionRecord.name,
+    description: auctionRecord.description,
+    startPrice: parseFloat(auctionRecord.startPrice),
+    spread: parseFloat(auctionRecord.spread),
+    minNewBidPrice:
+      parseFloat(auctionRecord.startPrice) + parseFloat(auctionRecord.spread),
+    startTime: auctionRecord.startTime,
+    endTime: auctionRecord.endTime,
     topBid: null,
     numBids: 0,
     cards: cardsRecord,
