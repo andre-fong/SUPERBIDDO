@@ -228,6 +228,15 @@ export default function Navbar({
     }
   }
 
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCurPage("results");
+  }
+
+  function redirectToSearchResults(category: string) {
+    setCurPage("results", JSON.stringify({ category }));
+  }
+
   // TODO: Remove log
   useEffect(() => {
     console.log(user);
@@ -243,9 +252,14 @@ export default function Navbar({
     >
       <motion.div className={styles.main} ref={ref}>
         <button className={styles.logo} onClick={() => setCurPage("home")}>
-          <Image src="/superbiddo-logo.svg" alt="SuperBiddo Logo" fill />
+          <Image
+            src="/superbiddo-logo.svg"
+            alt="SuperBiddo Logo"
+            fill
+            priority
+          />
         </button>
-        <div className={styles.search}>
+        <form className={styles.search} onSubmit={handleSearch}>
           {/* TODO: Extract autocomplete value from below component */}
           {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
@@ -320,6 +334,7 @@ export default function Navbar({
                           "&:focus": { backgroundColor: "primary.dark" },
                         }}
                         title="Search SuperBiddo"
+                        type="submit"
                         // TODO: Implement search functionality
                       >
                         <SearchIcon />
@@ -330,7 +345,7 @@ export default function Navbar({
               />
             )}
           />
-        </div>
+        </form>
 
         {userLoading ? (
           <div>
@@ -572,20 +587,40 @@ export default function Navbar({
       <div className={styles.links_container} ref={linksRef}>
         <ul className={styles.links}>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Pokémon</button>
+            <button
+              className={styles.page_button}
+              onClick={() => redirectToSearchResults("pokemon")}
+            >
+              Pokémon
+            </button>
           </li>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Magic: The Gathering</button>
+            <button
+              className={styles.page_button}
+              onClick={() => redirectToSearchResults("mtg")}
+            >
+              Magic: The Gathering
+            </button>
           </li>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Yu-Gi-Oh!</button>
+            <button
+              className={styles.page_button}
+              onClick={() => redirectToSearchResults("yugioh")}
+            >
+              Yu-Gi-Oh!
+            </button>
           </li>
           <li className={styles.page_link}>
-            <button className={styles.page_button}>Bundles</button>
+            <button
+              className={styles.page_button}
+              onClick={() => redirectToSearchResults("bundles")}
+            >
+              Bundles
+            </button>
           </li>
-          <li className={styles.page_link}>
+          {/* <li className={styles.page_link}>
             <button className={styles.page_button}>Other Cards</button>
-          </li>
+          </li> */}
         </ul>
       </div>
     </motion.nav>

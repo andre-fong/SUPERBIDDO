@@ -48,6 +48,7 @@
 
 .logo {
   position: relative;
+  min-width: 180px;
   width: 240px;
   height: 80px;
   border: none;
@@ -150,8 +151,8 @@
 }
 
 .user_sell_count {
-  font-size: 0.9em;
-  color: rgb(94, 94, 94);
+  font-size: 0.8em;
+  color: var(--accent);
 }
 
 .signout {

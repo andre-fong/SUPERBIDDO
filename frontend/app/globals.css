@@ -6,7 +6,7 @@
   --primary: #f44336;
   --secondary: #f6b02c;
   --secondary-light: #f6e1bc;
-  --accent: #86bbd8;
+  --accent: #46b0e9;
 }
 
 html,
@@ -19,6 +19,10 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+button {
+  font-family: Inter, "Inter Fallback";
 }
 
 a {
