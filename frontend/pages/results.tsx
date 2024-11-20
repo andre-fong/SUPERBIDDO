@@ -11,6 +11,7 @@ import { Fade } from "@mui/material";
 import { ClickAwayListener } from "@mui/base/ClickAwayListener";
 import FormControl from "@mui/material/FormControl";
 import FormGroup from "@mui/material/FormGroup";
+import FormLabel from "@mui/material/FormLabel";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
@@ -32,6 +33,7 @@ import MuiAccordionDetails, {
   AccordionDetailsProps,
 } from "@mui/material/AccordionDetails";
 import { styled } from "@mui/material/styles";
+import cardRarities from "@/types/cardGameInfo";
 
 //////////////////////////////////////////////////
 //            MUI STYLED ACCORDION              //
@@ -126,14 +128,22 @@ export default function Results({
       bundles: false,
     });
 
-  // TODO: MAKE THIS CHANGE RARITIES BASED ON CATEGORIES CLICKED
-  const [raritySearchFilters, setRaritySearchFilters] = useState({
-    default: true,
-    common: false,
-    uncommon: false,
-    rare: false,
-    mythicRare: false,
-  });
+  // Rarities change based on category
+  const [raritySearchFilter, setRaritySearchFilter] =
+    useState<string>("default");
+  const [rarities, setRarities] = useState<string[]>([]);
+  useEffect(() => {
+    setRaritySearchFilter("default");
+    if (categorySearchFilters.pokemon) {
+      setRarities(cardRarities.Pokemon.rarities);
+    } else if (categorySearchFilters.mtg) {
+      setRarities(cardRarities.MTG.rarities);
+    } else if (categorySearchFilters.yugioh) {
+      setRarities(cardRarities.Yugioh.rarities);
+    } else {
+      setRarities([]);
+    }
+  }, [categorySearchFilters]);
 
   const [priceSearchFilters, setPriceSearchFilters] =
     useState<AuctionPriceFilters>({
@@ -285,7 +295,9 @@ export default function Results({
   }
 
   // TODO: Implement rarity change handler
-  function handleRarityChange(event: React.ChangeEvent<HTMLInputElement>) {}
+  function handleRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setRaritySearchFilter(event.target.value);
+  }
 
   function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, checked } = event.target;
@@ -348,7 +360,7 @@ export default function Results({
                           name="pokemon"
                         />
                       }
-                      label="Pokemon"
+                      label="Pokémon"
                     />
                     <FormControlLabel
                       control={
@@ -390,22 +402,45 @@ export default function Results({
             <AccordionSummary
               expandIcon={<KeyboardArrowDownIcon />}
               aria-controls="rarities-content"
+              title="Rarities only update for the first selected category."
             >
               Rarity
             </AccordionSummary>
             <AccordionDetails>
               <div className={styles.rarities}>
                 <FormControl component="fieldset">
-                  <FormGroup>
-                    <FormControlLabel control={<Checkbox />} label="All" />
-                    <FormControlLabel control={<Checkbox />} label="Common" />
-                    <FormControlLabel control={<Checkbox />} label="Uncommon" />
-                    <FormControlLabel control={<Checkbox />} label="Rare" />
+                  <FormLabel component="legend">
+                    {categorySearchFilters.pokemon
+                      ? "Pokémon"
+                      : categorySearchFilters.mtg
+                      ? "Magic: The Gathering"
+                      : categorySearchFilters.yugioh
+                      ? "Yu-Gi-Oh!"
+                      : categorySearchFilters.bundles
+                      ? "Bundles"
+                      : "All"}
+                  </FormLabel>
+                  <RadioGroup
+                    aria-label="rarity"
+                    name="rarity"
+                    value={raritySearchFilter}
+                    onChange={handleRarityChange}
+                  >
                     <FormControlLabel
-                      control={<Checkbox />}
-                      label="Mythic Rare"
+                      value="default"
+                      defaultChecked
+                      control={<Radio />}
+                      label="All"
                     />
-                  </FormGroup>
+                    {rarities.map((rarity) => (
+                      <FormControlLabel
+                        key={rarity}
+                        value={rarity}
+                        control={<Radio />}
+                        label={rarity}
+                      />
+                    ))}
+                  </RadioGroup>
                 </FormControl>
               </div>
             </AccordionDetails>
