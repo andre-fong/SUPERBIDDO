@@ -20,11 +20,14 @@
 .bold {
   font-weight: bold;
 }
+.bold_600 {
+  font-weight: 600;
+}
 
 .filter_dropdowns {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .filter_dropdown {
@@ -34,9 +37,8 @@
   padding: 5px 10px 5px 15px;
   border: 0;
   border-radius: 999px;
-  background-color: var(--secondary-light);
   cursor: pointer;
-  transition: filter 0.15s;
+  transition: filter 0.15s, background-color 0.15s;
 }
 .filter_dropdown:hover,
 .filter_dropdown:focus-visible {
@@ -72,4 +74,15 @@
 }
 .psa_grade_to {
   margin-bottom: -7px;
+}
+
+.selected_option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  padding: 5px 10px 5px 15px;
+  background-color: white;
+  border: var(--secondary) 2px solid;
+  border-radius: 999px;
 }

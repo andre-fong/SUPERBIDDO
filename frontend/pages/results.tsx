@@ -20,6 +20,8 @@ import {
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function Results({
   setCurPage,
@@ -168,6 +170,11 @@ export default function Results({
             <div className={styles.left_filter_dropdowns}>
               <button
                 className={styles.filter_dropdown}
+                style={{
+                  backgroundColor: qualitySearchFilters.default
+                    ? "#e9e9e9"
+                    : "var(--secondary-light)",
+                }}
                 ref={qualityAnchorEl}
                 onClick={() => setQualityPopperOpen((open) => !open)}
               >
@@ -176,6 +183,12 @@ export default function Results({
               </button>
               <button
                 className={styles.filter_dropdown}
+                style={{
+                  backgroundColor:
+                    foilSearchFilter === "default"
+                      ? "#e9e9e9"
+                      : "var(--secondary-light)",
+                }}
                 ref={foilAnchorEl}
                 onClick={() => setFoilPopperOpen((open) => !open)}
               >
@@ -401,7 +414,223 @@ export default function Results({
             )}
           </Popper>
 
-          <div className={styles.filter_selected_options}></div>
+          <div className={styles.filter_selected_options}>
+            {qualitySearchFilters.graded && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Graded</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.graded = false;
+                      prev.psaGrade = false;
+
+                      return {
+                        ...prev,
+                        default: !prev.ungraded,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.psaGrade &&
+              qualitySearchFilters.lowGrade !== null &&
+              qualitySearchFilters.highGrade !== null && (
+                <div className={styles.selected_option}>
+                  <p>
+                    Quality:{" "}
+                    <span className={styles.bold_600}>
+                      PSA {qualitySearchFilters.lowGrade} to{" "}
+                      {qualitySearchFilters.highGrade}
+                    </span>
+                  </p>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setQualitySearchFilters((prev) => ({
+                        ...prev,
+                        psaGrade: false,
+                        lowGrade: null,
+                        highGrade: null,
+                      }));
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              )}
+
+            {qualitySearchFilters.ungraded && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Ungraded</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.ungraded = false;
+                      prev.nearMint = false;
+                      prev.excellent = false;
+                      prev.veryGood = false;
+                      prev.poor = false;
+
+                      return {
+                        ...prev,
+                        default: !prev.graded,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.nearMint && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Near Mint (Ungraded)</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.nearMint = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.excellent ||
+                          prev.veryGood ||
+                          prev.poor
+                        ),
+                        ungraded: prev.excellent || prev.veryGood || prev.poor,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.excellent && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Excellent (Ungraded)</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.excellent = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.nearMint ||
+                          prev.veryGood ||
+                          prev.poor
+                        ),
+                        ungraded: prev.nearMint || prev.veryGood || prev.poor,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.veryGood && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Very Good (Ungraded)</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.veryGood = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.nearMint ||
+                          prev.excellent ||
+                          prev.poor
+                        ),
+                        ungraded: prev.nearMint || prev.excellent || prev.poor,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.poor && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Poor (Ungraded)</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.poor = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.nearMint ||
+                          prev.excellent ||
+                          prev.veryGood
+                        ),
+                        ungraded:
+                          prev.nearMint || prev.excellent || prev.veryGood,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {foilSearchFilter !== "default" && (
+              <div className={styles.selected_option}>
+                <p>
+                  Foil:{" "}
+                  <span className={styles.bold_600}>
+                    {foilSearchFilter === "foil" ? "Foil" : "No Foil"}
+                  </span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => setFoilSearchFilter("default")}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+          </div>
 
           {/* TODO: Render results */}
           <div className={styles.results_grid}></div>
