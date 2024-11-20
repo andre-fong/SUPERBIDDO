@@ -176,10 +176,12 @@ export default function Results({
       lowGrade: null,
       highGrade: null,
       ungraded: false,
+      mint: false,
       nearMint: false,
-      excellent: false,
-      veryGood: false,
-      poor: false,
+      lightlyPlayed: false,
+      moderatelyPlayed: false,
+      heavilyPlayed: false,
+      damaged: false,
     });
 
   const [foilSearchFilter, setFoilSearchFilter] =
@@ -258,10 +260,12 @@ export default function Results({
         graded: false,
         psaGrade: false,
         ungraded: false,
+        mint: false,
         nearMint: false,
-        excellent: false,
-        veryGood: false,
-        poor: false,
+        lightlyPlayed: false,
+        moderatelyPlayed: false,
+        heavilyPlayed: false,
+        damaged: false,
       }));
     } else if (name === "graded") {
       setQualitySearchFilters((prev) => ({
@@ -282,10 +286,12 @@ export default function Results({
         ...prev,
         default: !(checked || prev.graded),
         ungraded: checked,
+        mint: checked,
         nearMint: checked,
-        excellent: checked,
-        veryGood: checked,
-        poor: checked,
+        lightlyPlayed: checked,
+        moderatelyPlayed: checked,
+        heavilyPlayed: checked,
+        damaged: checked,
       }));
     } else {
       setQualitySearchFilters((prev) => {
@@ -295,16 +301,20 @@ export default function Results({
           ...prev,
           default: !(
             newFilters.graded ||
+            newFilters.mint ||
             newFilters.nearMint ||
-            newFilters.excellent ||
-            newFilters.veryGood ||
-            newFilters.poor
+            newFilters.lightlyPlayed ||
+            newFilters.moderatelyPlayed ||
+            newFilters.heavilyPlayed ||
+            newFilters.damaged
           ),
           ungraded:
+            newFilters.mint ||
             newFilters.nearMint ||
-            newFilters.excellent ||
-            newFilters.veryGood ||
-            newFilters.poor,
+            newFilters.lightlyPlayed ||
+            newFilters.moderatelyPlayed ||
+            newFilters.heavilyPlayed ||
+            newFilters.damaged,
           [name]: checked,
         };
       });
@@ -776,6 +786,18 @@ export default function Results({
                               control={
                                 <Checkbox
                                   size="small"
+                                  name="mint"
+                                  checked={qualitySearchFilters.mint}
+                                  onChange={handleQualityChange}
+                                />
+                              }
+                              label="Mint"
+                              sx={{ marginTop: "-5px" }}
+                            />
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  size="small"
                                   name="nearMint"
                                   checked={qualitySearchFilters.nearMint}
                                   onChange={handleQualityChange}
@@ -788,36 +810,51 @@ export default function Results({
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="excellent"
-                                  checked={qualitySearchFilters.excellent}
+                                  name="lightlyPlayed"
+                                  checked={qualitySearchFilters.lightlyPlayed}
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Excellent"
+                              label="Lightly Played"
                               sx={{ marginTop: "-5px" }}
                             />
                             <FormControlLabel
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="veryGood"
-                                  checked={qualitySearchFilters.veryGood}
+                                  name="moderatelyPlayed"
+                                  checked={
+                                    qualitySearchFilters.moderatelyPlayed
+                                  }
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Very Good"
+                              label="Moderately Played"
                               sx={{ marginTop: "-5px" }}
                             />
                             <FormControlLabel
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="poor"
-                                  checked={qualitySearchFilters.poor}
+                                  name="heavilyPlayed"
+                                  checked={qualitySearchFilters.heavilyPlayed}
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Poor"
+                              label="Heavily Played"
+                              sx={{ marginTop: "-5px" }}
+                            />
+
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  size="small"
+                                  name="damaged"
+                                  checked={qualitySearchFilters.damaged}
+                                  onChange={handleQualityChange}
+                                />
+                              }
+                              label="Damaged"
                               sx={{ marginTop: "-5px" }}
                             />
                           </div>
@@ -911,7 +948,7 @@ export default function Results({
                     Quality:{" "}
                     <span className={styles.bold_600}>
                       PSA {qualitySearchFilters.lowGrade} to{" "}
-                      {qualitySearchFilters.highGrade}
+                      {qualitySearchFilters.highGrade} (Graded)
                     </span>
                   </p>
                   <IconButton
@@ -930,11 +967,46 @@ export default function Results({
                 </div>
               )}
 
+            {qualitySearchFilters.mint && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Mint</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.mint = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
             {qualitySearchFilters.nearMint && (
               <div className={styles.selected_option}>
                 <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Near Mint (Ungraded)</span>
+                  Quality: <span className={styles.bold_600}>Near Mint</span>
                 </p>
                 <IconButton
                   size="small"
@@ -946,102 +1018,165 @@ export default function Results({
                         ...prev,
                         default: !(
                           prev.graded ||
-                          prev.excellent ||
-                          prev.veryGood ||
-                          prev.poor
-                        ),
-                        ungraded: prev.excellent || prev.veryGood || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.excellent && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Excellent (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.excellent = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.veryGood ||
-                          prev.poor
-                        ),
-                        ungraded: prev.nearMint || prev.veryGood || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.veryGood && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Very Good (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.veryGood = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.excellent ||
-                          prev.poor
-                        ),
-                        ungraded: prev.nearMint || prev.excellent || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.poor && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Poor (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.poor = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.excellent ||
-                          prev.veryGood
+                          prev.mint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
                         ),
                         ungraded:
-                          prev.nearMint || prev.excellent || prev.veryGood,
+                          prev.mint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.lightlyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Lightly Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.lightlyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.moderatelyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Moderately Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.moderatelyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.heavilyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Heavily Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.heavilyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.damaged && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Damaged</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.damaged = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed,
                       };
                     });
                   }}

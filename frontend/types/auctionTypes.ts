@@ -65,10 +65,12 @@ export type AuctionQualityFilters = {
   lowGrade: number | null;
   highGrade: number | null;
   ungraded: boolean;
+  mint: boolean;
   nearMint: boolean;
-  excellent: boolean;
-  veryGood: boolean;
-  poor: boolean;
+  lightlyPlayed: boolean;
+  moderatelyPlayed: boolean;
+  heavilyPlayed: boolean;
+  damaged: boolean;
 };
 
 export type AuctionFoilFilters = "default" | "foil" | "noFoil";
