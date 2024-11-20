@@ -50,5 +50,6 @@ router.post("/", async (req, res) => {
   const { email, password, username } = accountInput;
   const passhash = await bcrypt.hash(password, 10);
   const account = await createAccount(email, passhash, username);
+  
   res.status(201).json(account);
 });
