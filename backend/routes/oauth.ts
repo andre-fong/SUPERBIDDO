@@ -31,7 +31,7 @@ passport.use(new GoogleStrategy({
         email: accountRecord.email,
         username: accountRecord.username,
     };
-
+    console.log(account);
     return done(null, account);
 }));
 
