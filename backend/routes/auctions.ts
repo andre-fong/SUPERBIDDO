@@ -208,13 +208,13 @@ router.get("/", async (req, res) => {
       case "startPriceDesc":
         return ` ORDER BY start_price DESC`;
       case "currentBidAsc":
-        return ` ORDER BY (SELECT MAX(amount) FROM bid WHERE auction_id = auction.auction_id) ASC`;
+        return ` ORDER BY amount ASC NULLS FIRST`;
       case "currentBidDesc":
-        return ` ORDER BY (SELECT MAX(amount) FROM bid WHERE auction_id = auction.auction_id) DESC`;
+        return ` ORDER BY amount DESC NULLS LAST`;
       case "minNewBidPriceAsc":
-        return ` ORDER BY (SELECT MAX(amount) FROM bid WHERE auction_id = auction.auction_id) + spread ASC`;
+        return ` ORDER BY (COALESCE(amount, start_price) + spread) ASC`;
       case "minNewBidPriceDesc":
-        return ` ORDER BY (SELECT MAX(amount) FROM bid WHERE auction_id = auction.auction_id) + spread DESC`;
+        return ` ORDER BY (COALESCE(amount, start_price) + spread) DESC`;
       case "startTimeAsc":
         return ` ORDER BY start_time ASC`;
       case "startTimeDesc":
