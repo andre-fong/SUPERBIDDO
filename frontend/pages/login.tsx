@@ -10,6 +10,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
 import { User } from "@/types/userTypes";
 import { ErrorType } from "@/types/errorTypes";
+import GoogleSessionButton from "@/components/googleSessionButton";
 
 export default function Login({
   setCurPage,
@@ -24,28 +25,26 @@ export default function Login({
 }) {
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    //This is for logging in with Google OAuth
-    //window.location.href = 'http://localhost:3001/api/v1/oauth/google';
-    
-    // const username = (
-    //   e.currentTarget.elements.namedItem("username") as HTMLInputElement
-    // ).value;
-    // const password = (
-    //   e.currentTarget.elements.namedItem("password") as HTMLInputElement
-    // ).value;
 
-    // fetchLogin(setToast, username, password).then((loginData) => {
-    //   if (!loginData) {
-    //     return;
-    //   }
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
+    const password = (
+      e.currentTarget.elements.namedItem("password") as HTMLInputElement
+    ).value;
 
-    //   setUser({
-    //     accountId: loginData.accountId,
-    //     username: username,
-    //     email: `${username}@gmail.com`,
-    //   });
-    //   setCurPage((JSON.parse(context)?.next as PageName) || "home");
-    // });
+    fetchLogin(setToast, username, password).then((loginData) => {
+      if (!loginData) {
+        return;
+      }
+
+      setUser({
+        accountId: loginData.accountId,
+        username: username,
+        email: `${username}@gmail.com`,
+      });
+      setCurPage((JSON.parse(context)?.next as PageName) || "home");
+    });
   }
 
   return (
@@ -121,6 +120,9 @@ export default function Login({
         </div>
 
         {/* OAUTH */}
+        <div className={styles.oauth_container}>
+          <GoogleSessionButton />
+        </div>
 
         <p className={styles.redirect_text}>
           Don&apos;t have an account?{" "}
