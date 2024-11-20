@@ -36,12 +36,13 @@ passport.use(
         accountId: accountRecord.accountId,
         email: accountRecord.email,
         username: accountRecord.username,
+
       };
 
-      return done(null, account);
-    }
-  )
-);
+    return done(null, account);
+}));
+
+
 
 passport.serializeUser((user, done) => {
   done(null, user);

@@ -17,6 +17,7 @@ import { router as auctionRouter } from "./routes/auctions.js";
 import { router as bidRouter } from "./routes/bids.js";
 import { router as biddingRouter } from "./routes/bidding.js";
 import { router as oauthRouter } from "./routes/oauth.js";
+import { router as notificationRouter } from "./routes/notifications.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -56,6 +57,7 @@ app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/bid", biddingRouter);
 app.use("/api/v1/oauth", oauthRouter);
+app.use("/api/v1/notifications", notificationRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.

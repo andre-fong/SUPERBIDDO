@@ -2,7 +2,6 @@ import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 
-
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
@@ -188,6 +187,32 @@ export async function pollForAuctionUpdates(
     }
   }
 }
+
+export async function pollNotifications(
+  accountId: string,
+  errorFcn: (error: ErrorType) => void,
+  notifcationFcn: (message: string) => void,
+  signal: AbortSignal
+) {
+  try {
+      const response = await fetch(`${url}/notifications/${accountId}`, {
+          method: 'GET',
+      });
+      if (response.ok) {
+          const data = await response.json();
+          notifcationFcn(data.message);
+          pollNotifications(accountId, errorFcn, notifcationFcn, signal);
+      }
+      else {
+        errorFcn({ message: unkownError, severity: Severity.Critical });
+      }
+  } catch (error) {
+      console.error(error);
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+  } 
+}
+
+//
 
 export async function submitBid(
   errorFcn: (error: ErrorType) => void,
