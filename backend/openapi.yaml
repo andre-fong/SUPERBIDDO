@@ -157,51 +157,61 @@ paths:
           description: The game of a card in an auction. If provided, only auctions with cards from this game will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: cardName
           description: The name of a card in an auction. If provided, auctions with cards with this name will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: cardManufacturer
           description: The manufacturer of a card in an auction. If provided, only auctions with cards from this manufacturer will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: cardQuality
           description: The quality of a card in an auction. If provided, only auctions with cards of this quality will be returned.
           required: false
           schema:
-            type: string
-            enum:
-              - Mint
-              - Near Mint
-              - Excellent
-              - Good
-              - Lightly Played
-              - Played
-              - Poor
+            oneOf:
+              - $ref: "#/components/schemas/Quality"
+              - type: array
+                items:
+                  $ref: "#/components/schemas/Quality"
         - in: query
           name: cardRarity
           description: The rarity of a card in an auction. If provided, only auctions with cards of this rarity will be returned.
           required: false
           schema:
-            type: string
-            enum:
-              - Common
-              - Uncommon
-              - Rare
-              - Mythic Rare
-              - Special
+            oneOf:
+              - $ref: "#/components/schemas/Rarity"
+              - type: array
+                items:
+                  $ref: "#/components/schemas/Rarity"
         - in: query
           name: cardSet
           description: The set of a card in an auction. If provided, only auctions with cards from this set will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: cardIsFoil
           description: Whether or not a card in an auction is foil. If provided, and true only auctions with foil cards will be returned. If provided, and false only auctions with non-foil cards will be returned. If not provided, all auctions will be returned.
@@ -213,25 +223,41 @@ paths:
           description: The game of a bundle in an auction. If provided, only auctions with bundles from this game will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: bundleName
           description: The name of a bundle in an auction. If provided, auctions with bundles with this name will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: bundleManufacturer
           description: The manufacturer of a bundle in an auction. If provided, only auctions with bundles from this manufacturer will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: bundleSet
           description: The set of a bundle in an auction. If provided, only auctions with bundles from this set will be returned.
           required: false
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
         - in: query
           name: isBundle
           description: Whether or not the auction is a bundle. If provided, and true only auctions that are bundles will be returned. If provided, and false only auctions that are not bundles will be returned. If not provided, all auctions will be returned.
@@ -761,6 +787,24 @@ components:
           readOnly: true
           type: string
           format: date-time
+    Quality:
+      type: string
+      enum:
+        - Mint
+        - Near Mint
+        - Excellent
+        - Good
+        - Lightly Played
+        - Played
+        - Poor
+    Rarity:
+      type: string
+      enum:
+        - Common
+        - Uncommon
+        - Rare
+        - Mythic Rare
+        - Special
     Errors:
       type: array
       items:
