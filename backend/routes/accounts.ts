@@ -10,9 +10,9 @@ export async function createAccount(email: string, passhash: string, username: s
   const accountRecord = camelize(
     await pool
       .query<AccountDb>(
-        `INSERT INTO account (email, passhash, username)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
+        ` INSERT INTO account (email, passhash, username)
+          VALUES ($1, $2, $3)
+          RETURNING *`,
         [email, passhash, username]
       )
       .catch((err) => {
