@@ -197,21 +197,13 @@ export default function Results({
     });
 
   // Rarities change based on category
-  const [raritySearchFilter, setRaritySearchFilter] =
+  const [pokemonRarityFilter, setPokemonRarityFilter] =
     useState<string>("default");
-  const [rarities, setRarities] = useState<string[]>([]);
-  useEffect(() => {
-    setRaritySearchFilter("default");
-    if (categorySearchFilters.pokemon) {
-      setRarities(cardRarities.Pokemon.rarities);
-    } else if (categorySearchFilters.mtg) {
-      setRarities(cardRarities.MTG.rarities);
-    } else if (categorySearchFilters.yugioh) {
-      setRarities(cardRarities.Yugioh.rarities);
-    } else {
-      setRarities([]);
-    }
-  }, [categorySearchFilters]);
+  const [mtgRarityFilter, setMtgRarityFilter] = useState<string>("default");
+  const [yugiohRarityFilter, setYugiohRarityFilter] =
+    useState<string>("default");
+  const [bundlesRarityFilter, setBundlesRarityFilter] =
+    useState<string>("default");
 
   const [priceSearchFilters, setPriceSearchFilters] =
     useState<AuctionPriceFilters>({
@@ -355,9 +347,28 @@ export default function Results({
         yugioh: false,
         bundles: false,
       }));
+      setPokemonRarityFilter("default");
+      setMtgRarityFilter("default");
+      setYugiohRarityFilter("default");
+      setBundlesRarityFilter("default");
     } else {
       setCategorySearchFilters((prev) => {
         let newFilters = { ...prev, [name]: checked };
+
+        switch (name) {
+          case "pokemon":
+            setPokemonRarityFilter("default");
+            break;
+          case "mtg":
+            setMtgRarityFilter("default");
+            break;
+          case "yugioh":
+            setYugiohRarityFilter("default");
+            break;
+          case "bundles":
+            setBundlesRarityFilter("default");
+            break;
+        }
 
         return {
           ...newFilters,
@@ -372,9 +383,23 @@ export default function Results({
     }
   }
 
-  // TODO: Implement rarity change handler
-  function handleRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setRaritySearchFilter(event.target.value);
+  function handlePokemonRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setPokemonRarityFilter(event.target.value);
+  }
+  function handleMtgRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setMtgRarityFilter(event.target.value);
+  }
+  function handleYugiohRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setYugiohRarityFilter(event.target.value);
+  }
+  function handleBundlesRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setBundlesRarityFilter(event.target.value);
   }
 
   function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -483,54 +508,6 @@ export default function Results({
           <Accordion defaultExpanded>
             <AccordionSummary
               expandIcon={<KeyboardArrowDownIcon />}
-              aria-controls="rarities-content"
-              title="Rarities only update for the first selected category."
-            >
-              Rarity
-            </AccordionSummary>
-            <AccordionDetails>
-              <div className={styles.rarities}>
-                <FormControl component="fieldset">
-                  <FormLabel component="legend">
-                    {categorySearchFilters.pokemon
-                      ? "Pokémon"
-                      : categorySearchFilters.mtg
-                      ? "Magic: The Gathering"
-                      : categorySearchFilters.yugioh
-                      ? "Yu-Gi-Oh!"
-                      : categorySearchFilters.bundles
-                      ? "Bundles"
-                      : "All"}
-                  </FormLabel>
-                  <RadioGroup
-                    aria-label="rarity"
-                    name="rarity"
-                    value={raritySearchFilter}
-                    onChange={handleRarityChange}
-                  >
-                    <FormControlLabel
-                      value="default"
-                      defaultChecked
-                      control={<Radio />}
-                      label="All"
-                    />
-                    {rarities.map((rarity) => (
-                      <FormControlLabel
-                        key={rarity}
-                        value={rarity}
-                        control={<Radio />}
-                        label={rarity}
-                      />
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion defaultExpanded>
-            <AccordionSummary
-              expandIcon={<KeyboardArrowDownIcon />}
               aria-controls="prices-content"
             >
               Price
@@ -602,6 +579,154 @@ export default function Results({
                     />
                   </FormGroup>
                 </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="rarities-content"
+            >
+              Rarity
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.rarities}>
+                {categorySearchFilters.default && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">All Rarities</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value="default"
+                      onChange={() => {}}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.pokemon && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Pokémon</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={pokemonRarityFilter}
+                      onChange={handlePokemonRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Pokemon.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.mtg && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">
+                      Magic: The Gathering
+                    </FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={mtgRarityFilter}
+                      onChange={handleMtgRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.MTG.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.yugioh && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={yugiohRarityFilter}
+                      onChange={handleYugiohRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Yugioh.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.bundles && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Bundles</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={bundlesRarityFilter}
+                      onChange={handleBundlesRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
               </div>
             </AccordionDetails>
           </Accordion>
