@@ -1,7 +1,7 @@
 import { ErrorType } from "@/types/errorTypes";
 import { PageName } from "@/types/pageTypes";
 import { User } from "@/types/userTypes";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "@/styles/results.module.css";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Popper from "@mui/material/Popper";
@@ -17,6 +17,8 @@ import Radio from "@mui/material/Radio";
 import {
   AuctionQualityFilters,
   AuctionFoilFilters,
+  AuctionPriceFilters,
+  AuctionCategoryFilters,
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -115,6 +117,59 @@ export default function Results({
   const [foilSearchFilter, setFoilSearchFilter] =
     useState<AuctionFoilFilters>("default");
 
+  const [categorySearchFilters, setCategorySearchFilters] =
+    useState<AuctionCategoryFilters>({
+      default: true,
+      pokemon: false,
+      mtg: false,
+      yugioh: false,
+      bundles: false,
+    });
+
+  // TODO: MAKE THIS CHANGE RARITIES BASED ON CATEGORIES CLICKED
+  const [raritySearchFilters, setRaritySearchFilters] = useState({
+    default: true,
+    common: false,
+    uncommon: false,
+    rare: false,
+    mythicRare: false,
+  });
+
+  const [priceSearchFilters, setPriceSearchFilters] =
+    useState<AuctionPriceFilters>({
+      includeMinPrice: false,
+      includeMaxPrice: false,
+      minPrice: null,
+      maxPrice: null,
+    });
+
+  //////////////////////////////////////////////////
+  //              FORM HANDLERS                   //
+  //////////////////////////////////////////////////
+
+  // Navigated to results from clicking Category
+  useEffect(() => {
+    let category = JSON.parse(context).category;
+    if (!category) return;
+
+    let newFilters = {
+      pokemon: category === "pokemon",
+      mtg: category === "mtg",
+      yugioh: category === "yugioh",
+      bundles: category === "bundles",
+    };
+
+    setCategorySearchFilters({
+      ...newFilters,
+      default: !(
+        newFilters.pokemon ||
+        newFilters.mtg ||
+        newFilters.yugioh ||
+        newFilters.bundles
+      ),
+    });
+  }, [context]);
+
   function handleQualityChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, checked } = event.target;
 
@@ -201,6 +256,65 @@ export default function Results({
     setFoilSearchFilter(event.target.value as AuctionFoilFilters);
   }
 
+  function handleCategoryChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, checked } = event.target;
+
+    if (name === "all") {
+      setCategorySearchFilters((prev) => ({
+        default: checked || true,
+        pokemon: false,
+        mtg: false,
+        yugioh: false,
+        bundles: false,
+      }));
+    } else {
+      setCategorySearchFilters((prev) => {
+        let newFilters = { ...prev, [name]: checked };
+
+        return {
+          ...newFilters,
+          default: !(
+            newFilters.pokemon ||
+            newFilters.mtg ||
+            newFilters.yugioh ||
+            newFilters.bundles
+          ),
+        };
+      });
+    }
+  }
+
+  // TODO: Implement rarity change handler
+  function handleRarityChange(event: React.ChangeEvent<HTMLInputElement>) {}
+
+  function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, checked } = event.target;
+
+    setPriceSearchFilters((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+  }
+
+  function handlePriceChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+    let price = parseFloat(value);
+
+    if (value === "") {
+      setPriceSearchFilters((prev) => ({
+        ...prev,
+        [name]: null,
+      }));
+    } else if (isNaN(price) || price < 0) {
+      // TODO: Show error message
+    } else {
+      setPriceSearchFilters((prev) => ({
+        ...prev,
+        [name]: price,
+      }));
+    }
+  }
+
   return (
     <>
       <main className={styles.main}>
@@ -216,17 +330,56 @@ export default function Results({
               <div className={styles.categories}>
                 <FormControl component="fieldset">
                   <FormGroup>
-                    <FormControlLabel control={<Checkbox />} label="All" />
-                    <FormControlLabel control={<Checkbox />} label="Pokemon" />
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.default}
+                          onChange={handleCategoryChange}
+                          name="all"
+                        />
+                      }
+                      label="All"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.pokemon}
+                          onChange={handleCategoryChange}
+                          name="pokemon"
+                        />
+                      }
+                      label="Pokemon"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.mtg}
+                          onChange={handleCategoryChange}
+                          name="mtg"
+                        />
+                      }
                       label="Magic: The Gathering"
                     />
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.yugioh}
+                          onChange={handleCategoryChange}
+                          name="yugioh"
+                        />
+                      }
                       label="Yu-Gi-Oh!"
                     />
-                    <FormControlLabel control={<Checkbox />} label="Bundles" />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.bundles}
+                          onChange={handleCategoryChange}
+                          name="bundles"
+                        />
+                      }
+                      label="Bundles"
+                    />
                   </FormGroup>
                 </FormControl>
               </div>
@@ -270,12 +423,22 @@ export default function Results({
                 <FormControl component="fieldset">
                   <FormGroup sx={{ marginBottom: "15px" }}>
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMinPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMinPrice"
+                        />
+                      }
                       label={
                         <TextField
                           label="Min Price"
                           variant="outlined"
                           size="small"
+                          value={priceSearchFilters.minPrice || ""}
+                          onChange={handlePriceChange}
+                          name="minPrice"
+                          autoComplete="off"
                           slotProps={{
                             input: {
                               startAdornment: (
@@ -292,12 +455,22 @@ export default function Results({
 
                   <FormGroup>
                     <FormControlLabel
-                      control={<Checkbox />}
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMaxPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMaxPrice"
+                        />
+                      }
                       label={
                         <TextField
                           label="Max Price"
                           variant="outlined"
                           size="small"
+                          value={priceSearchFilters.maxPrice || ""}
+                          onChange={handlePriceChange}
+                          name="maxPrice"
+                          autoComplete="off"
                           slotProps={{
                             input: {
                               startAdornment: (

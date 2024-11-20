@@ -72,3 +72,18 @@ export type AuctionQualityFilters = {
 };
 
 export type AuctionFoilFilters = "default" | "foil" | "noFoil";
+
+export type AuctionCategoryFilters = {
+  default: boolean;
+  pokemon: boolean;
+  mtg: boolean;
+  yugioh: boolean;
+  bundles: boolean;
+};
+
+export type AuctionPriceFilters = {
+  includeMinPrice: boolean;
+  includeMaxPrice: boolean;
+  minPrice: number | null;
+  maxPrice: number | null;
+};
