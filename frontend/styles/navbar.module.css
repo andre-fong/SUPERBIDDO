@@ -48,6 +48,7 @@
 
 .logo {
   position: relative;
+  min-width: 180px;
   width: 240px;
   height: 80px;
   border: none;
