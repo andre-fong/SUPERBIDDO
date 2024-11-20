@@ -12,14 +12,12 @@ router.get("/", async (req, res) => {
     bidderId,
     savedBy,
     name,
-    minStartPrice,
-    mxaStartPrice,
+    minMinNewBidPrice,
+    maxMinNewBidPrice,
     minStartTime,
     maxStartTime,
     minEndTime,
     maxEndTime,
-    minNumBids,
-    maxNumBids,
     cardGame,
     cardName,
     cardManufacturer,
@@ -35,167 +33,130 @@ router.get("/", async (req, res) => {
     sortBy,
     page = "1",
     pageSize = "20",
-  } = req.query as Record<string, string>;
+  } = req.query as {
+    auctioneerId: string;
+    bidderId: string;
+    savedBy: string;
+    name: string;
+    minMinNewBidPrice: string;
+    maxMinNewBidPrice: string;
+    minStartTime: string;
+    maxStartTime: string;
+    minEndTime: string;
+    maxEndTime: string;
+    cardGame: string | string[];
+    cardName: string | string[];
+    cardManufacturer: string | string[];
+    cardQuality: string | string[];
+    cardRarity: string | string[];
+    cardSet: string | string[];
+    cardIsFoil: string;
+    bundleGame: string | string[];
+    bundleName: string | string[];
+    bundleManufacturer: string | string[];
+    bundleSet: string | string[];
+    isBundle: string;
+    sortBy: string;
+    page: string;
+    pageSize: string;
+  };
 
   const conditions = [];
   const values = [];
 
-  if (auctioneerId) {
-    conditions.push(`auctioneer_id = $${values.length + 1}`);
-    values.push(auctioneerId);
-  }
-  if (bidderId) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM bid WHERE bidder_id = $${
-        values.length + 1
-      })`
+  function addCondition(sqlTemplate: string, value: string | string[]) {
+    if (!value) {
+      return;
+    }
+    if (!Array.isArray(value)) {
+      conditions.push(sqlTemplate.replace(/\?/g, `$${values.length + 1}`));
+      values.push(value);
+      return;
+    }
+    const orConditions = value.map((_, i) =>
+      sqlTemplate.replace(/\?/g, `$${values.length + i + 1}`)
     );
-    values.push(bidderId);
+    conditions.push(`(${orConditions.join(" OR ")})`);
+    values.push(...value);
   }
-  if (savedBy) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = $${
-        values.length + 1
-      })`
-    );
-    values.push(savedBy);
-  }
+
+  addCondition(`auctioneer_id = ?`, auctioneerId);
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM bid WHERE bidder_id = ?)`,
+    bidderId
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
+    savedBy
+  );
   // TODO - search by name similarity
-  // if (name) {
-  //   conditions.push(`name ILIKE $${values.length + 1}`);
-  //   values.push(`%${name}%`);
-  // }
-  if (minStartPrice) {
-    conditions.push(`start_price >= $${values.length + 1}`);
-    values.push(minStartPrice);
-  }
-  if (mxaStartPrice) {
-    conditions.push(`start_price <= $${values.length + 1}`);
-    values.push(mxaStartPrice);
-  }
-  if (minStartTime) {
-    conditions.push(`start_time >= $${values.length + 1}`);
-    values.push(minStartTime);
-  }
-  if (maxStartTime) {
-    conditions.push(`start_time <= $${values.length + 1}`);
-    values.push(maxStartTime);
-  }
-  if (minEndTime) {
-    conditions.push(`end_time >= $${values.length + 1}`);
-    values.push(minEndTime);
-  }
-  if (maxEndTime) {
-    conditions.push(`end_time <= $${values.length + 1}`);
-    values.push(maxEndTime);
-  }
-  if (minNumBids) {
-    conditions.push(
-      `(SELECT COUNT(*) FROM bid WHERE bid.auction_id = auction_id) >= $${
-        values.length + 1
-      }`
-    );
-    values.push(minNumBids);
-  }
-  if (maxNumBids) {
-    conditions.push(
-      `(SELECT COUNT(*) FROM bid WHERE bid.auction_id = auction_id) <= $${
-        values.length + 1
-      }`
-    );
-    values.push(maxNumBids);
-  }
-  if (cardGame) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE game = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardGame);
-  }
-  if (cardName) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE name = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardName);
-  }
-  if (cardManufacturer) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE manufacturer = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardManufacturer);
-  }
-  if (cardQuality) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE quality = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardQuality);
-  }
-  if (cardRarity) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE rarity = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardRarity);
-  }
-  if (cardSet) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE set = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardSet);
-  }
-  if (cardIsFoil) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM card WHERE is_foil = $${
-        values.length + 1
-      })`
-    );
-    values.push(cardIsFoil);
-  }
-  if (bundleGame) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM bundle WHERE game = $${
-        values.length + 1
-      })`
-    );
-    values.push(bundleGame);
-  }
-  if (bundleName) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM bundle WHERE name = $${
-        values.length + 1
-      })`
-    );
-    values.push(bundleName);
-  }
-  if (bundleManufacturer) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM bundle WHERE manufacturer = $${
-        values.length + 1
-      })`
-    );
-    values.push(bundleManufacturer);
-  }
-  if (bundleSet) {
-    conditions.push(
-      `auction_id IN (SELECT auction_id FROM bundle WHERE set = $${
-        values.length + 1
-      })`
-    );
-    values.push(bundleSet);
-  }
-  if (isBundle) {
-    conditions.push(`auction_id IN (SELECT auction_id FROM bundle)`);
-  }
+  // addCondition(`name ILIKE ?`, `%${name}%`);
+  // auction_id in auctions where the max bid is high enough OR the start price is high enough
+  addCondition(
+    `auction_id IN (
+      (SELECT auction_id FROM bid GROUP BY auction_id HAVING MAX(amount) >= ? - spread)
+      UNION 
+      (SELECT auction_id FROM auction WHERE start_price >= ? - spread)
+    )`,
+    minMinNewBidPrice
+  );
+  addCondition(
+    `auction_id NOT IN (
+      (SELECT auction_id FROM bid GROUP BY auction_id HAVING MAX(amount) >= ? - spread)
+      UNION 
+      (SELECT auction_id FROM auction WHERE start_price >= ? - spread)
+    )`,
+    maxMinNewBidPrice
+  );
+  addCondition(`start_time >= ?`, minStartTime);
+  addCondition(`start_time <= ?`, maxStartTime);
+  addCondition(`end_time >= ?`, minEndTime);
+  addCondition(`end_time <= ?`, maxEndTime);
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE game = ?)`,
+    cardGame
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE name = ?)`,
+    cardName
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE manufacturer = ?)`,
+    cardManufacturer
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE quality = ?)`,
+    cardQuality
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE rarity = ?)`,
+    cardRarity
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE set = ?)`,
+    cardSet
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE is_foil = ?)`,
+    cardIsFoil
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM bundle WHERE game = ?)`,
+    bundleGame
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM bundle WHERE name = ?)`,
+    bundleName
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM bundle WHERE manufacturer = ?)`,
+    bundleManufacturer
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM bundle WHERE set = ?)`,
+    bundleSet
+  );
+  addCondition(`auction_id IN (SELECT auction_id FROM bundle)`, isBundle);
 
   const whereClause = conditions.length
     ? ` WHERE ${conditions.join(" AND ")}`
