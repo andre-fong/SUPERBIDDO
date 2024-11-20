@@ -22,6 +22,54 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
+import MuiAccordionSummary, {
+  AccordionSummaryProps,
+} from "@mui/material/AccordionSummary";
+import MuiAccordionDetails, {
+  AccordionDetailsProps,
+} from "@mui/material/AccordionDetails";
+import { styled } from "@mui/material/styles";
+
+//////////////////////////////////////////////////
+//            MUI STYLED ACCORDION              //
+//////////////////////////////////////////////////
+
+const Accordion = styled((props: AccordionProps) => (
+  <MuiAccordion disableGutters elevation={0} square {...props} />
+))(({ theme }) => ({
+  backgroundColor: "transparent",
+  border: "none",
+  "&:not(:last-child)": {
+    borderBottom: "1px solid lightgray",
+  },
+  "&:before": {
+    display: "none",
+  },
+}));
+
+const AccordionSummary = styled((props: AccordionSummaryProps) => (
+  <MuiAccordionSummary {...props} />
+))(({ theme }) => ({
+  backgroundColor: "transparent",
+  marginBottom: -1,
+  minHeight: 56,
+  fontSize: "1.1rem",
+  fontWeight: 600,
+  "&.Mui-expanded": {
+    minHeight: 56,
+  },
+  "& .MuiAccordionSummary-content": {
+    margin: "12px 0",
+  },
+}));
+
+const AccordionDetails = styled((props: AccordionDetailsProps) => (
+  <MuiAccordionDetails {...props} />
+))(({ theme }) => ({
+  padding: theme.spacing(2),
+  paddingTop: 0,
+}));
 
 export default function Results({
   setCurPage,
@@ -157,7 +205,116 @@ export default function Results({
     <>
       <main className={styles.main}>
         <div className={styles.left_filters}>
-          {/* TODO: Filter accordions */}Left filters
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="categories-content"
+            >
+              Category
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.categories}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel control={<Checkbox />} label="All" />
+                    <FormControlLabel control={<Checkbox />} label="Pokemon" />
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label="Magic: The Gathering"
+                    />
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label="Yu-Gi-Oh!"
+                    />
+                    <FormControlLabel control={<Checkbox />} label="Bundles" />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="rarities-content"
+            >
+              Rarity
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.rarities}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel control={<Checkbox />} label="All" />
+                    <FormControlLabel control={<Checkbox />} label="Common" />
+                    <FormControlLabel control={<Checkbox />} label="Uncommon" />
+                    <FormControlLabel control={<Checkbox />} label="Rare" />
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label="Mythic Rare"
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="prices-content"
+            >
+              Price
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.prices}>
+                <FormControl component="fieldset">
+                  <FormGroup sx={{ marginBottom: "15px" }}>
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label={
+                        <TextField
+                          label="Min Price"
+                          variant="outlined"
+                          size="small"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormControlLabel
+                      control={<Checkbox />}
+                      label={
+                        <TextField
+                          label="Max Price"
+                          variant="outlined"
+                          size="small"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
         </div>
 
         <div className={styles.results}>
@@ -466,33 +623,6 @@ export default function Results({
                 </div>
               )}
 
-            {qualitySearchFilters.ungraded && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality: <span className={styles.bold_600}>Ungraded</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.ungraded = false;
-                      prev.nearMint = false;
-                      prev.excellent = false;
-                      prev.veryGood = false;
-                      prev.poor = false;
-
-                      return {
-                        ...prev,
-                        default: !prev.graded,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
             {qualitySearchFilters.nearMint && (
               <div className={styles.selected_option}>
                 <p>
@@ -619,7 +749,7 @@ export default function Results({
                 <p>
                   Foil:{" "}
                   <span className={styles.bold_600}>
-                    {foilSearchFilter === "foil" ? "Foil" : "No Foil"}
+                    {foilSearchFilter === "foil" ? "Foil Only" : "No Foil Only"}
                   </span>
                 </p>
                 <IconButton

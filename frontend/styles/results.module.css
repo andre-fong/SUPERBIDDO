@@ -5,7 +5,8 @@
 }
 
 .left_filters {
-  width: 200px;
+  width: 250px;
+  margin-top: -10px;
 }
 
 .results {
@@ -85,4 +86,8 @@
   background-color: white;
   border: var(--secondary) 2px solid;
   border-radius: 999px;
+}
+
+.prices {
+  padding-top: 5px;
 }
