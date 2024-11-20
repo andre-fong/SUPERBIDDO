@@ -87,3 +87,13 @@ export type AuctionPriceFilters = {
   minPrice: number | null;
   maxPrice: number | null;
 };
+
+export type AuctionSortByOption =
+  | "bestMatch"
+  | "endingSoon"
+  | "newlyListed"
+  | "priceLowToHigh"
+  | "priceHighToLow"
+  | "bidsMostToLeast"
+  | "bidsLeastToMost"
+  | "location";

@@ -28,6 +28,8 @@
 .filter_dropdowns {
   display: flex;
   justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 

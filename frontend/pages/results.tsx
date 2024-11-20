@@ -15,11 +15,15 @@ import FormLabel from "@mui/material/FormLabel";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
 import {
   AuctionQualityFilters,
   AuctionFoilFilters,
   AuctionPriceFilters,
   AuctionCategoryFilters,
+  AuctionSortByOption,
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -75,6 +79,11 @@ const AccordionDetails = styled((props: AccordionDetailsProps) => (
   paddingTop: 0,
 }));
 
+/**
+ * Search Results page.
+ * @param context.category - Category to filter by ("pokemon" | "mtg" | "yugioh" | "bundles").
+ * @param context.searchQuery - Search query to filter by.
+ */
 export default function Results({
   setCurPage,
   user,
@@ -152,6 +161,8 @@ export default function Results({
       minPrice: null,
       maxPrice: null,
     });
+
+  const [sortBy, setSortBy] = useState<AuctionSortByOption>("bestMatch");
 
   //////////////////////////////////////////////////
   //              FORM HANDLERS                   //
@@ -325,6 +336,10 @@ export default function Results({
         [name]: price,
       }));
     }
+  }
+
+  function handleSortByChange(event: SelectChangeEvent) {
+    setSortBy(event.target.value as AuctionSortByOption);
   }
 
   return (
@@ -561,10 +576,33 @@ export default function Results({
                 <KeyboardArrowDownIcon />
               </button>
             </div>
-            <div className={styles.sort}></div>
+            <div className={styles.sort}>
+              <FormControl fullWidth>
+                <InputLabel>Sort By</InputLabel>
+                <Select
+                  value={sortBy}
+                  label="Sort By"
+                  onChange={handleSortByChange}
+                >
+                  <MenuItem value="bestMatch">Sort: Best Match</MenuItem>
+                  <MenuItem value="endingSoon">Time: Ending Soon</MenuItem>
+                  <MenuItem value="newlyListed">Time: Newly Listed</MenuItem>
+                  <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
+                  <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+                  <MenuItem value="bidsMostToLeast">
+                    # of Bids: Most to Least
+                  </MenuItem>
+                  <MenuItem value="bidsLeastToMost">
+                    # of Bids: Least to Most
+                  </MenuItem>
+                  <MenuItem value="location">Location: Nearest You</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
           </div>
 
           <Popper
+            sx={{ zIndex: 99 }}
             open={qualityPopperOpen}
             anchorEl={qualityAnchorEl.current}
             placement="bottom-start"
@@ -733,6 +771,7 @@ export default function Results({
           </Popper>
 
           <Popper
+            sx={{ zIndex: 99 }}
             open={foilPopperOpen}
             anchorEl={foilAnchorEl.current}
             placement="bottom-start"
