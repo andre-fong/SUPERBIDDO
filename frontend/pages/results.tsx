@@ -640,6 +640,9 @@ export default function Results({
                   value={sortBy}
                   label="Sort By"
                   onChange={handleSortByChange}
+                  // FIXES LAYOUT SHIFT ON CERTAIN MUI COMPONENTS
+                  // https://github.com/mui/material-ui/issues/10000
+                  MenuProps={{ disableScrollLock: true }}
                 >
                   <MenuItem value="bestMatch">Sort: Best Match</MenuItem>
                   <MenuItem value="endingSoon">Time: Ending Soon</MenuItem>
