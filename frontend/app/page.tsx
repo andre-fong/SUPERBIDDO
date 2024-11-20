@@ -17,6 +17,7 @@ import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
 import { AnimatePresence, motion } from "motion/react";
 import Results from "@/pages/results";
+import { pollNotifications } from "@/utils/fetchFunctions";
 
 const theme = createTheme({
   palette: {
@@ -84,6 +85,18 @@ export default function PageHandler() {
   }
 
   const { user, loading: userLoading, setUser } = useUser();
+
+  // useEffect(() => {
+  //   if (!user) { return }
+  //   console.log(user.accountId)
+  //   const controller = new AbortController();
+  //   const signal = controller.signal;
+  //   pollNotifications(user?.accountId, setToast, (message) => { console.log(message) }, signal);
+
+  //   return () => {
+  //     controller.abort("Polling aborted");
+  //   };
+  // }, [user]);
 
   const pages: PageData = {
     home: {

@@ -25,15 +25,16 @@ type AuctionInput = {
 
 type Auction = {
   auctionId: string;
-  auctioneerId: string;
+  auctioneer: Account;
   name: string;
   description?: string;
   startPrice: number;
   spread: number;
+  minNewBidPrice: number;
   startTime: Date;
   endTime: Date;
-  currentPrice: number;
   topBid: Bid;
+  numBids: number;
 } & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
 
 type CardInput = {
@@ -77,7 +78,6 @@ type Bundle = {
 };
 
 type BidInput = {
-  auctionId: string;
   bidderId: string;
   amount: number;
 };
@@ -85,7 +85,7 @@ type BidInput = {
 type Bid = {
   bidId: string;
   auctionId: string;
-  bidderId: string;
+  bidder: Account;
   amount: number;
   timestamp: Date;
 };
