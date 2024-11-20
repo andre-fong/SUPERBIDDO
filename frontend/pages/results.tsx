@@ -38,6 +38,30 @@ import MuiAccordionDetails, {
 } from "@mui/material/AccordionDetails";
 import { styled } from "@mui/material/styles";
 import cardRarities from "@/types/cardGameInfo";
+import Listing from "@/components/listing";
+
+// TODO: Remove this when we have a backend
+enum Game {
+  MTG = "MTG",
+  YGO = "YGO",
+  PKM = "PKM",
+  DBS = "DBS",
+  FF = "FF",
+  WS = "WS",
+  VG = "VG",
+}
+enum Quality {
+  NM = "NM",
+  LP = "LP",
+  MP = "MP",
+  HP = "HP",
+}
+enum Rarity {
+  C = "C",
+  U = "U",
+  R = "R",
+  M = "M",
+}
 
 //////////////////////////////////////////////////
 //            MUI STYLED ACCORDION              //
@@ -101,6 +125,39 @@ export default function Results({
 
   const results = 1000;
   const searchQuery = "Charizard";
+  const auction = {
+    auctionId: "TODO",
+    auctioneerId: "TODO",
+    name: "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
+    description: "This is the last of its kind. Buy now.",
+    startPrice: 0.5,
+    spread: 1,
+    startTime: new Date(),
+    endTime: new Date(),
+    currentPrice: 500.69,
+    topBid: {
+      bidId: "TODO",
+      bidderId: "TODO",
+      auctionId: "TODO",
+      amount: 500.69,
+      timestamp: new Date(),
+    },
+    cards: [
+      {
+        cardId: "TODO",
+        game: Game.PKM,
+        name: "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
+        description:
+          "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
+        manufacturer: "Nintendo",
+        quality: Quality.NM,
+        rarity: Rarity.C,
+        set: "1999 Addition",
+        isFoil: false,
+      },
+    ],
+    bundle: undefined,
+  };
 
   //////////////////////////////////////////////////
   //                 FORM STATE                   //
@@ -1009,8 +1066,15 @@ export default function Results({
             )}
           </div>
 
-          {/* TODO: Render results */}
-          <div className={styles.results_grid}></div>
+          <div className={styles.results_grid}>
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+            <Listing auction={auction} setCurPage={setCurPage} />
+          </div>
 
           {/* TODO: Paginate */}
           <div className={styles.pagination}></div>

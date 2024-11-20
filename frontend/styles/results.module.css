@@ -16,7 +16,7 @@
 .results_num {
   font-size: 1.2em;
   font-weight: 400;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
 }
 .bold {
   font-weight: bold;
@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: 15px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 7px;
 }
 
 .filter_dropdown {
@@ -58,6 +58,7 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .filter_dropdown_content {
@@ -92,4 +93,15 @@
 
 .prices {
   padding-top: 5px;
+}
+
+.results_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  column-gap: 5px;
+  row-gap: 40px;
+}
+
+.pagination {
+  margin-bottom: 50px;
 }
