@@ -91,8 +91,8 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: biderId
-          description: The uuid of a bider. If provided, only auctions that this bider has bid on will be returned. Must match signed in user id.
+          name: bidderId
+          description: The uuid of a bidder. If provided, only auctions that this bidder has bid on will be returned. Must match signed in user id.
           required: false
           schema:
             type: string
@@ -111,56 +111,14 @@ paths:
           schema:
             type: string
         - in: query
-          name: minStartPrice
-          description: The minimum start price of an auction. If provided, auctions with start prices below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxStartPrice
-          description: The maximum start price of an auction. If provided, auctions with start prices above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: minCurrentPrice
-          description: The minimum current price of an auction. If provided, auctions with current prices below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxCurrentPrice
-          description: The maximum current price of an auction. If provided, auctions with current prices above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: minSpread
-          description: The minimum spread of an auction. If provided, auctions with spreads below this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: maxSpread
-          description: The maximum spread of an auction. If provided, auctions with spreads above this value will be excluded.
-          required: false
-          schema:
-            type: number
-            format: float
-        - in: query
-          name: minBidPrice
+          name: minMinNewBidPrice
           description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
           required: false
           schema:
             type: number
             format: float
         - in: query
-          name: maxBidPrice
+          name: maxMinNewBidPrice
           description: The maximum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids above this value will be excluded.
           required: false
           schema:
@@ -195,6 +153,86 @@ paths:
             type: string
             format: date-time
         - in: query
+          name: cardGame
+          description: The game of a card in an auction. If provided, only auctions with cards from this game will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: cardName
+          description: The name of a card in an auction. If provided, auctions with cards with this name will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: cardManufacturer
+          description: The manufacturer of a card in an auction. If provided, only auctions with cards from this manufacturer will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: cardQuality
+          description: The quality of a card in an auction. If provided, only auctions with cards of this quality will be returned.
+          required: false
+          schema:
+            type: string
+            enum:
+              - Mint
+              - Near Mint
+              - Excellent
+              - Good
+              - Lightly Played
+              - Played
+              - Poor
+        - in: query
+          name: cardRarity
+          description: The rarity of a card in an auction. If provided, only auctions with cards of this rarity will be returned.
+          required: false
+          schema:
+            type: string
+            enum:
+              - Common
+              - Uncommon
+              - Rare
+              - Mythic Rare
+              - Special
+        - in: query
+          name: cardSet
+          description: The set of a card in an auction. If provided, only auctions with cards from this set will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: cardIsFoil
+          description: Whether or not a card in an auction is foil. If provided, and true only auctions with foil cards will be returned. If provided, and false only auctions with non-foil cards will be returned. If not provided, all auctions will be returned.
+          required: false
+          schema:
+            type: boolean
+        - in: query
+          name: bundleGame
+          description: The game of a bundle in an auction. If provided, only auctions with bundles from this game will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: bundleName
+          description: The name of a bundle in an auction. If provided, auctions with bundles with this name will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: bundleManufacturer
+          description: The manufacturer of a bundle in an auction. If provided, only auctions with bundles from this manufacturer will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: bundleSet
+          description: The set of a bundle in an auction. If provided, only auctions with bundles from this set will be returned.
+          required: false
+          schema:
+            type: string
+        - in: query
           name: isBundle
           description: Whether or not the auction is a bundle. If provided, and true only auctions that are bundles will be returned. If provided, and false only auctions that are not bundles will be returned. If not provided, all auctions will be returned.
           required: false
@@ -209,30 +247,31 @@ paths:
             enum:
               - startPriceAsc
               - startPriceDesc
-              - currentPriceAsc
-              - currentPriceDesc
               - currentBidAsc
               - currentBidDesc
+              - minNewBidPriceAsc
+              - minNewBidPriceDesc
               - startTimeAsc
               - startTimeDesc
               - endTimeAsc
               - endTimeDesc
         - in: query
-          name: key
-          description: The pagination key. If provided, results will start from AFTER the auction with this auctionId. If not provided, results will start from the beginning.
-          required: false
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: limit
-          description: The maximum number of auctions to return. If provided, at most this many auctions will be returned. If not provided, default of 20 will be used.
+          name: page
+          description: The page of auctions to return. If provided, the auctions will be paginated and only the auctions on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
           required: false
           schema:
             type: integer
             format: int32
             minimum: 1
-            maximum: 100
+            default: 1
+        - in: query
+          name: pageSize
+          description: The number of auctions to return per page. If provided, the auctions will be paginated and only this many auctions will be returned per page. If not provided, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
             default: 20
       responses:
         200:
@@ -246,9 +285,9 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Auction"
-                  key:
-                    type: string
-                    format: uuid
+                  totalNumAuctions:
+                    type: integer
+                    minimum: 0
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -276,7 +315,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
   /api/v1/auctions/{auctionId}:
     get:
-      summary: Get an auction by its auctionId.
+      summary: Get an auction by its auctionId. Long polling is supported by providing the id of the current leading bid.
       parameters:
         - name: auctionId
           in: path
@@ -285,6 +324,17 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: longPollMaxBidId
+          in: query
+          description: The uuid of the current bid. If provided, and the current leading bid on the auction is the provided id, the request will not return immediately. Instead, it will wait until a new bid is placed on the auction.
+          required: false
+          schema:
+            oneOf:
+              - type: string
+                format: uuid
+              - type: string
+                enum:
+                  - "null"
       responses:
         200:
           description: The auction with the provided auctionId.
@@ -296,20 +346,110 @@ paths:
           $ref: "#/components/responses/BadRequest"
         404:
           $ref: "#/components/responses/NotFound"
+  /api/v1/auctions/{auctionId}/bids:
+    get:
+      summary: Get bids for an auction by its auctionId.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: The page of bids to return. If provided, the bids will be paginated and only the bids on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: The number of bids to return per page. If provided, the bids will be paginated and only this many bids will be returned per page. If not provided, default of 20 will be used.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 20
+      responses:
+        200:
+          description: Bids for the auction with the provided auctionId.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bids:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Bid"
+                  totalNumBids:
+                    type: integer
+                    minimum: 0
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+    post:
+      summary: Create a new bid.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bidderId
+                - amount
+              properties:
+                bidderId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                  format: float
+                  minimum: 0
+      responses:
+        201:
+          description: The newly created bid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bid"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
 components:
   schemas:
     Account:
       type: object
       description: All data associated with an account.
       required:
+        - accountId
         - username
         - email
         - password
         # - address
       properties:
-        username:
+        accountId:
+          readOnly: true
           type: string
-          maxLength: 40
+          format: uuid
+        username:
+          $ref: "#/components/schemas/Username"
         email:
           $ref: "#/components/schemas/Email"
         password:
@@ -397,26 +537,32 @@ components:
           required:
             - auctionId
             - auctioneerId
+            - auctioneer
             - name
             - startPrice
             - spread
-            - startTime
-            - endTime
-            - currentPrice
+            - minNewBidPrice
             - topBid
+            - numBids
           properties:
             auctionId:
               readOnly: true
               type: string
               format: uuid
             auctioneerId:
+              writeOnly: true
               type: string
               format: uuid
+            auctioneer:
+              readOnly: true
+              allOf:
+                - $ref: "#/components/schemas/Account"
             name:
               type: string
               maxLength: 100
             description:
               type: string
+              nullable: true
               maxLength: 500
             startPrice:
               type: number
@@ -426,21 +572,23 @@ components:
               type: number
               format: float
               minimum: 0
-            startTime:
-              type: string
-              format: date-time
-            endTime:
-              type: string
-              format: date-time
-            currentPrice:
+            minNewBidPrice:
               readOnly: true
               type: number
               format: float
               minimum: 0
             topBid:
               readOnly: true
-              allOf:
+              oneOf:
                 - $ref: "#/components/schemas/Bid"
+                - type: string
+                  nullable: true
+                  enum:
+                    - null
+            numBids:
+              readOnly: true
+              type: integer
+              minimum: 0
           not:
             required:
               - cards
@@ -460,6 +608,45 @@ components:
               properties:
                 bundle:
                   $ref: "#/components/schemas/Bundle"
+        - oneOf:
+            # both present
+            - type: object
+              required:
+                - startTime
+                - endTime
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+            # neither present
+            - type: object
+              not:
+                anyOf:
+                  - required:
+                      - startTime
+                  - required:
+                      - endTime
+            # both present and both null (neither not null)
+            - type: object
+              required:
+                - startTime
+                - endTime
+              properties:
+                startTime:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  enum:
+                    - null
+                endTime:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  enum:
+                    - null
     Card:
       type: object
       required:
@@ -484,6 +671,7 @@ components:
           maxLength: 100
         description:
           type: string
+          nullable: true
           maxLength: 500
         manufacturer:
           type: string
@@ -532,6 +720,7 @@ components:
           maxLength: 100
         description:
           type: string
+          nullable: true
           maxLength: 500
         manufacturer:
           type: string
@@ -545,6 +734,7 @@ components:
         - bidId
         - auctionId
         - bidderId
+        - bidder
         - amount
         - timestamp
       properties:
@@ -556,36 +746,21 @@ components:
           type: string
           format: uuid
         bidderId:
+          writeOnly: true
           type: string
           format: uuid
+        bidder:
+          readOnly: true
+          allOf:
+            - $ref: "#/components/schemas/Account"
         amount:
           type: number
           format: float
           minimum: 0
         timestamp:
+          readOnly: true
           type: string
           format: date-time
-    Cookie:
-      type: object
-      required:
-        - originalMaxAge
-        - expires
-        - secure
-        - httpOnly
-        - path
-      properties:
-        originalMaxAge:
-          type: integer
-          format: int64
-        expires:
-          type: string
-          format: date-time
-        secure:
-          type: boolean
-        httpOnly:
-          type: boolean
-        path:
-          type: string
     Errors:
       type: array
       items:
@@ -595,7 +770,6 @@ components:
       required:
         - path
         - message
-        - detail
       properties:
         path:
           type: string
@@ -604,16 +778,8 @@ components:
         detail:
           type: string
     Session:
-      type: object
-      required:
-        - cookie
-        - accountUid
-      properties:
-        cookie:
-          $ref: "#/components/schemas/Cookie"
-        accountUid:
-          type: string
-          format: uuid
+      allOf:
+        - $ref: "#/components/schemas/Account"
   responses:
     BadRequest:
       description: request format is invalid
@@ -651,20 +817,3 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Errors"
-  parameters:
-    AccountUid:
-      name: accountUid
-      description: The uuid of an account
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    SwapperUid:
-      name: swapperUid
-      description: The uuid of a swapper
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid

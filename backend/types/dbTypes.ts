@@ -10,11 +10,10 @@ type AuctionDb = {
   auctioneer_id: string;
   name: string;
   description: string;
-  start_price: number;
-  spread: number;
+  start_price: string;
+  spread: string;
   start_time: Date;
   end_time: Date;
-  current_price: number;
 };
 
 type CardDb = {
@@ -44,6 +43,6 @@ type BidDb = {
   bid_id: string;
   auction_id: string;
   bidder_id: string;
-  amount: number;
+  amount: string;
   timestamp: Date;
 };
