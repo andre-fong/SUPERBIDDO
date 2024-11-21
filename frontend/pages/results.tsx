@@ -178,37 +178,7 @@ export default function Results({
 
   // WHEN SEARCH VALUE CHANGES, RESET RESULTS, LOADING, AND FETCH RESULTS
   useEffect(() => {
-    setResults([]);
-    setResultsLoading(true);
-
-    let searchParams: AuctionSearchQuery = {};
-    if (searchValue) {
-      searchParams.cardName = searchValue;
-    }
-    let categories = [];
-    if (categorySearchFilters.pokemon) {
-      categories.push("pokemon");
-    }
-    if (categorySearchFilters.mtg) {
-      categories.push("mtg");
-    }
-    if (categorySearchFilters.yugioh) {
-      categories.push("yugioh");
-    }
-    if (categories.length > 0) searchParams.cardGame = categories;
-
-    getAuctionSearchResults(setToast, searchParams).then(
-      (results) => {
-        console.log(results);
-        setResults(results.auctions);
-        setResultCount(results.totalNumAuctions);
-        setResultsLoading(false);
-      },
-      (err) => {
-        setToast(err);
-        setResultsLoading(false);
-      }
-    );
+    fetchResults();
   }, [searchValue]);
 
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
@@ -261,7 +231,87 @@ export default function Results({
       maxPrice: null,
     });
 
-  const [sortBy, setSortBy] = useState<AuctionSortByOption>("bestMatch");
+  const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
+
+  function fetchResults() {
+    setResults([]);
+    setResultsLoading(true);
+
+    // TODO: Quality, rarity, sort by
+
+    let searchParams: AuctionSearchQuery = {};
+
+    // NAME
+    if (searchValue) {
+      searchParams.cardName = searchValue;
+    }
+
+    // GAMES
+    let categories = [];
+    if (categorySearchFilters.pokemon) {
+      categories.push("pokemon");
+    }
+    if (categorySearchFilters.mtg) {
+      categories.push("mtg");
+    }
+    if (categorySearchFilters.yugioh) {
+      categories.push("yugioh");
+    }
+    if (categories.length > 0) searchParams.cardGame = categories;
+
+    // PRICE
+    if (priceSearchFilters.includeMinPrice && priceSearchFilters.minPrice) {
+      searchParams.minMinNewBidPrice = priceSearchFilters.minPrice;
+    }
+    if (priceSearchFilters.includeMaxPrice && priceSearchFilters.maxPrice) {
+      searchParams.maxMinNewBidPrice = priceSearchFilters.maxPrice;
+    }
+
+    // FOIL
+    if (foilSearchFilter === "foil") {
+      searchParams.cardIsFoil = true;
+    } else if (foilSearchFilter === "noFoil") {
+      searchParams.cardIsFoil = false;
+    }
+
+    // SORT BY
+    searchParams.sortBy = sortBy;
+
+    getAuctionSearchResults(setToast, searchParams).then(
+      (results) => {
+        console.log(results);
+        setResults(results.auctions);
+        setResultCount(results.totalNumAuctions);
+        setResultsLoading(false);
+      },
+      (err) => {
+        setToast(err);
+        setResultsLoading(false);
+      }
+    );
+  }
+
+  // WHEN FILTERS CHANGE, AFTER 1 SECOND OF NO CHANGE, FETCH RESULTS
+  const [timesFiltersChanged, setTimesFiltersChanged] = useState(0);
+  useEffect(() => {
+    // Don't run on initial render
+    if (timesFiltersChanged === 0) {
+      setTimesFiltersChanged(1);
+      return;
+    } else {
+      const timeout = setTimeout(() => {
+        fetchResults();
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [
+    qualitySearchFilters,
+    foilSearchFilter,
+    categorySearchFilters,
+    priceSearchFilters,
+    sortBy,
+  ]);
 
   //////////////////////////////////////////////////
   //              FORM HANDLERS                   //
@@ -781,7 +831,7 @@ export default function Results({
         </div>
 
         <div className={styles.results}>
-          {!!searchValue && (
+          {!!searchValue && !resultsLoading && (
             <h1 className={styles.results_num}>
               <span className={styles.bold}>{resultCount}</span> results for
               &quot;
@@ -830,18 +880,22 @@ export default function Results({
                   // https://github.com/mui/material-ui/issues/10000
                   MenuProps={{ disableScrollLock: true }}
                 >
-                  <MenuItem value="bestMatch">Sort: Best Match</MenuItem>
-                  <MenuItem value="endingSoon">Time: Ending Soon</MenuItem>
-                  <MenuItem value="newlyListed">Time: Newly Listed</MenuItem>
-                  <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
-                  <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+                  {/* <MenuItem value="bestMatch">Sort: Best Match</MenuItem> */}
+                  <MenuItem value="endTimeAsc">Time: Ending Soon</MenuItem>
+                  <MenuItem value="startTimeDesc">Time: Newly Listed</MenuItem>
+                  <MenuItem value="minNewBidPriceAsc">
+                    Price: Low to High
+                  </MenuItem>
+                  <MenuItem value="minNewBidPriceDesc">
+                    Price: High to Low
+                  </MenuItem>
                   <MenuItem value="bidsMostToLeast">
                     # of Bids: Most to Least
                   </MenuItem>
                   <MenuItem value="bidsLeastToMost">
                     # of Bids: Least to Most
                   </MenuItem>
-                  <MenuItem value="location">Location: Nearest You</MenuItem>
+                  {/* <MenuItem value="location">Location: Nearest You</MenuItem> */}
                 </Select>
               </FormControl>
             </div>
@@ -1382,7 +1436,7 @@ export default function Results({
 
           <div className={styles.results_grid}>
             {resultsLoading &&
-              [...Array(2).keys()].map((i) => (
+              [...Array(3).keys()].map((i) => (
                 <div className={styles.skeleton} key={i}>
                   <Skeleton
                     variant="rectangular"

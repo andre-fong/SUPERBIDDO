@@ -91,18 +91,18 @@ export type AuctionPriceFilters = {
 };
 
 export type AuctionSortByOption =
-  | "bestMatch"
-  | "endingSoon"
-  | "newlyListed"
-  | "priceLowToHigh"
-  | "priceHighToLow"
+  // | "bestMatch"
+  | "endTimeAsc"
+  | "startTimeDesc"
+  | "minNewBidPriceAsc"
+  | "minNewBidPriceDesc"
   | "bidsMostToLeast"
-  | "bidsLeastToMost"
-  | "location";
+  | "bidsLeastToMost";
+// | "location";
 
 export type AuctionSearchQuery = {
   name?: string;
-  minMinNewBigPrice?: number;
+  minMinNewBidPrice?: number;
   maxMinNewBidPrice?: number;
   minStartTime?: Date;
   maxStartTime?: Date;

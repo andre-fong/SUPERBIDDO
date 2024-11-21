@@ -56,7 +56,10 @@ export default function Listing({
 
       <div className={styles.price_row}>
         <p className={styles.price}>
-          $ {(auction.topBid?.amount || auction.startPrice).toFixed(2)}
+          ${" "}
+          {(
+            auction.topBid?.amount || auction.startPrice + auction.spread
+          ).toFixed(2)}
         </p>
         <p className={styles.num_bids}>
           {auction.numBids} {auction.numBids !== 1 ? "Bids" : "Bid"}
