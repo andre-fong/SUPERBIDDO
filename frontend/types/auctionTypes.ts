@@ -99,3 +99,24 @@ export type AuctionSortByOption =
   | "bidsMostToLeast"
   | "bidsLeastToMost"
   | "location";
+
+export type AuctionSearchQuery = {
+  name?: string;
+  minMinNewBigPrice?: number;
+  maxMinNewBidPrice?: number;
+  minStartTime?: Date;
+  maxStartTime?: Date;
+  minEndTime?: Date;
+  maxEndTime?: Date;
+  cardGame?: string;
+  cardName?: string;
+  cardManufacturer?: string;
+  cardQuality?: string;
+  cardRarity?: string;
+  cardSet?: string;
+  cardIsFoil?: boolean;
+  isBundle?: boolean;
+  sortBy?: AuctionSortByOption;
+  page?: number;
+  pageSize?: number;
+};

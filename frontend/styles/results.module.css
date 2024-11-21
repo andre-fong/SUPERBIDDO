@@ -105,3 +105,16 @@
 .pagination {
   margin-bottom: 50px;
 }
+
+.skeleton {
+  width: 300px;
+  padding: 5px;
+}
+
+.skeleton_price_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-top: 5px;
+}

@@ -24,11 +24,13 @@ import {
   AuctionPriceFilters,
   AuctionCategoryFilters,
   AuctionSortByOption,
+  AuctionSearchQuery,
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import Skeleton from "@mui/material/Skeleton";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
@@ -39,6 +41,7 @@ import MuiAccordionDetails, {
 import { styled } from "@mui/material/styles";
 import cardRarities from "@/types/cardGameInfo";
 import Listing from "@/components/listing";
+import { getAuctionSearchResults } from "@/utils/fetchFunctions";
 
 // TODO: Remove this when we have a backend
 enum Game {
@@ -123,8 +126,6 @@ export default function Results({
   //                 MOCK DATA                    //
   //////////////////////////////////////////////////
 
-  const results = 1000;
-  const searchQuery = "Charizard";
   const auction = {
     auctionId: "TODO",
     auctioneerId: "TODO",
@@ -142,6 +143,7 @@ export default function Results({
       amount: 500.69,
       timestamp: new Date(),
     },
+    numBids: 1,
     cards: [
       {
         cardId: "TODO",
@@ -162,6 +164,38 @@ export default function Results({
   //////////////////////////////////////////////////
   //                 FORM STATE                   //
   //////////////////////////////////////////////////
+
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [resultsLoading, setResultsLoading] = useState(true);
+  const [results, setResults] = useState<Auction[]>([]);
+  const [resultCount, setResultCount] = useState(0);
+  console.log(results);
+  useEffect(() => {
+    let search = JSON.parse(context)?.search;
+
+    setResultsLoading(true);
+    setSearchValue(search || "");
+  }, [context]);
+
+  useEffect(() => {
+    let searchParams: AuctionSearchQuery = {};
+    if (searchValue) {
+      searchParams.cardName = searchValue;
+    }
+
+    getAuctionSearchResults(setToast, searchParams).then(
+      (results) => {
+        console.log(results);
+        setResults(results.auctions);
+        setResultCount(results.totalNumAuctions);
+        setResultsLoading(false);
+      },
+      (err) => {
+        setToast(err);
+        setResultsLoading(false);
+      }
+    );
+  }, [searchValue]);
 
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
   const [foilPopperOpen, setFoilPopperOpen] = useState(false);
@@ -733,10 +767,13 @@ export default function Results({
         </div>
 
         <div className={styles.results}>
-          <h1 className={styles.results_num}>
-            <span className={styles.bold}>{results}</span> results for &quot;
-            <span className={styles.bold}>{searchQuery}</span>&quot;
-          </h1>
+          {!!searchValue && (
+            <h1 className={styles.results_num}>
+              <span className={styles.bold}>{resultCount}</span> results for
+              &quot;
+              <span className={styles.bold}>{searchValue}</span>&quot;
+            </h1>
+          )}
 
           <div className={styles.filter_dropdowns}>
             <div className={styles.left_filter_dropdowns}>
@@ -1330,13 +1367,52 @@ export default function Results({
           </div>
 
           <div className={styles.results_grid}>
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
+            {resultsLoading &&
+              [...Array(2).keys()].map((i) => (
+                <div className={styles.skeleton} key={i}>
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height={300}
+                    sx={{ borderRadius: "10px" }}
+                  />
+                  <Skeleton
+                    width="100%"
+                    sx={{ marginTop: "15px", fontSize: "1.3rem" }}
+                  />
+                  <Skeleton
+                    width="100%"
+                    sx={{ marginTop: "3px", fontSize: "1.3rem" }}
+                  />
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "5px", fontSize: "0.9rem" }}
+                  />
+                  <div className={styles.skeleton_price_row}>
+                    <Skeleton
+                      width="30%"
+                      sx={{ fontSize: "2.2rem", marginRight: "15px" }}
+                    />
+                    <Skeleton width={50} height={25} />
+                  </div>
+
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "3px", fontSize: "0.9rem" }}
+                  />
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "3px", fontSize: "0.9rem" }}
+                  />
+                </div>
+              ))}
+            {results.map((auction) => (
+              <Listing
+                key={auction.auctionId}
+                auction={auction}
+                setCurPage={setCurPage}
+              />
+            ))}
           </div>
 
           {/* TODO: Paginate */}
