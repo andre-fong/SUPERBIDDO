@@ -264,6 +264,11 @@ const CardListing: React.FC<CardListingProps> = ({
       : undefined,
     };
 
+    if (startDateRef.current?.value === "" && endDateRef.current?.value === "") {
+      delete auctionData.startTime;
+      delete auctionData.endTime;
+    }
+
     if (type === "Bundle") {
       auctionData.bundle = {
         game: cardType,
