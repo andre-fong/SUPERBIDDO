@@ -4,6 +4,7 @@ import { Grid, Card, CardMedia, Box, Typography, CardContent } from '@mui/materi
 import { Auction } from '@/types/auctionTypes';
 import StatusLabel from './statusLabel';
 import { styled } from "@mui/material/styles";
+import { PageName } from '@/types/pageTypes';
 
 const CardContentNoPadding = styled(CardContent)(`
     padding: 6px;
@@ -15,14 +16,20 @@ const CardContentNoPadding = styled(CardContent)(`
 
 interface ListingsGalleryProps {
     auctions: Auction[];
+    setCurPage: (page: PageName, context?: string) => void;
 }
 
-const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions }) => {
+const handleCardClick = (event: React.MouseEvent<HTMLDivElement>, auctionId: string, setCurPage: (page: PageName, context?: string) => void) => {
+    setCurPage("auction", JSON.stringify({auctionId: auctionId}))
+};
+
+const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage }) => {
     return (
         <Grid container spacing={2}>
             {auctions.map((auction) => (
                 <Grid item xs={12} sm={6} md={4} key={auction.auctionId}>
-                    <Card>
+                    <Card onClick={(event) => handleCardClick(event, auction.auctionId, setCurPage)}>
+                        
                         <CardMedia
                             component="img"
                             height="140"
@@ -47,7 +54,7 @@ const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions }) => {
                                 <span>Number of Bids:</span> <span style={{ fontWeight: "400" }}>{auction.numberOfBids}</span>
                             </Typography>
                             <Typography fontWeight="bold" variant="body2" color="text.secondary">
-                                <span>End Date:</span> <span style={{ fontWeight: "400" }}>{auction.endDate.toLocaleString()}</span>
+                                <span>{auction.endDate ? auction.endDate.toLocaleString() : 'Not scheduled'}</span>
                             </Typography>
                         </CardContentNoPadding>
                     </Card>

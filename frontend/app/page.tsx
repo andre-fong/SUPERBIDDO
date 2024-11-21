@@ -171,6 +171,8 @@ export default function PageHandler() {
       component: user ? (
         <YourListings
           user={user}
+          setToast={setToast}
+          setCurPage={setCurPage}
           // context={pageContext}
         />
       ) : (
@@ -182,6 +184,8 @@ export default function PageHandler() {
       component: user ? (
         <YourBiddings
           user={user}
+          setToast={setToast}
+          setCurPage={setCurPage}
           // context={pageContext}
         />
       ) : (

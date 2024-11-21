@@ -1,7 +1,7 @@
 import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
-
+import { AuctionSelfType } from "@/types/backendAuctionTypes";
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
@@ -343,5 +343,40 @@ export async function fetchAuction(errorFcn: (error: ErrorType) => void, auction
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return null;
+  }
+}
+
+// NOTE:  THIS IS FOR YOURLISTINGS AND YOURBIDDINGS
+//TODO: search statuses
+export async function fetchSelfAuctions(errorFcn: (error: ErrorType) => void, type: AuctionSelfType, accountId: string, searchName: string, searchStatuses: string[], pageSize: number, currentPage: number) {
+  try {
+
+    const response = await fetch(`${url}/auctions?${type === 'biddings' ? 'bidderId' : 'auctioneerId'}=${accountId}&name=${searchName}&page=${currentPage}&pageSize=${pageSize}`, {
+      method: "GET",
+      headers: {
+      "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const auctions = await response.json();
+      return auctions;
+    } else if (response.status === 404) {
+      errorFcn({ message: "No auctions found", severity: Severity.Warning });
+    }
+    else if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+    }
+    else if (response.status === 401) {
+      errorFcn({ message: "Action requires authentication", severity: Severity.Warning });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return [];
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return [];
   }
 }
