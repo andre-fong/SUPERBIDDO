@@ -234,7 +234,7 @@ export default function Navbar({
   }
 
   function redirectToSearchResults(category: string) {
-    setCurPage("results", JSON.stringify({ category }));
+    setCurPage("results", JSON.stringify({ category, search: inputValue }));
   }
 
   // TODO: Remove log

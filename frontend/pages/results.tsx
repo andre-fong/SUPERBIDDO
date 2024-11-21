@@ -169,15 +169,18 @@ export default function Results({
   const [resultsLoading, setResultsLoading] = useState(true);
   const [results, setResults] = useState<Auction[]>([]);
   const [resultCount, setResultCount] = useState(0);
-  console.log(results);
+
+  // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
     let search = JSON.parse(context)?.search;
-
-    setResultsLoading(true);
     setSearchValue(search || "");
   }, [context]);
 
+  // WHEN SEARCH VALUE CHANGES, RESET RESULTS, LOADING, AND FETCH RESULTS
   useEffect(() => {
+    setResults([]);
+    setResultsLoading(true);
+
     let searchParams: AuctionSearchQuery = {};
     if (searchValue) {
       searchParams.cardName = searchValue;
