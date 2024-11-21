@@ -839,6 +839,12 @@ export default function Results({
             </h1>
           )}
 
+          {!searchValue && !resultsLoading && (
+            <h1 className={styles.results_num}>
+              <span className={styles.bold}>{resultCount}</span> results
+            </h1>
+          )}
+
           <div className={styles.filter_dropdowns}>
             <div className={styles.left_filter_dropdowns}>
               <button
