@@ -54,7 +54,7 @@ router.post("/", async (req, res, next) => {
     throw invalidLogin();
   }
 
-  await sendEmail(email, 'Welcome to Our Service', 'Thank you for signing up!', '<h1>Welcome to Our Service</h1><p>Thank you for signing up!</p>');
+  //await sendEmail(email, 'Welcome to Our Service', 'Thank you for signing up!', '<h1>Welcome to Our Service</h1><p>Thank you for signing up!</p>');
 
   // wrong password
   if (!(await bcrypt.compare(password, accountRecord.passhash))) {

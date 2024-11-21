@@ -1,7 +1,7 @@
 "use client";
 import styles from "./page.module.css";
 import { changePageTitle } from "@/utils/pageManagement";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pages/login";
@@ -18,6 +18,7 @@ import Navbar from "@/components/navbar";
 import { AnimatePresence, motion } from "motion/react";
 import Results from "@/pages/results";
 import { pollNotifications } from "@/utils/fetchFunctions";
+import useNotifications from "@/hooks/useNotfications";
 
 const theme = createTheme({
   palette: {
@@ -86,17 +87,7 @@ export default function PageHandler() {
 
   const { user, loading: userLoading, setUser } = useUser();
 
-  // useEffect(() => {
-  //   if (!user) { return }
-  //   console.log(user.accountId)
-  //   const controller = new AbortController();
-  //   const signal = controller.signal;
-  //   pollNotifications(user?.accountId, setToast, (message) => { console.log(message) }, signal);
-
-  //   return () => {
-  //     controller.abort("Polling aborted");
-  //   };
-  // }, [user]);
+  const { permission } = useNotifications(user, setToast);
 
   const pages: PageData = {
     home: {

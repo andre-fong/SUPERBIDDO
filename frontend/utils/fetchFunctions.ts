@@ -206,9 +206,14 @@ export async function pollNotifications(
       else {
         errorFcn({ message: unkownError, severity: Severity.Critical });
       }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === "AbortError") {
+      console.warn('Polling for notifications aborted');
+      return;
+    } else {
       console.error(error);
       errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
   } 
 }
 
