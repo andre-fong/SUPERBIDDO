@@ -10,6 +10,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
+import GoogleSessionButton from "@/components/googleSessionButton";
 
 export default function Signup({
   setCurPage,
@@ -122,6 +123,9 @@ export default function Signup({
         </div>
 
         {/* OAUTH */}
+        <div className={styles.oauth_container}>
+          <GoogleSessionButton />
+        </div>
 
         <p className={styles.redirect_text}>
           Already have an account?{" "}
