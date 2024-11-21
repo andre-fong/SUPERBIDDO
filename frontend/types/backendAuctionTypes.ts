@@ -166,3 +166,5 @@ enum Rarity {
   R = "R",
   M = "M",
 }
+
+export type AuctionSelfType = 'biddings' | 'listings';

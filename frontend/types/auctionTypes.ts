@@ -48,14 +48,14 @@ export type BiddingStatus = keyof typeof BiddingStatusEnum;
 export type AuctionStatus = keyof typeof AuctionStatusEnum;
 
 export interface Auction {
-  auctionId: number;
+  auctionId: string;
   name: string;
   status: AuctionStatusEnum | BiddingStatusEnum;
   image: string | null;
   description: string;
   topBid: number | null;
   numberOfBids: number;
-  endDate: Date;
+  endDate: Date | null;
 }
 
 export type AuctionQualityFilters = {

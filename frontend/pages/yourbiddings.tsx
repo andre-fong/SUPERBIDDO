@@ -3,85 +3,25 @@ import { Container, TextField, Select, MenuItem, FormControl, InputLabel, Checkb
 import { User } from "@/types/userTypes";
 import { BiddingStatus, BiddingStatusEnum, Auction } from "@/types/auctionTypes";
 import ListingsGallery from "@/components/listingsGallery";
-
-const cardPerPage = 9;
+import useSelfAuctions from "@/hooks/useSelfAuctions";
+import { ErrorType } from "@/types/errorTypes";
+import { PageName } from "@/types/pageTypes";
 
 interface YourBiddingsProps {
-  user: User | null;
+  user: User;
+  setToast: (error: ErrorType) => void;
+  setCurPage: (page: PageName, context?: string) => void;
 }
 
 const auctionStatuses: BiddingStatus[] = Object.values(BiddingStatusEnum).map(status => status.toString() as BiddingStatus);
 
-const auctionsDB: Auction[] = [
-  {
-    auctionId: 1, name: "Auction 1", status: BiddingStatusEnum.Lost, image: null, description: "Brief details about Auction 1",
-    topBid: null,
-    numberOfBids: 0,
-    endDate: new Date('2023-12-01T10:00:00Z')
-  },
-  {
-    auctionId: 2, name: "Auction 2", status: BiddingStatusEnum.Outbidded, image: "frontend/app/api/bf954e31-015a-4646-8333-40225c847bcc_1024x1024.webp", description: "Brief details about Auction 2",
-    topBid: null,
-    numberOfBids: 0,
-    endDate: new Date('2023-12-02T15:00:00Z')
-  },
-  {
-    auctionId: 3, name: "Auction 3", status: BiddingStatusEnum.Winning, image: "image3.jpg", description: "Brief details about Auction 3",
-    topBid: 0.34,
-    numberOfBids: 0,
-    endDate: new Date('2023-12-03T20:00:00Z')
-  },
-  {
-    auctionId: 4, name: "Auction 4asdasdasdasdasdasdasdasdasdsadasdsad", status: BiddingStatusEnum.Won , image: "image4.jpg", description: "Brief details about Auadssssssssssssssssssssction 4",
-    topBid: 1,
-    numberOfBids: 0,
-    endDate: new Date('2023-12-04T18:00:00Z')
-  },
-{
-  auctionId: 5, name: "Auction 5", status: BiddingStatusEnum.Won, image: "image5.jpg", description: "Brief details about Auction 5",
-  topBid: 5.00,
-  numberOfBids: 10,
-  endDate: new Date('2023-12-05T12:00:00Z')
-},
-{
-  auctionId: 6, name: "Auction 6", status: BiddingStatusEnum.Won, image: "image6.jpg", description: "Brief details about Auction 6",
-  topBid: null,
-  numberOfBids: 0,
-  endDate: new Date('2023-12-06T14:00:00Z')
-},
-{
-  auctionId: 7, name: "Auction 7", status: BiddingStatusEnum.Won, image: "image7.jpg", description: "Brief details about Auction 7",
-  topBid: 2.50,
-  numberOfBids: 5,
-  endDate: new Date('2023-12-07T16:00:00Z')
-},
-{
-  auctionId: 8, name: "Auction 8", status: BiddingStatusEnum.Won, image: "image8.jpg", description: "Brief details about Auction 8",
-  topBid: 3.75,
-  numberOfBids: 8,
-  endDate: new Date('2023-12-08T18:00:00Z')
-},
-{
-  auctionId: 9, name: "Auction 9", status: BiddingStatusEnum.Won, image: "image9.jpg", description: "Brief details about Auction 9",
-  topBid: null,
-  numberOfBids: 0,
-  endDate: new Date('2023-12-09T20:00:00Z')
-},
-{
-  auctionId: 10, name: "Auction 10", status: BiddingStatusEnum.Won, image: "image10.jpg", description: "Brief details about Auction 10",
-  topBid: 1.25,
-  numberOfBids: 3,
-  endDate: new Date('2023-12-10T22:00:00Z')
-}
-];
+const cardsPerPage = 2;
 
-const numAuctions = auctionsDB.length;
-
-const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
+const YourBiddings: React.FC<YourBiddingsProps> = ({ user, setToast, setCurPage }) => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const { auctions, totalPages } = useSelfAuctions('biddings', setToast, user, searchTerm, selectedStatuses, currentPage, cardsPerPage);
 
   const handleStatusChange = (event: SelectChangeEvent<string[]>) => {
     setSelectedStatuses(event.target.value as string[]);
@@ -91,18 +31,8 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
     setSearchTerm(event.target.value);
   };
 
-  useEffect(() => {
-    //TODO: initial fetch for pages
-    setAuctions(auctionsDB.slice(0, cardPerPage));
-  }, [])
-
-  const totalPages = Math.ceil(numAuctions / cardPerPage);
-
   const handlePageChange = (event: React.ChangeEvent<unknown>, page:  number): void => {
     setCurrentPage(page);
-        //TODO: fetch data for new page
-    setAuctions(auctionsDB.slice((page - 1) * cardPerPage, page * cardPerPage));
-
   };
 
   //TODO: andre countdown timer
@@ -113,7 +43,7 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
           Your Bids
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Page {currentPage} / {totalPages}
+          Page {totalPages === 0 ? 0 : currentPage} / {totalPages}
         </Typography>
       </Box>
 
@@ -144,7 +74,12 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({ user }) => {
       sx={{ mt: 1, mb: 2 }}
     />
 
-    <ListingsGallery auctions={auctions} />
+    <ListingsGallery auctions={auctions} setCurPage={setCurPage} />
+    {totalPages === 0 && (
+      <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic', textAlign: 'center', mt: 2 }}>
+        No Auctions Found
+      </Typography>
+    )}
 
       <Box display="flex" justifyContent="center" marginTop={2} marginBottom={2}>
         <Pagination

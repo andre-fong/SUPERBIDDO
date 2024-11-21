@@ -27,25 +27,25 @@ export default function Login({
     //This is for logging in with Google OAuth
     //window.location.href = 'http://localhost:3001/api/v1/oauth/google';
     
-    // const username = (
-    //   e.currentTarget.elements.namedItem("username") as HTMLInputElement
-    // ).value;
-    // const password = (
-    //   e.currentTarget.elements.namedItem("password") as HTMLInputElement
-    // ).value;
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
+    const password = (
+      e.currentTarget.elements.namedItem("password") as HTMLInputElement
+    ).value;
 
-    // fetchLogin(setToast, username, password).then((loginData) => {
-    //   if (!loginData) {
-    //     return;
-    //   }
+    fetchLogin(setToast, username, password).then((loginData) => {
+      if (!loginData) {
+        return;
+      }
 
-    //   setUser({
-    //     accountId: loginData.accountId,
-    //     username: username,
-    //     email: `${username}@gmail.com`,
-    //   });
-    //   setCurPage((JSON.parse(context)?.next as PageName) || "home");
-    // });
+      setUser({
+        accountId: loginData.accountId,
+        username: username,
+        email: `${username}@gmail.com`,
+      });
+      setCurPage((JSON.parse(context)?.next as PageName) || "home");
+    });
   }
 
   return (
