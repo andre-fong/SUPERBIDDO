@@ -108,11 +108,11 @@ export type AuctionSearchQuery = {
   maxStartTime?: Date;
   minEndTime?: Date;
   maxEndTime?: Date;
-  cardGame?: string;
+  cardGame?: string | string[];
   cardName?: string;
   cardManufacturer?: string;
-  cardQuality?: string;
-  cardRarity?: string;
+  cardQuality?: string | string[];
+  cardRarity?: string | string[];
   cardSet?: string;
   cardIsFoil?: boolean;
   isBundle?: boolean;

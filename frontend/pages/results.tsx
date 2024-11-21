@@ -185,6 +185,17 @@ export default function Results({
     if (searchValue) {
       searchParams.cardName = searchValue;
     }
+    let categories = [];
+    if (categorySearchFilters.pokemon) {
+      categories.push("pokemon");
+    }
+    if (categorySearchFilters.mtg) {
+      categories.push("mtg");
+    }
+    if (categorySearchFilters.yugioh) {
+      categories.push("yugioh");
+    }
+    if (categories.length > 0) searchParams.cardGame = categories;
 
     getAuctionSearchResults(setToast, searchParams).then(
       (results) => {
@@ -480,7 +491,7 @@ export default function Results({
               expandIcon={<KeyboardArrowDownIcon />}
               aria-controls="categories-content"
             >
-              Category
+              Game
             </AccordionSummary>
             <AccordionDetails>
               <div className={styles.categories}>
