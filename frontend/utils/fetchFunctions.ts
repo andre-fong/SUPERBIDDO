@@ -5,7 +5,6 @@ import {
 } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
-import { Arapey } from "next/font/google";
 
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const url = `http://localhost:3001/api/v1`;
