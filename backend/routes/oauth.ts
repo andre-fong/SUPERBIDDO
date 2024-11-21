@@ -54,7 +54,7 @@ passport.deserializeUser((user, done) => {
 
 router.get(
   "/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
+  passport.authenticate("google", { failureRedirect: "http://localhost:3000/" }),
   (req, res) => {
     //TODO: redirect to deployed frontend
     res.redirect("http://localhost:3000/");
