@@ -19,6 +19,7 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Drawer from "@mui/material/Drawer";
 import InputLabel from "@mui/material/InputLabel";
+import Pagination from "@mui/material/Pagination";
 import {
   AuctionQualityFilters,
   AuctionFoilFilters,
@@ -172,6 +173,7 @@ export default function Results({
   const [resultsLoading, setResultsLoading] = useState(true);
   const [results, setResults] = useState<Auction[]>([]);
   const [resultCount, setResultCount] = useState(0);
+  const [resultsPageNum, setResultsPageNum] = useState(1);
 
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
@@ -179,9 +181,10 @@ export default function Results({
     setSearchValue(search || "");
   }, [context]);
 
-  // WHEN SEARCH VALUE CHANGES, RESET RESULTS, LOADING, AND FETCH RESULTS
+  // WHEN SEARCH VALUE CHANGES, RESET PAGE NUM, RESULTS, LOADING, AND FETCH RESULTS
   useEffect(() => {
-    fetchResults();
+    setResultsPageNum(1);
+    fetchResults(1);
   }, [searchValue]);
 
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
@@ -236,7 +239,7 @@ export default function Results({
 
   const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
 
-  function fetchResults() {
+  function fetchResults(page: number) {
     setResults([]);
     setResultsLoading(true);
 
@@ -280,9 +283,13 @@ export default function Results({
     // SORT BY
     searchParams.sortBy = sortBy;
 
+    // PAGE NUMBER
+    searchParams.page = page;
+
     getAuctionSearchResults(setToast, searchParams).then(
       (results) => {
         console.log(results);
+        console.log(results.auctions.count);
         setResults(results.auctions);
         setResultCount(results.totalNumAuctions);
         setResultsLoading(false);
@@ -294,7 +301,7 @@ export default function Results({
     );
   }
 
-  // WHEN FILTERS CHANGE, AFTER 1 SECOND OF NO CHANGE, FETCH RESULTS
+  // WHEN FILTERS CHANGE, AFTER 1 SECOND OF NO CHANGE, RESET PAGE NUM AND FETCH RESULTS
   const [timesFiltersChanged, setTimesFiltersChanged] = useState(0);
   useEffect(() => {
     // Don't run on initial render
@@ -303,7 +310,8 @@ export default function Results({
       return;
     } else {
       const timeout = setTimeout(() => {
-        fetchResults();
+        setResultsPageNum(1);
+        fetchResults(1);
       }, 1000);
 
       return () => clearTimeout(timeout);
@@ -533,6 +541,11 @@ export default function Results({
 
   function handleSortByChange(event: SelectChangeEvent) {
     setSortBy(event.target.value as AuctionSortByOption);
+  }
+
+  function changeResultsPageNum(value: number) {
+    setResultsPageNum(value);
+    fetchResults(value);
   }
 
   return (
@@ -1462,7 +1475,7 @@ export default function Results({
 
           <div className={styles.results_grid}>
             {resultsLoading &&
-              [...Array(3).keys()].map((i) => (
+              [...Array(20).keys()].map((i) => (
                 <div className={styles.skeleton} key={i}>
                   <Skeleton
                     variant="rectangular"
@@ -1509,8 +1522,16 @@ export default function Results({
             ))}
           </div>
 
-          {/* TODO: Paginate */}
-          <div className={styles.pagination}></div>
+          <div className={styles.pagination}>
+            <Pagination
+              color="primary"
+              showFirstButton={Math.ceil(resultCount / 20) > 2}
+              showLastButton={Math.ceil(resultCount / 20) > 2}
+              count={Math.ceil(resultCount / 20)}
+              page={resultsPageNum}
+              onChange={(_, page) => changeResultsPageNum(page)}
+            />
+          </div>
         </div>
       </main>
 
