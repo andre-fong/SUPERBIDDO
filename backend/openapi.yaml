@@ -183,15 +183,27 @@ paths:
                 items:
                   type: string
         - in: query
-          name: cardQuality
-          description: The quality of a card in an auction. If provided, only auctions with cards of this quality will be returned.
+          name: cardQualityUngraded
+          description: The ungraded quality of a card in an auction. If provided, only auctions with cards of this ungraded quality will be returned.
           required: false
           schema:
             oneOf:
-              - $ref: "#/components/schemas/Quality"
+              - $ref: "#/components/schemas/QualityUngraded"
               - type: array
                 items:
-                  $ref: "#/components/schemas/Quality"
+                  $ref: "#/components/schemas/QualityUngraded"
+        - in: query
+          name: minCardQualityPsa
+          description: The minimum PSA graded quality of a card in an auction. If provided, only auctions with cards of this PSA graded quality or higher will be returned.
+          required: false
+          schema:
+            $ref: "#/components/schemas/QualityPsa"
+        - in: query
+          name: maxCardQualityPsa
+          description: The maximum PSA graded quality of a card in an auction. If provided, only auctions with cards of this PSA graded quality or lower will be returned.
+          required: false
+          schema:
+            $ref: "#/components/schemas/QualityPsa"
         - in: query
           name: cardRarity
           description: The rarity of a card in an auction. If provided, only auctions with cards of this rarity will be returned.
@@ -281,6 +293,8 @@ paths:
               - startTimeDesc
               - endTimeAsc
               - endTimeDesc
+              - numBidsAsc
+              - numBidsDesc
         - in: query
           name: page
           description: The page of auctions to return. If provided, the auctions will be paginated and only the auctions on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
@@ -358,8 +372,7 @@ paths:
             oneOf:
               - type: string
                 format: uuid
-              - type: string
-                enum:
+              - enum:
                   - "null"
       responses:
         200:
@@ -607,9 +620,7 @@ components:
               readOnly: true
               oneOf:
                 - $ref: "#/components/schemas/Bid"
-                - type: string
-                  nullable: true
-                  enum:
+                - enum:
                     - null
             numBids:
               readOnly: true
@@ -662,69 +673,94 @@ components:
                 - endTime
               properties:
                 startTime:
-                  type: string
-                  format: date-time
-                  nullable: true
                   enum:
                     - null
                 endTime:
-                  type: string
-                  format: date-time
-                  nullable: true
                   enum:
                     - null
     Card:
-      type: object
-      required:
-        - cardId
-        - game
-        - name
-        - manufacturer
-        - quality
-        - rarity
-        - set
-        - isFoil
-      properties:
-        cardId:
-          readOnly: true
-          type: string
-          format: uuid
-        game:
-          type: string
-          maxLength: 100
-        name:
-          type: string
-          maxLength: 100
-        description:
-          type: string
-          nullable: true
-          maxLength: 500
-        manufacturer:
-          type: string
-          maxLength: 100
-        quality:
-          type: string
-          enum:
-            - Mint
-            - Near Mint
-            - Excellent
-            - Good
-            - Lightly Played
-            - Played
-            - Poor
-        rarity:
-          type: string
-          enum:
-            - Common
-            - Uncommon
-            - Rare
-            - Mythic Rare
-            - Special
-        set:
-          type: string
-          maxLength: 100
-        isFoil:
-          type: boolean
+      oneOf:
+        - $ref: "#/components/schemas/MTGCard"
+        - $ref: "#/components/schemas/PokemonCard"
+        - $ref: "#/components/schemas/YugiohCard"
+    MTGCard:
+      allOf:
+        - $ref: "#/components/schemas/CardBase"
+        - type: object
+          properties:
+            game:
+              enum:
+                - "MTG"
+            rarity:
+              $ref: "#/components/schemas/MTGRarity"
+    PokemonCard:
+      allOf:
+        - $ref: "#/components/schemas/CardBase"
+        - type: object
+          properties:
+            game:
+              enum:
+                - "Pokemon"
+            rarity:
+              $ref: "#/components/schemas/PokemonRarity"
+    YugiohCard:
+      allOf:
+        - $ref: "#/components/schemas/CardBase"
+        - type: object
+          properties:
+            game:
+              enum:
+                - "Yugioh"
+            rarity:
+              $ref: "#/components/schemas/YugiohRarity"
+    CardBase:
+      allOf:
+        - type: object
+          required:
+            - cardId
+            - name
+            - manufacturer
+            - set
+            - isFoil
+          properties:
+            cardId:
+              readOnly: true
+              type: string
+              format: uuid
+            name:
+              type: string
+              maxLength: 100
+            description:
+              type: string
+              nullable: true
+              maxLength: 500
+            manufacturer:
+              type: string
+              maxLength: 100
+            set:
+              type: string
+              maxLength: 100
+            isFoil:
+              type: boolean
+        - $ref: "#/components/schemas/CardQuality"
+    CardQuality:
+      not:
+        required:
+          - qualityUngraded
+          - qualityPsa
+      oneOf:
+        - type: object
+          required:
+            - qualityUngraded
+          properties:
+            qualityUngraded:
+              $ref: "#/components/schemas/QualityUngraded"
+        - type: object
+          required:
+            - qualityPsa
+          properties:
+            qualityPsa:
+              $ref: "#/components/schemas/QualityPsa"
     Bundle:
       type: object
       required:
@@ -787,24 +823,69 @@ components:
           readOnly: true
           type: string
           format: date-time
-    Quality:
+    QualityUngraded:
       type: string
       enum:
         - Mint
         - Near Mint
-        - Excellent
-        - Good
         - Lightly Played
-        - Played
-        - Poor
+        - Moderately Played
+        - Heavily Played
+        - Damaged
+    QualityPsa:
+      type: integer
+      minimum: 1
+      maximum: 10
     Rarity:
+      anyOf:
+        - $ref: "#/components/schemas/MTGRarity"
+        - $ref: "#/components/schemas/PokemonRarity"
+        - $ref: "#/components/schemas/YugiohRarity"
+    MTGRarity:
       type: string
       enum:
         - Common
         - Uncommon
         - Rare
         - Mythic Rare
-        - Special
+        - Special / Bonus Cards
+        - Basic Land
+        - Masterpiece Series
+        - Promos
+        - Extended Art
+        - Borderless
+    PokemonRarity:
+      type: string
+      enum:
+        - Common
+        - Uncommon
+        - Rare
+        - Holo Rare
+        - Reverse Holo
+        - Rare Holo V
+        - Ultra Rare
+        - Full Art
+        - Secret Rare
+        - Amazing Rare
+        - Rainbow Rare
+        - Gold Secret Rare
+        - Promos
+        - Radiant Collection
+    YugiohRarity:
+      type: string
+      enum:
+        - Common
+        - Rare
+        - Super Rare
+        - Ultra Rare
+        - Secret Rare
+        - Ultimate Rare
+        - Ghost Rare
+        - Starlight Rare
+        - Collector's Rare
+        - Prismatic Secret Rare
+        - Parallel Rare
+        - Platinum Rare
     Errors:
       type: array
       items:
