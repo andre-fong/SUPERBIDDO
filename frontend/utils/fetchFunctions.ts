@@ -1,4 +1,8 @@
-import { AuctionBidHistory, Bid } from "@/types/auctionTypes";
+import {
+  AuctionBidHistory,
+  AuctionSearchQuery,
+  Bid,
+} from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import { AuctionSelfType } from "@/types/backendAuctionTypes";
@@ -10,7 +14,12 @@ const unkownError = "An unknown error occurred";
   TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
 */
 
-export async function fetchSignup(errorFcn: (error: ErrorType) => void, username: string, password: string, email: string) {
+export async function fetchSignup(
+  errorFcn: (error: ErrorType) => void,
+  username: string,
+  password: string,
+  email: string
+) {
   try {
     const response = await fetch(`${url}/accounts`, {
       method: "POST",
@@ -22,7 +31,10 @@ export async function fetchSignup(errorFcn: (error: ErrorType) => void, username
     });
 
     if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
       return null;
     } else if (!response.ok) {
       errorFcn({ message: unkownError, severity: Severity.Critical });
@@ -36,8 +48,11 @@ export async function fetchSignup(errorFcn: (error: ErrorType) => void, username
   }
 }
 
-
-export async function fetchLogin(errorFcn: (error: ErrorType) => void, email: string, password: string) {
+export async function fetchLogin(
+  errorFcn: (error: ErrorType) => void,
+  email: string,
+  password: string
+) {
   try {
     const response = await fetch(`${url}/session`, {
       method: "POST",
@@ -49,11 +64,16 @@ export async function fetchLogin(errorFcn: (error: ErrorType) => void, email: st
     });
 
     if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
       return null;
-    }
-    else if (response.status === 401) {
-      errorFcn({ message: "Invalid login credentials", severity: Severity.Warning });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Invalid login credentials",
+        severity: Severity.Warning,
+      });
       return null;
     } else if (!response.ok) {
       errorFcn({ message: unkownError, severity: Severity.Critical });
@@ -75,7 +95,6 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
       credentials: "include",
     });
 
-
     if (response.status === 404) {
       errorFcn({
         message: "Session info not found",
@@ -95,7 +114,10 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
   }
 }
 
-export async function fetchLogout(errorFcn: (error: ErrorType) => void, successLogout: (user: User | null) => void) {
+export async function fetchLogout(
+  errorFcn: (error: ErrorType) => void,
+  successLogout: (user: User | null) => void
+) {
   try {
     const response = await fetch(`${url}/session`, {
       method: "DELETE",
@@ -107,15 +129,43 @@ export async function fetchLogout(errorFcn: (error: ErrorType) => void, successL
         message: "Session info not found",
         severity: Severity.Critical,
       });
-      return
+      return;
     } else if (!response.ok) {
       errorFcn({ message: unkownError, severity: Severity.Critical });
-      return 
+      return;
     }
 
     successLogout(null);
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
+  }
+}
+
+export async function getAuctionSearchResults(
+  errorFcn: (error: ErrorType) => void,
+  searchQuery?: AuctionSearchQuery
+) {
+  // TODO: Sort by option
+  const params = new URLSearchParams(searchQuery as Record<string, string>);
+
+  try {
+    const response = await fetch(`${url}/auctions?${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const auctions = await response.json();
+      return auctions;
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+      return [];
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return [];
   }
 }
 
@@ -292,25 +342,31 @@ export async function createAuction(
     const response = await fetch(`${url}/auctions`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",  
+        "Content-Type": "application/json",
         credentials: "include",
       },
       body: JSON.stringify({
-      ...auctionData,
-      cards: auctionData.cards ? [auctionData.cards] : undefined,
-    }),
+        ...auctionData,
+        cards: auctionData.cards ? [auctionData.cards] : undefined,
+      }),
     });
 
     if (!response.ok) {
       if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+        errorFcn({
+          message: "Request format is invalid",
+          severity: Severity.Warning,
+        });
       } else if (response.status === 401) {
-      errorFcn({ message: "Action requires authentication", severity: Severity.Warning });
+        errorFcn({
+          message: "Action requires authentication",
+          severity: Severity.Warning,
+        });
       } else {
-      errorFcn({
-        message: unkownError,
-        severity: Severity.Critical,
-      });
+        errorFcn({
+          message: unkownError,
+          severity: Severity.Critical,
+        });
       }
       return null;
     }
@@ -319,11 +375,14 @@ export async function createAuction(
     return auction;
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
-    return null
+    return null;
   }
 }
 
-export async function fetchAuction(errorFcn: (error: ErrorType) => void, auctionId: string) {
+export async function fetchAuction(
+  errorFcn: (error: ErrorType) => void,
+  auctionId: string
+) {
   try {
     const response = await fetch(`${url}/auctions/${auctionId}`, {
       method: "GET",
@@ -339,7 +398,10 @@ export async function fetchAuction(errorFcn: (error: ErrorType) => void, auction
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
       return null;
     } else if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
       return null;
     } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });

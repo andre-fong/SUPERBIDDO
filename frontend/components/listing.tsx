@@ -4,6 +4,8 @@ import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import StarIcon from "@mui/icons-material/Star";
 import { useTimer } from "react-timer-hook";
+import { Auction } from "@/types/backendAuctionTypes";
+import { useState } from "react";
 
 export default function Listing({
   auction,
@@ -12,10 +14,12 @@ export default function Listing({
   auction: Auction;
   setCurPage: (page: PageName, context?: string) => void;
 }) {
+  const [ended, setEnded] = useState(false);
+
   const { totalSeconds, seconds, minutes, hours, days } = useTimer({
-    expiryTimestamp: new Date(auction.endTime.getTime() + 60000),
+    expiryTimestamp: new Date(auction.endTime || new Date()),
     onExpire: () => {
-      console.log("Timer expired");
+      setEnded(true);
     },
     autoStart: true,
   });
@@ -55,13 +59,20 @@ export default function Listing({
       <p className={styles.quality}>Ungraded: Near Mint</p>
 
       <div className={styles.price_row}>
-        <p className={styles.price}>$ {auction.topBid.amount.toFixed(2)}</p>
-        <p className={styles.num_bids}>5 Bids</p>
+        <p className={styles.price}>
+          ${" "}
+          {(
+            auction.topBid?.amount || auction.startPrice + auction.spread
+          ).toFixed(2)}
+        </p>
+        <p className={styles.num_bids}>
+          {auction.numBids} {auction.numBids !== 1 ? "Bids" : "Bid"}
+        </p>
       </div>
 
       <p
         className={styles.time_remaining}
-        title={auction.endTime.toLocaleDateString(undefined, {
+        title={new Date(auction.endTime).toLocaleDateString(undefined, {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -70,24 +81,34 @@ export default function Listing({
           minute: "numeric",
         })}
       >
-        <span
-          className={
-            totalSeconds > 10800
-              ? styles.time
-              : `${styles.time} ${styles.time_soon}`
-          }
-        >
-          {days > 0 && `${days}d `}
-          {hours > 0 && `${hours}h `}
-          {minutes > 0 && `${minutes}m `}
-          {seconds}s
-        </span>{" "}
-        &middot;{" "}
-        {auction.endTime.toLocaleDateString(undefined, {
-          weekday: "long",
-          hour: "numeric",
-          minute: "numeric",
-        })}
+        {ended ? (
+          <span className={styles.ended}>Ended</span>
+        ) : (
+          <>
+            <span
+              className={
+                totalSeconds > 10800
+                  ? styles.time
+                  : `${styles.time} ${styles.time_soon}`
+              }
+            >
+              {days > 0 && `${days}d `}
+              {hours > 0 && `${hours}h `}
+              {minutes > 0 && `${minutes}m `}
+              {seconds}s
+            </span>
+
+            <span>
+              {" "}
+              &middot;{" "}
+              {new Date(auction.endTime).toLocaleDateString(undefined, {
+                weekday: "long",
+                hour: "numeric",
+                minute: "numeric",
+              })}
+            </span>
+          </>
+        )}
       </p>
 
       <p className={styles.location}>From Toronto, ON</p>

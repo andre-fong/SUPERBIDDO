@@ -17,18 +17,24 @@ import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import Drawer from "@mui/material/Drawer";
 import InputLabel from "@mui/material/InputLabel";
+import Pagination from "@mui/material/Pagination";
 import {
   AuctionQualityFilters,
   AuctionFoilFilters,
   AuctionPriceFilters,
   AuctionCategoryFilters,
   AuctionSortByOption,
+  AuctionSearchQuery,
 } from "@/types/auctionTypes";
+import { Auction } from "@/types/backendAuctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
+import Skeleton from "@mui/material/Skeleton";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
@@ -39,6 +45,7 @@ import MuiAccordionDetails, {
 import { styled } from "@mui/material/styles";
 import cardRarities from "@/types/cardGameInfo";
 import Listing from "@/components/listing";
+import { getAuctionSearchResults } from "@/utils/fetchFunctions";
 
 // TODO: Remove this when we have a backend
 enum Game {
@@ -123,8 +130,6 @@ export default function Results({
   //                 MOCK DATA                    //
   //////////////////////////////////////////////////
 
-  const results = 1000;
-  const searchQuery = "Charizard";
   const auction = {
     auctionId: "TODO",
     auctioneerId: "TODO",
@@ -142,6 +147,7 @@ export default function Results({
       amount: 500.69,
       timestamp: new Date(),
     },
+    numBids: 1,
     cards: [
       {
         cardId: "TODO",
@@ -163,6 +169,29 @@ export default function Results({
   //                 FORM STATE                   //
   //////////////////////////////////////////////////
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [resultsLoading, setResultsLoading] = useState(true);
+  const [results, setResults] = useState<Auction[]>([]);
+  const [resultCount, setResultCount] = useState(0);
+  const [resultsPageNum, setResultsPageNum] = useState(1);
+  const [redirectedCount, setRedirectedCount] = useState(0);
+
+  // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
+  useEffect(() => {
+    let search = JSON.parse(context)?.search;
+    setSearchValue(search);
+  }, [context]);
+
+  // WHEN SEARCH VALUE CHANGES, RESET PAGE NUM, RESULTS, LOADING, AND FETCH RESULTS
+  useEffect(() => {
+    if (searchValue || !JSON.parse(context)?.search || redirectedCount > 0) {
+      setResultsPageNum(1);
+      fetchResults(1);
+      setRedirectedCount(1);
+    }
+  }, [searchValue]);
+
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
   const [foilPopperOpen, setFoilPopperOpen] = useState(false);
   const qualityAnchorEl = useRef<HTMLButtonElement | null>(null);
@@ -176,10 +205,12 @@ export default function Results({
       lowGrade: null,
       highGrade: null,
       ungraded: false,
+      mint: false,
       nearMint: false,
-      excellent: false,
-      veryGood: false,
-      poor: false,
+      lightlyPlayed: false,
+      moderatelyPlayed: false,
+      heavilyPlayed: false,
+      damaged: false,
     });
 
   const [foilSearchFilter, setFoilSearchFilter] =
@@ -195,21 +226,13 @@ export default function Results({
     });
 
   // Rarities change based on category
-  const [raritySearchFilter, setRaritySearchFilter] =
+  const [pokemonRarityFilter, setPokemonRarityFilter] =
     useState<string>("default");
-  const [rarities, setRarities] = useState<string[]>([]);
-  useEffect(() => {
-    setRaritySearchFilter("default");
-    if (categorySearchFilters.pokemon) {
-      setRarities(cardRarities.Pokemon.rarities);
-    } else if (categorySearchFilters.mtg) {
-      setRarities(cardRarities.MTG.rarities);
-    } else if (categorySearchFilters.yugioh) {
-      setRarities(cardRarities.Yugioh.rarities);
-    } else {
-      setRarities([]);
-    }
-  }, [categorySearchFilters]);
+  const [mtgRarityFilter, setMtgRarityFilter] = useState<string>("default");
+  const [yugiohRarityFilter, setYugiohRarityFilter] =
+    useState<string>("default");
+  const [bundlesRarityFilter, setBundlesRarityFilter] =
+    useState<string>("default");
 
   const [priceSearchFilters, setPriceSearchFilters] =
     useState<AuctionPriceFilters>({
@@ -219,7 +242,90 @@ export default function Results({
       maxPrice: null,
     });
 
-  const [sortBy, setSortBy] = useState<AuctionSortByOption>("bestMatch");
+  const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
+
+  function fetchResults(page: number) {
+    setResults([]);
+    setResultsLoading(true);
+
+    // TODO: Quality, rarity, sort by
+
+    let searchParams: AuctionSearchQuery = {};
+
+    // NAME
+    if (searchValue.trim()) {
+      searchParams.cardName = searchValue.trim();
+    }
+
+    // GAMES
+    let categories = [];
+    if (categorySearchFilters.pokemon) {
+      categories.push("pokemon");
+    }
+    if (categorySearchFilters.mtg) {
+      categories.push("mtg");
+    }
+    if (categorySearchFilters.yugioh) {
+      categories.push("yugioh");
+    }
+    if (categories.length > 0) searchParams.cardGame = categories;
+
+    // PRICE
+    if (priceSearchFilters.includeMinPrice && priceSearchFilters.minPrice) {
+      searchParams.minMinNewBidPrice = priceSearchFilters.minPrice;
+    }
+    if (priceSearchFilters.includeMaxPrice && priceSearchFilters.maxPrice) {
+      searchParams.maxMinNewBidPrice = priceSearchFilters.maxPrice;
+    }
+
+    // FOIL
+    if (foilSearchFilter === "foil") {
+      searchParams.cardIsFoil = true;
+    } else if (foilSearchFilter === "noFoil") {
+      searchParams.cardIsFoil = false;
+    }
+
+    // SORT BY
+    searchParams.sortBy = sortBy;
+
+    // PAGE NUMBER
+    searchParams.page = page;
+
+    getAuctionSearchResults(setToast, searchParams).then(
+      (results) => {
+        setResults(results.auctions);
+        setResultCount(results.totalNumAuctions);
+        setResultsLoading(false);
+      },
+      (err) => {
+        setToast(err);
+        setResultsLoading(false);
+      }
+    );
+  }
+
+  // WHEN FILTERS CHANGE, AFTER 1 SECOND OF NO CHANGE, RESET PAGE NUM AND FETCH RESULTS
+  const [timesFiltersChanged, setTimesFiltersChanged] = useState(0);
+  useEffect(() => {
+    // Don't run on initial render
+    if (timesFiltersChanged === 0) {
+      setTimesFiltersChanged(1);
+      return;
+    } else {
+      const timeout = setTimeout(() => {
+        setResultsPageNum(1);
+        fetchResults(1);
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [
+    qualitySearchFilters,
+    foilSearchFilter,
+    categorySearchFilters,
+    priceSearchFilters,
+    sortBy,
+  ]);
 
   //////////////////////////////////////////////////
   //              FORM HANDLERS                   //
@@ -258,10 +364,12 @@ export default function Results({
         graded: false,
         psaGrade: false,
         ungraded: false,
+        mint: false,
         nearMint: false,
-        excellent: false,
-        veryGood: false,
-        poor: false,
+        lightlyPlayed: false,
+        moderatelyPlayed: false,
+        heavilyPlayed: false,
+        damaged: false,
       }));
     } else if (name === "graded") {
       setQualitySearchFilters((prev) => ({
@@ -282,10 +390,12 @@ export default function Results({
         ...prev,
         default: !(checked || prev.graded),
         ungraded: checked,
+        mint: checked,
         nearMint: checked,
-        excellent: checked,
-        veryGood: checked,
-        poor: checked,
+        lightlyPlayed: checked,
+        moderatelyPlayed: checked,
+        heavilyPlayed: checked,
+        damaged: checked,
       }));
     } else {
       setQualitySearchFilters((prev) => {
@@ -295,16 +405,20 @@ export default function Results({
           ...prev,
           default: !(
             newFilters.graded ||
+            newFilters.mint ||
             newFilters.nearMint ||
-            newFilters.excellent ||
-            newFilters.veryGood ||
-            newFilters.poor
+            newFilters.lightlyPlayed ||
+            newFilters.moderatelyPlayed ||
+            newFilters.heavilyPlayed ||
+            newFilters.damaged
           ),
           ungraded:
+            newFilters.mint ||
             newFilters.nearMint ||
-            newFilters.excellent ||
-            newFilters.veryGood ||
-            newFilters.poor,
+            newFilters.lightlyPlayed ||
+            newFilters.moderatelyPlayed ||
+            newFilters.heavilyPlayed ||
+            newFilters.damaged,
           [name]: checked,
         };
       });
@@ -345,9 +459,28 @@ export default function Results({
         yugioh: false,
         bundles: false,
       }));
+      setPokemonRarityFilter("default");
+      setMtgRarityFilter("default");
+      setYugiohRarityFilter("default");
+      setBundlesRarityFilter("default");
     } else {
       setCategorySearchFilters((prev) => {
         let newFilters = { ...prev, [name]: checked };
+
+        switch (name) {
+          case "pokemon":
+            setPokemonRarityFilter("default");
+            break;
+          case "mtg":
+            setMtgRarityFilter("default");
+            break;
+          case "yugioh":
+            setYugiohRarityFilter("default");
+            break;
+          case "bundles":
+            setBundlesRarityFilter("default");
+            break;
+        }
 
         return {
           ...newFilters,
@@ -362,9 +495,23 @@ export default function Results({
     }
   }
 
-  // TODO: Implement rarity change handler
-  function handleRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setRaritySearchFilter(event.target.value);
+  function handlePokemonRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setPokemonRarityFilter(event.target.value);
+  }
+  function handleMtgRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setMtgRarityFilter(event.target.value);
+  }
+  function handleYugiohRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setYugiohRarityFilter(event.target.value);
+  }
+  function handleBundlesRarityChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    setBundlesRarityFilter(event.target.value);
   }
 
   function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -399,6 +546,11 @@ export default function Results({
     setSortBy(event.target.value as AuctionSortByOption);
   }
 
+  function changeResultsPageNum(value: number) {
+    if (resultsPageNum !== value) fetchResults(value);
+    setResultsPageNum(value);
+  }
+
   return (
     <>
       <main className={styles.main}>
@@ -408,7 +560,7 @@ export default function Results({
               expandIcon={<KeyboardArrowDownIcon />}
               aria-controls="categories-content"
             >
-              Category
+              Game
             </AccordionSummary>
             <AccordionDetails>
               <div className={styles.categories}>
@@ -465,54 +617,6 @@ export default function Results({
                       label="Bundles"
                     />
                   </FormGroup>
-                </FormControl>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion defaultExpanded>
-            <AccordionSummary
-              expandIcon={<KeyboardArrowDownIcon />}
-              aria-controls="rarities-content"
-              title="Rarities only update for the first selected category."
-            >
-              Rarity
-            </AccordionSummary>
-            <AccordionDetails>
-              <div className={styles.rarities}>
-                <FormControl component="fieldset">
-                  <FormLabel component="legend">
-                    {categorySearchFilters.pokemon
-                      ? "Pokémon"
-                      : categorySearchFilters.mtg
-                      ? "Magic: The Gathering"
-                      : categorySearchFilters.yugioh
-                      ? "Yu-Gi-Oh!"
-                      : categorySearchFilters.bundles
-                      ? "Bundles"
-                      : "All"}
-                  </FormLabel>
-                  <RadioGroup
-                    aria-label="rarity"
-                    name="rarity"
-                    value={raritySearchFilter}
-                    onChange={handleRarityChange}
-                  >
-                    <FormControlLabel
-                      value="default"
-                      defaultChecked
-                      control={<Radio />}
-                      label="All"
-                    />
-                    {rarities.map((rarity) => (
-                      <FormControlLabel
-                        key={rarity}
-                        value={rarity}
-                        control={<Radio />}
-                        label={rarity}
-                      />
-                    ))}
-                  </RadioGroup>
                 </FormControl>
               </div>
             </AccordionDetails>
@@ -595,16 +699,190 @@ export default function Results({
               </div>
             </AccordionDetails>
           </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="rarities-content"
+            >
+              Rarity
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.rarities}>
+                {categorySearchFilters.default && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">All Rarities</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value="default"
+                      onChange={() => {}}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.pokemon && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Pokémon</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={pokemonRarityFilter}
+                      onChange={handlePokemonRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Pokemon.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.mtg && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">
+                      Magic: The Gathering
+                    </FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={mtgRarityFilter}
+                      onChange={handleMtgRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.MTG.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.yugioh && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={yugiohRarityFilter}
+                      onChange={handleYugiohRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Yugioh.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.bundles && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Bundles</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={bundlesRarityFilter}
+                      onChange={handleBundlesRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
         </div>
 
         <div className={styles.results}>
-          <h1 className={styles.results_num}>
-            <span className={styles.bold}>{results}</span> results for &quot;
-            <span className={styles.bold}>{searchQuery}</span>&quot;
-          </h1>
+          {!!searchValue.trim() && !resultsLoading && (
+            <h1 className={styles.results_num}>
+              <span className={styles.bold}>{resultCount}</span> results for
+              &quot;
+              <span className={styles.bold}>{searchValue.trim()}</span>&quot;
+            </h1>
+          )}
+
+          {!searchValue.trim() && !resultsLoading && (
+            <h1 className={styles.results_num}>
+              <span className={styles.bold}>{resultCount}</span> results
+            </h1>
+          )}
 
           <div className={styles.filter_dropdowns}>
             <div className={styles.left_filter_dropdowns}>
+              <div className={styles.left_filter_toggle}>
+                <IconButton
+                  size="small"
+                  sx={{
+                    // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                    backgroundColor: "primary.light",
+                    color: "white",
+                    "&:hover": { backgroundColor: "primary.main" },
+                    "&:focus-visible": { backgroundColor: "primary.main" },
+                  }}
+                  title="Show more auction filters"
+                  onClick={() => setDrawerOpen(true)}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </div>
+
               <button
                 className={styles.filter_dropdown}
                 style={{
@@ -644,18 +922,22 @@ export default function Results({
                   // https://github.com/mui/material-ui/issues/10000
                   MenuProps={{ disableScrollLock: true }}
                 >
-                  <MenuItem value="bestMatch">Sort: Best Match</MenuItem>
-                  <MenuItem value="endingSoon">Time: Ending Soon</MenuItem>
-                  <MenuItem value="newlyListed">Time: Newly Listed</MenuItem>
-                  <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
-                  <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+                  {/* <MenuItem value="bestMatch">Sort: Best Match</MenuItem> */}
+                  <MenuItem value="endTimeAsc">Time: Ending Soon</MenuItem>
+                  <MenuItem value="startTimeDesc">Time: Newly Listed</MenuItem>
+                  <MenuItem value="minNewBidPriceAsc">
+                    Price: Low to High
+                  </MenuItem>
+                  <MenuItem value="minNewBidPriceDesc">
+                    Price: High to Low
+                  </MenuItem>
                   <MenuItem value="bidsMostToLeast">
                     # of Bids: Most to Least
                   </MenuItem>
                   <MenuItem value="bidsLeastToMost">
                     # of Bids: Least to Most
                   </MenuItem>
-                  <MenuItem value="location">Location: Nearest You</MenuItem>
+                  {/* <MenuItem value="location">Location: Nearest You</MenuItem> */}
                 </Select>
               </FormControl>
             </div>
@@ -776,6 +1058,18 @@ export default function Results({
                               control={
                                 <Checkbox
                                   size="small"
+                                  name="mint"
+                                  checked={qualitySearchFilters.mint}
+                                  onChange={handleQualityChange}
+                                />
+                              }
+                              label="Mint"
+                              sx={{ marginTop: "-5px" }}
+                            />
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  size="small"
                                   name="nearMint"
                                   checked={qualitySearchFilters.nearMint}
                                   onChange={handleQualityChange}
@@ -788,36 +1082,51 @@ export default function Results({
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="excellent"
-                                  checked={qualitySearchFilters.excellent}
+                                  name="lightlyPlayed"
+                                  checked={qualitySearchFilters.lightlyPlayed}
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Excellent"
+                              label="Lightly Played"
                               sx={{ marginTop: "-5px" }}
                             />
                             <FormControlLabel
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="veryGood"
-                                  checked={qualitySearchFilters.veryGood}
+                                  name="moderatelyPlayed"
+                                  checked={
+                                    qualitySearchFilters.moderatelyPlayed
+                                  }
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Very Good"
+                              label="Moderately Played"
                               sx={{ marginTop: "-5px" }}
                             />
                             <FormControlLabel
                               control={
                                 <Checkbox
                                   size="small"
-                                  name="poor"
-                                  checked={qualitySearchFilters.poor}
+                                  name="heavilyPlayed"
+                                  checked={qualitySearchFilters.heavilyPlayed}
                                   onChange={handleQualityChange}
                                 />
                               }
-                              label="Poor"
+                              label="Heavily Played"
+                              sx={{ marginTop: "-5px" }}
+                            />
+
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  size="small"
+                                  name="damaged"
+                                  checked={qualitySearchFilters.damaged}
+                                  onChange={handleQualityChange}
+                                />
+                              }
+                              label="Damaged"
                               sx={{ marginTop: "-5px" }}
                             />
                           </div>
@@ -911,7 +1220,7 @@ export default function Results({
                     Quality:{" "}
                     <span className={styles.bold_600}>
                       PSA {qualitySearchFilters.lowGrade} to{" "}
-                      {qualitySearchFilters.highGrade}
+                      {qualitySearchFilters.highGrade} (Graded)
                     </span>
                   </p>
                   <IconButton
@@ -930,11 +1239,46 @@ export default function Results({
                 </div>
               )}
 
+            {qualitySearchFilters.mint && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Mint</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.mint = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
             {qualitySearchFilters.nearMint && (
               <div className={styles.selected_option}>
                 <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Near Mint (Ungraded)</span>
+                  Quality: <span className={styles.bold_600}>Near Mint</span>
                 </p>
                 <IconButton
                   size="small"
@@ -946,102 +1290,165 @@ export default function Results({
                         ...prev,
                         default: !(
                           prev.graded ||
-                          prev.excellent ||
-                          prev.veryGood ||
-                          prev.poor
-                        ),
-                        ungraded: prev.excellent || prev.veryGood || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.excellent && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Excellent (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.excellent = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.veryGood ||
-                          prev.poor
-                        ),
-                        ungraded: prev.nearMint || prev.veryGood || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.veryGood && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Very Good (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.veryGood = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.excellent ||
-                          prev.poor
-                        ),
-                        ungraded: prev.nearMint || prev.excellent || prev.poor,
-                      };
-                    });
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-
-            {qualitySearchFilters.poor && (
-              <div className={styles.selected_option}>
-                <p>
-                  Quality:{" "}
-                  <span className={styles.bold_600}>Poor (Ungraded)</span>
-                </p>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setQualitySearchFilters((prev) => {
-                      prev.poor = false;
-
-                      return {
-                        ...prev,
-                        default: !(
-                          prev.graded ||
-                          prev.nearMint ||
-                          prev.excellent ||
-                          prev.veryGood
+                          prev.mint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
                         ),
                         ungraded:
-                          prev.nearMint || prev.excellent || prev.veryGood,
+                          prev.mint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.lightlyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Lightly Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.lightlyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.moderatelyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Moderately Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.moderatelyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.heavilyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.heavilyPlayed && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality:{" "}
+                  <span className={styles.bold_600}>Heavily Played</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.heavilyPlayed = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.damaged
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.damaged,
+                      };
+                    });
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )}
+
+            {qualitySearchFilters.damaged && (
+              <div className={styles.selected_option}>
+                <p>
+                  Quality: <span className={styles.bold_600}>Damaged</span>
+                </p>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setQualitySearchFilters((prev) => {
+                      prev.damaged = false;
+
+                      return {
+                        ...prev,
+                        default: !(
+                          prev.graded ||
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed
+                        ),
+                        ungraded:
+                          prev.mint ||
+                          prev.nearMint ||
+                          prev.lightlyPlayed ||
+                          prev.moderatelyPlayed ||
+                          prev.heavilyPlayed,
                       };
                     });
                   }}
@@ -1070,19 +1477,365 @@ export default function Results({
           </div>
 
           <div className={styles.results_grid}>
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
-            <Listing auction={auction} setCurPage={setCurPage} />
+            {resultsLoading &&
+              [...Array(20).keys()].map((i) => (
+                <div className={styles.skeleton} key={i}>
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height={300}
+                    sx={{ borderRadius: "10px" }}
+                  />
+                  <Skeleton
+                    width="100%"
+                    sx={{ marginTop: "15px", fontSize: "1.3rem" }}
+                  />
+                  <Skeleton
+                    width="100%"
+                    sx={{ marginTop: "3px", fontSize: "1.3rem" }}
+                  />
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "5px", fontSize: "0.9rem" }}
+                  />
+                  <div className={styles.skeleton_price_row}>
+                    <Skeleton
+                      width="30%"
+                      sx={{ fontSize: "2.2rem", marginRight: "15px" }}
+                    />
+                    <Skeleton width={50} height={25} />
+                  </div>
+
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "3px", fontSize: "0.9rem" }}
+                  />
+                  <Skeleton
+                    width="50%"
+                    sx={{ marginTop: "3px", fontSize: "0.9rem" }}
+                  />
+                </div>
+              ))}
+            {results.map((auction) => (
+              <Listing
+                key={auction.auctionId}
+                auction={auction}
+                setCurPage={setCurPage}
+              />
+            ))}
           </div>
 
-          {/* TODO: Paginate */}
-          <div className={styles.pagination}></div>
+          {results.length > 0 && !resultsLoading && (
+            <div className={styles.pagination}>
+              <Pagination
+                color="primary"
+                showFirstButton={Math.ceil(resultCount / 20) > 2}
+                showLastButton={Math.ceil(resultCount / 20) > 2}
+                count={Math.ceil(resultCount / 20)}
+                page={resultsPageNum}
+                onChange={(_, page) => changeResultsPageNum(page)}
+              />
+            </div>
+          )}
         </div>
       </main>
+
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <div className={styles.left_filters_drawer} role="presentation">
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="categories-content"
+            >
+              Game
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.categories}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.default}
+                          onChange={handleCategoryChange}
+                          name="all"
+                        />
+                      }
+                      label="All"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.pokemon}
+                          onChange={handleCategoryChange}
+                          name="pokemon"
+                        />
+                      }
+                      label="Pokémon"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.mtg}
+                          onChange={handleCategoryChange}
+                          name="mtg"
+                        />
+                      }
+                      label="Magic: The Gathering"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.yugioh}
+                          onChange={handleCategoryChange}
+                          name="yugioh"
+                        />
+                      }
+                      label="Yu-Gi-Oh!"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.bundles}
+                          onChange={handleCategoryChange}
+                          name="bundles"
+                        />
+                      }
+                      label="Bundles"
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="prices-content"
+            >
+              Price
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.prices}>
+                <FormControl component="fieldset">
+                  <FormGroup sx={{ marginBottom: "15px" }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMinPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMinPrice"
+                        />
+                      }
+                      label={
+                        <TextField
+                          label="Min Price"
+                          variant="outlined"
+                          size="small"
+                          value={priceSearchFilters.minPrice || ""}
+                          onChange={handlePriceChange}
+                          name="minPrice"
+                          autoComplete="off"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMaxPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMaxPrice"
+                        />
+                      }
+                      label={
+                        <TextField
+                          label="Max Price"
+                          variant="outlined"
+                          size="small"
+                          value={priceSearchFilters.maxPrice || ""}
+                          onChange={handlePriceChange}
+                          name="maxPrice"
+                          autoComplete="off"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="rarities-content"
+            >
+              Rarity
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.rarities}>
+                {categorySearchFilters.default && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">All Rarities</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value="default"
+                      onChange={() => {}}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.pokemon && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Pokémon</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={pokemonRarityFilter}
+                      onChange={handlePokemonRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Pokemon.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.mtg && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">
+                      Magic: The Gathering
+                    </FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={mtgRarityFilter}
+                      onChange={handleMtgRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.MTG.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.yugioh && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={yugiohRarityFilter}
+                      onChange={handleYugiohRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Yugioh.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.bundles && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Bundles</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={bundlesRarityFilter}
+                      onChange={handleBundlesRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
+        </div>
+      </Drawer>
     </>
   );
 }

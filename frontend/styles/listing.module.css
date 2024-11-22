@@ -1,6 +1,7 @@
 .container {
   width: 300px;
   padding: 5px;
+  justify-self: center;
 }
 
 .img_container {
@@ -89,9 +90,18 @@
   color: red;
   filter: brightness(0.9);
 }
+.ended {
+  color: black;
+}
 
 .location {
   font-size: 0.8em;
   margin-top: 8px;
   color: gray;
+}
+
+@media (max-width: 960px) {
+  .container {
+    width: 260px;
+  }
 }
