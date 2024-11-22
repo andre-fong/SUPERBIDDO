@@ -4,7 +4,7 @@ import { User } from '@/types/userTypes';
 import { ErrorType } from '@/types/errorTypes';
 
 function useNotifications(user: User | null, setToast: (error: ErrorType) => void) {
-    const [permission, setPermission] = useState<NotificationPermission>(Notification.permission);
+    const [permission, setPermission] = useState<NotificationPermission>("default");
     
     useEffect(() => {
         if (!user) { return }

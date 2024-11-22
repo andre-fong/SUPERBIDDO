@@ -28,7 +28,7 @@ export function sendNotification(accountId: string, message: string) {
     });
 }
 
-setInterval(() => {
-    console.log(onlineClients.length);
-    sendNotification("41d98c2c-2a8d-4b4d-9342-a4e235a1526a", "Hello from the server");
-}, 5000);
+// setInterval(() => {
+//     console.log(onlineClients.length);
+//     // sendNotification("41d98c2c-2a8d-4b4d-9342-a4e235a1526a", "Hello from the server");
+// }, 5000);

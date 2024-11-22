@@ -48,7 +48,7 @@ const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage 
                                 {auction.topBid !== null ? `$${auction.topBid}` : 'No bids yet'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" noWrap>
-                                {auction.description}
+                                {auction.description ? auction.description : <i>No description</i>}
                             </Typography>
                             <Typography fontWeight="bold" variant="body2" color="text.secondary" display="flex" gap="4px">
                                 <span>Number of Bids:</span> <span style={{ fontWeight: "400" }}>{auction.numberOfBids}</span>
