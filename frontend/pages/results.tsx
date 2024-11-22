@@ -544,8 +544,8 @@ export default function Results({
   }
 
   function changeResultsPageNum(value: number) {
+    if (resultsPageNum !== value) fetchResults(value);
     setResultsPageNum(value);
-    fetchResults(value);
   }
 
   return (
