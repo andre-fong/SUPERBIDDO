@@ -90,6 +90,9 @@
   color: red;
   filter: brightness(0.9);
 }
+.ended {
+  color: black;
+}
 
 .location {
   font-size: 0.8em;

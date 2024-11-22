@@ -27,8 +27,8 @@ import {
   AuctionCategoryFilters,
   AuctionSortByOption,
   AuctionSearchQuery,
-  Auction,
 } from "@/types/auctionTypes";
+import { Auction } from "@/types/backendAuctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";

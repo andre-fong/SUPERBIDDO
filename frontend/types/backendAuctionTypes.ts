@@ -1,18 +1,16 @@
-// TODO: Remove these types if unneeded?
-
-type AccountInput = {
+export type AccountInput = {
   email: string;
   password: string;
   username: string;
 };
 
-type Account = {
+export type Account = {
   accountId: string;
   email: string;
   username: string;
 };
 
-type AuctionInput = {
+export type AuctionInput = {
   auctioneerId: string;
   name: string;
   description?: string;
@@ -25,21 +23,21 @@ type AuctionInput = {
   | { cards?: never; bundle: BundleInput }
 );
 
-type Auction = {
+export type Auction = {
   auctionId: string;
-  auctioneerId: string;
+  auctioneer: Account;
   name: string;
   description?: string;
   startPrice: number;
   spread: number;
+  minNewBidPrice: number;
   startTime: Date;
   endTime: Date;
-  currentPrice: number;
   topBid: Bid;
   numBids: number;
 } & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
 
-type CardInput = {
+export type CardInput = {
   game: Game;
   name: string;
   description?: string;
@@ -50,7 +48,7 @@ type CardInput = {
   isFoil: boolean;
 };
 
-type Card = {
+export type Card = {
   cardId: string;
   game: Game;
   name: string;
@@ -62,7 +60,7 @@ type Card = {
   isFoil: boolean;
 };
 
-type BundleInput = {
+export type BundleInput = {
   game: Game;
   name: string;
   description?: string;
@@ -70,7 +68,7 @@ type BundleInput = {
   set: string;
 };
 
-type Bundle = {
+export type Bundle = {
   bundleId: string;
   game: Game;
   name: string;
@@ -79,21 +77,20 @@ type Bundle = {
   set: string;
 };
 
-type BidInput = {
-  auctionId: string;
+export type BidInput = {
   bidderId: string;
   amount: number;
 };
 
-type Bid = {
+export type Bid = {
   bidId: string;
   auctionId: string;
-  bidderId: string;
+  bidder: Account;
   amount: number;
   timestamp: Date;
 };
 
-enum Game {
+export enum Game {
   MTG = "MTG",
   YGO = "YGO",
   PKM = "PKM",
@@ -103,14 +100,14 @@ enum Game {
   VG = "VG",
 }
 
-enum Quality {
+export enum Quality {
   NM = "NM",
   LP = "LP",
   MP = "MP",
   HP = "HP",
 }
 
-type CardRarities = {
+export type CardRarities = {
   MTG: {
     rarities: [
       "Common",
@@ -161,11 +158,11 @@ type CardRarities = {
   };
 };
 
-enum Rarity {
+export enum Rarity {
   C = "C",
   U = "U",
   R = "R",
   M = "M",
 }
 
-export type AuctionSelfType = 'biddings' | 'listings';
+export type AuctionSelfType = "biddings" | "listings";
