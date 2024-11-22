@@ -21,7 +21,9 @@ router.get("/", async (req, res) => {
     cardGame,
     cardName,
     cardManufacturer,
-    cardQuality,
+    cardQualityUngraded: cardQualityUngradedQ,
+    minCardQualityPsa: minCardQualityPsaQ,
+    maxCardQualityPsa: maxCardQualityPsaQ,
     cardRarity,
     cardSet,
     cardIsFoil,
@@ -47,7 +49,9 @@ router.get("/", async (req, res) => {
     cardGame: string | string[];
     cardName: string | string[];
     cardManufacturer: string | string[];
-    cardQuality: string | string[];
+    cardQualityUngraded: string | string[];
+    minCardQualityPsa: string;
+    maxCardQualityPsa: string;
     cardRarity: string | string[];
     cardSet: string | string[];
     cardIsFoil: string;
@@ -61,11 +65,38 @@ router.get("/", async (req, res) => {
     pageSize: string;
   };
 
+  if (bidderId && req.session.accountId !== bidderId) {
+    throw unauthorized();
+  }
+
+  if (savedBy && req.session.accountId !== savedBy) {
+    throw unauthorized();
+  }
+
+  // idea: when adding where clause for one, union with all cards of other
+  // quality type. If the other wasn't passed, we want to block these, so if
+  // it wasn't passed, set it to something that will make that where clause
+  // get nothing (except the union with all of the other type)
+  // :vomit: but it works
+
+  const cardQualityUngraded =
+    !cardQualityUngradedQ && !(minCardQualityPsaQ && maxCardQualityPsaQ)
+      ? "impossible"
+      : cardQualityUngradedQ;
+  const minCardQualityPsa =
+    cardQualityUngradedQ && !minCardQualityPsaQ && !maxCardQualityPsaQ
+      ? "10"
+      : minCardQualityPsaQ;
+  const maxCardQualityPsa =
+    cardQualityUngradedQ && !minCardQualityPsaQ && !maxCardQualityPsaQ
+      ? "0"
+      : maxCardQualityPsaQ;
+
   const conditions = [];
   const values = [];
 
   function addCondition(sqlTemplate: string, value: string | string[]) {
-    if (!value) {
+    if (value === undefined) {
       return;
     }
     if (!Array.isArray(value)) {
@@ -125,8 +156,19 @@ router.get("/", async (req, res) => {
     cardManufacturer
   );
   addCondition(
-    `auction_id IN (SELECT auction_id FROM card WHERE quality = ?)`,
-    cardQuality
+    `auction_id IN (SELECT auction_id FROM card WHERE quality_ungraded = ?
+     UNION SELECT auction_id FROM card WHERE quality_psa IS NOT NULL)`,
+    cardQualityUngraded
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE quality_psa >= ?
+     UNION SELECT auction_id FROM card WHERE quality_ungraded IS NOT NULL)`,
+    minCardQualityPsa
+  );
+  addCondition(
+    `auction_id IN (SELECT auction_id FROM card WHERE quality_psa <= ?
+     UNION SELECT auction_id FROM card WHERE quality_ungraded IS NOT NULL)`,
+    maxCardQualityPsa
   );
   addCondition(
     `auction_id IN (SELECT auction_id FROM card WHERE rarity = ?)`,
@@ -156,7 +198,7 @@ router.get("/", async (req, res) => {
     `auction_id IN (SELECT auction_id FROM bundle WHERE set = ?)`,
     bundleSet
   );
-  addCondition(`auction_id IN (SELECT auction_id FROM bundle)`, isBundle);
+  addCondition(`(auction_id IN (SELECT auction_id FROM bundle) = ?)`, isBundle);
 
   const whereClause = conditions.length
     ? ` WHERE ${conditions.join(" AND ")}`
@@ -184,6 +226,10 @@ router.get("/", async (req, res) => {
         return ` ORDER BY end_time ASC`;
       case "endTimeDesc":
         return ` ORDER BY end_time DESC`;
+      case "numBidsAsc":
+        return ` ORDER BY num_bids ASC`;
+      case "numBidsDesc":
+        return ` ORDER BY num_bids DESC`;
       default:
         return "";
     }
@@ -203,7 +249,7 @@ router.get("/", async (req, res) => {
         } & {
           num_bids: string;
           is_bundle: boolean;
-        } & { cards: CardDb[] } & { bundle: BundleDb }
+        } & { cards: CardDb<Game>[] } & { bundle: BundleDb }
     >(
       ` WITH bid_agg AS (
           SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
@@ -308,14 +354,16 @@ router.get("/", async (req, res) => {
     }
 
     const cardsRecords = auctionRecord.cards;
-    const cards: Card[] = cardsRecords.map((cardRecord) => {
-      const card: Card = {
+    const cards: Card<Game>[] = cardsRecords.map((cardRecord) => {
+      const card: Card<Game> = {
         cardId: cardRecord.cardId,
         game: cardRecord.game,
         name: cardRecord.name,
         description: cardRecord.description,
         manufacturer: cardRecord.manufacturer,
-        quality: cardRecord.quality,
+        ...(cardRecord.qualityUngraded
+          ? { qualityUngraded: cardRecord.qualityUngraded }
+          : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
         rarity: cardRecord.rarity,
         set: cardRecord.set,
         isFoil: cardRecord.isFoil,
@@ -531,7 +579,7 @@ router.get("/:auctionId", async (req, res) => {
   }
 
   const cardsRecords = camelize(
-    await pool.query<CardDb>(
+    await pool.query<CardDb<Game>>(
       ` SELECT *
         FROM card
         WHERE auction_id = $1`,
@@ -543,6 +591,23 @@ router.get("/:auctionId", async (req, res) => {
   if (!cardsRecords) {
     throw new ServerError(500, "Error fetching auction");
   }
+
+  const cards: Card<Game>[] = cardsRecords.map((cardRecord) => {
+    const card: Card<Game> = {
+      cardId: cardRecord.cardId,
+      game: cardRecord.game,
+      name: cardRecord.name,
+      description: cardRecord.description,
+      manufacturer: cardRecord.manufacturer,
+      ...(cardRecord.qualityUngraded
+        ? { qualityUngraded: cardRecord.qualityUngraded }
+        : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+      rarity: cardRecord.rarity,
+      set: cardRecord.set,
+      isFoil: cardRecord.isFoil,
+    };
+    return card;
+  });
 
   const auction: Auction = {
     auctionId: auctionRecord.auctionId,
@@ -574,7 +639,7 @@ router.get("/:auctionId", async (req, res) => {
         }
       : null,
     numBids: parseInt(auctionRecord.numBids),
-    cards: cardsRecords,
+    cards: cards,
   };
 
   res.json(auction);
@@ -583,9 +648,9 @@ router.get("/:auctionId", async (req, res) => {
 router.post("/", async (req, res) => {
   const auctionInput: AuctionInput = req.body;
   // can only post auctions for self
-  // if (auctionInput.auctioneerId !== req.session.accountId) {
-  //   throw unauthorized();
-  // }
+  if (auctionInput.auctioneerId !== req.session.accountId) {
+    throw unauthorized();
+  }
 
   // validate context dependent fields
   // (openapi cannot define fields based on other fields)
@@ -711,19 +776,21 @@ router.post("/", async (req, res) => {
   // openapi schema ensures exactly one of cards/bundle is present
   const cardsInput = auctionInput.cards;
 
-  // generate string of variables ($1, $2, ... $9), ($10, $11, ... $18) ... for query
+  // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
   const valuesString = cardsInput
     .map(
       (_, i) =>
-        `(${Array.from({ length: 9 }, (_, j) => `$${i * 9 + j + 1}`).join(
+        `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
           ", "
         )})`
     )
     .join(", ");
 
   const cardsRecord = camelize(
-    await pool.query<CardDb>(
-      ` INSERT INTO card (auction_id, game, name, description, manufacturer, quality, rarity, set, is_foil)
+    await pool.query<CardDb<Game>>(
+      ` INSERT INTO card (
+        auction_id, game, name, description, manufacturer, quality_ungraded, 
+        quality_psa, rarity, set, is_foil)
         VALUES ${valuesString}
         RETURNING *`,
       cardsInput.flatMap((card) => [
@@ -732,13 +799,31 @@ router.post("/", async (req, res) => {
         card.name,
         card.description,
         card.manufacturer,
-        card.quality,
+        card.qualityUngraded,
+        card.qualityPsa,
         card.rarity,
         card.set,
         card.isFoil,
       ])
     )
   ).rows;
+
+  const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
+    const card: Card<Game> = {
+      cardId: cardRecord.cardId,
+      game: cardRecord.game,
+      name: cardRecord.name,
+      description: cardRecord.description,
+      manufacturer: cardRecord.manufacturer,
+      ...(cardRecord.qualityUngraded
+        ? { qualityUngraded: cardRecord.qualityUngraded }
+        : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+      rarity: cardRecord.rarity,
+      set: cardRecord.set,
+      isFoil: cardRecord.isFoil,
+    };
+    return card;
+  });
 
   // if card insert fails, rollback
   if (!cardsRecord) {
@@ -766,7 +851,7 @@ router.post("/", async (req, res) => {
     endTime: auctionRecord.endTime,
     topBid: null,
     numBids: 0,
-    cards: cardsRecord,
+    cards: cards,
   };
 
   res.status(201).json(auction);

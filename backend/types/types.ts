@@ -19,7 +19,7 @@ type AuctionInput = {
   startTime: Date;
   endTime: Date;
 } & (
-  | { cards: CardInput[]; bundle?: never }
+  | { cards: CardInput<Game>[]; bundle?: never }
   | { cards?: never; bundle: BundleInput }
 );
 
@@ -35,30 +35,45 @@ type Auction = {
   endTime: Date;
   topBid: Bid;
   numBids: number;
-} & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
+} & (
+  | { cards: Card<Game>[]; bundle?: never }
+  | { cards?: never; bundle: Bundle }
+);
 
-type CardInput = {
-  game: Game;
+type CardInput<T extends Game> = {
+  game: T;
   name: string;
   description?: string;
   manufacturer: string;
-  quality: Quality;
-  rarity: Rarity;
+  rarity: CardRarity<T>;
   set: string;
   isFoil: boolean;
-};
+} & (
+  | { qualityPsa: QualityPsa; qualityUngraded?: never }
+  | { qualityPsa?: never; qualityUngraded: QualityUngraded }
+);
 
-type Card = {
+type Card<T extends Game> = {
   cardId: string;
-  game: Game;
+  game: T;
   name: string;
   description?: string;
   manufacturer: string;
-  quality: Quality;
-  rarity: Rarity;
+  rarity: CardRarity<T>;
   set: string;
   isFoil: boolean;
-};
+} & (
+  | { qualityPsa: QualityPsa; qualityUngraded?: never }
+  | { qualityPsa?: never; qualityUngraded: QualityUngraded }
+);
+
+type CardRarity<T extends Game> = T extends "MTG"
+  ? MTGRarity
+  : T extends "Pokemon"
+  ? PokemonRarity
+  : T extends "Yugioh"
+  ? YugiohRarity
+  : never;
 
 type BundleInput = {
   game: Game;
@@ -90,77 +105,56 @@ type Bid = {
   timestamp: Date;
 };
 
-enum Game {
-  MTG = "MTG",
-  YGO = "YGO",
-  PKM = "PKM",
-  DBS = "DBS",
-  FF = "FF",
-  WS = "WS",
-  VG = "VG",
-}
+type QualityUngraded =
+  | "Mint"
+  | "Near Mint"
+  | "Lightly Played"
+  | "Moderately Played"
+  | "Heavily Played"
+  | "Damaged";
 
-enum Quality {
-  NM = "NM",
-  LP = "LP",
-  MP = "MP",
-  HP = "HP",
-}
+type QualityPsa = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-type CardRarities = {
-  MTG: {
-    rarities: [
-      "Common",
-      "Uncommon",
-      "Rare",
-      "Mythic Rare",
-      "Special / Bonus Cards",
-      "Basic Land",
-      "Masterpiece Series",
-      "Promos",
-      "Extended Art",
-      "Borderless"
-    ];
-  };
-  Pokemon: {
-    rarities: [
-      "Common",
-      "Uncommon",
-      "Rare",
-      "Holo Rare",
-      "Reverse Holo",
-      "Rare Holo V",
-      "Ultra Rare",
-      "Full Art",
-      "Secret Rare",
-      "Amazing Rare",
-      "Rainbow Rare",
-      "Gold Secret Rare",
-      "Promos",
-      "Radiant Collection"
-    ];
-  };
-  Yugioh: {
-    rarities: [
-      "Common",
-      "Rare",
-      "Super Rare",
-      "Ultra Rare",
-      "Secret Rare",
-      "Ultimate Rare",
-      "Ghost Rare",
-      "Starlight Rare",
-      "Collector’s Rare",
-      "Prismatic Secret Rare",
-      "Parallel Rare",
-      "Platinum Rare"
-    ];
-  };
-};
+type Game = "MTG" | "Yugioh" | "Pokemon";
 
-enum Rarity {
-  C = "C",
-  U = "U",
-  R = "R",
-  M = "M",
-}
+type MTGRarity =
+  | "Common"
+  | "Uncommon"
+  | "Rare"
+  | "Mythic Rare"
+  | "Special / Bonus Cards"
+  | "Basic Land"
+  | "Masterpiece Series"
+  | "Promos"
+  | "Extended Art"
+  | "Borderless";
+
+type PokemonRarity =
+  | "Common"
+  | "Uncommon"
+  | "Rare"
+  | "Holo Rare"
+  | "Reverse Holo"
+  | "Rare Holo V"
+  | "Ultra Rare"
+  | "Full Art"
+  | "Secret Rare"
+  | "Amazing Rare"
+  | "Rainbow Rare"
+  | "Gold Secret Rare"
+  | "Promos"
+  | "Radiant Collection";
+
+type YugiohRarity =
+  | "Common"
+  | "Rare"
+  | "Super Rare"
+  | "Ultra Rare"
+  | "Secret Rare"
+  | "Ultimate Rare"
+  | "Ghost Rare"
+  | "Starlight Rare"
+  | "Collector's Rare"
+  | "Prismatic Secret Rare"
+  | "Parallel Rare"
+  | "Platinum Rare";

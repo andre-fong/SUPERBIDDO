@@ -34,7 +34,7 @@ export function removeLpClient(reqId: string, client: Response) {
 }
 
 export function closeLpRequest(reqId: string) {
-  if (!pendingLpRequests[reqId].clients) {
+  if (!pendingLpRequests[reqId]) {
     return;
   }
   switch (pendingLpRequests[reqId].type) {

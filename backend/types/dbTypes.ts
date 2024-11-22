@@ -16,15 +16,16 @@ type AuctionDb = {
   end_time: Date;
 };
 
-type CardDb = {
+type CardDb<T extends Game> = {
   card_id: string;
   auction_id: string;
-  game: Game;
+  game: T;
   name: string;
   description: string;
   manufacturer: string;
-  quality: Quality;
-  rarity: Rarity;
+  quality_ungraded: QualityUngraded;
+  quality_psa: QualityPsaDb;
+  rarity: CardRarity<T>;
   set: string;
   is_foil: boolean;
 };
@@ -46,3 +47,5 @@ type BidDb = {
   amount: string;
   timestamp: Date;
 };
+
+type QualityPsaDb = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10";
