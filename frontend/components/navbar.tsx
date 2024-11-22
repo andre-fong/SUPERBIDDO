@@ -264,7 +264,7 @@ export default function Navbar({
           {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
             freeSolo
-            value={inputValue}
+            inputValue={inputValue}
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue);
             }}
@@ -304,6 +304,16 @@ export default function Navbar({
                   title={
                     !option.game ? undefined : `${option.name} (${option.game})`
                   }
+                  onClick={(e) => {
+                    if (!!optionProps.onClick) {
+                      optionProps.onClick(e);
+                    }
+                    // TODO: Fix bug where clicking "Search for <x> in <y>" literally searches for that string
+                    setCurPage(
+                      "results",
+                      JSON.stringify({ search: option.name })
+                    );
+                  }}
                 >
                   {!option.game || option.game === "Other Cards" ? (
                     <SearchIcon />
