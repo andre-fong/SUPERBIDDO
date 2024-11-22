@@ -621,8 +621,7 @@ components:
               readOnly: true
               oneOf:
                 - $ref: "#/components/schemas/Bid"
-                - type: object
-                  enum:
+                - enum:
                     - null
             numBids:
               readOnly: true
@@ -683,43 +682,51 @@ components:
                   enum:
                     - null
     Card:
-      oneOf:
-        - $ref: "#/components/schemas/MTGCard"
-        - $ref: "#/components/schemas/PokemonCard"
-        - $ref: "#/components/schemas/YugiohCard"
-    MTGCard:
       allOf:
         - $ref: "#/components/schemas/CardBase"
-        - type: object
-          properties:
-            game:
-              type: string
-              enum:
-                - "MTG"
-            rarity:
-              $ref: "#/components/schemas/MTGRarity"
+        - oneOf:
+            - type: object
+              properties:
+                game:
+                  type: string
+                  enum:
+                    - "MTG"
+                rarity:
+                  $ref: "#/components/schemas/MTGRarity"
+            - type: object
+              properties:
+                game:
+                  type: string
+                  enum:
+                    - "Pokemon"
+                rarity:
+                  $ref: "#/components/schemas/PokemonRarity"
+            - type: object
+              properties:
+                game:
+                  type: string
+                  enum:
+                    - "Yugioh"
+                rarity:
+                  $ref: "#/components/schemas/YugiohRarity"
     PokemonCard:
-      allOf:
-        - $ref: "#/components/schemas/CardBase"
-        - type: object
-          properties:
-            game:
-              type: string
-              enum:
-                - "Pokemon"
-            rarity:
-              $ref: "#/components/schemas/PokemonRarity"
+      type: object
+      properties:
+        game:
+          type: string
+          enum:
+            - "Pokemon"
+        rarity:
+          $ref: "#/components/schemas/PokemonRarity"
     YugiohCard:
-      allOf:
-        - $ref: "#/components/schemas/CardBase"
-        - type: object
-          properties:
-            game:
-              type: string
-              enum:
-                - "Yugioh"
-            rarity:
-              $ref: "#/components/schemas/YugiohRarity"
+      type: object
+      properties:
+        game:
+          type: string
+          enum:
+            - "Yugioh"
+        rarity:
+          $ref: "#/components/schemas/YugiohRarity"
     CardBase:
       allOf:
         - type: object
