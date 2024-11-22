@@ -243,7 +243,7 @@ const CardListing: React.FC<CardListingProps> = ({
     const auctionData: any = {
       auctioneerId: user.accountId,
       name: cardNameRef.current?.value || "Unknown Name",
-      description: descriptionRef.current?.value || "No description provided",
+      description: descriptionRef.current?.value,
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
       spread: parseFloat(spreadRef.current?.value || "0"),
       startTime: startDateRef.current && startDateRef.current.value != "" ? new Date(startDateRef.current.value).toISOString() : "",
@@ -267,6 +267,10 @@ const CardListing: React.FC<CardListingProps> = ({
     if (startDateRef.current?.value === "" && endDateRef.current?.value === "") {
       delete auctionData.startTime;
       delete auctionData.endTime;
+    }
+
+    if (!descriptionRef.current) {
+      delete auctionData.description;
     }
 
     if (type === "Bundle") {

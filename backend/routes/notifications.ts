@@ -7,13 +7,10 @@ let onlineClients = [];
 
 router.get("/:accountId", (req, res) => {
     const accountId = req.params.accountId;
-
-    console.log(`Client connected: ${accountId}`);
     // Add the response object to the auction's client list
     if (!onlineClients.some(client => client.accountId === accountId)) {
         onlineClients.push({ accountId, res });
     }
-
 
     // Handle connection close
     req.on("close", () => {
@@ -31,7 +28,7 @@ export function sendNotification(accountId: string, message: string) {
     });
 }
 
-// setInterval(() => {
-//     console.log(onlineClients.length);
-//     sendNotification("3bcf7c0d-e06d-4948-be4f-efec0c37319f", "Hello");
-// }, 5000);
+setInterval(() => {
+    console.log(onlineClients.length);
+    sendNotification("41d98c2c-2a8d-4b4d-9342-a4e235a1526a", "Hello from the server");
+}, 5000);
