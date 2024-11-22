@@ -235,7 +235,6 @@ router.get("/", async (req, res) => {
     }
   })();
 
-  console.log(whereClause);
   const limit = ` LIMIT $${values.length + 1}`;
   values.push(parseInt(pageSize));
   const offset = ` OFFSET $${values.length + 1}`;
