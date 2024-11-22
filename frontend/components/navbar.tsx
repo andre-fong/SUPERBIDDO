@@ -264,7 +264,7 @@ export default function Navbar({
           {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
             freeSolo
-            inputValue={inputValue}
+            value={inputValue}
             onInputChange={(event, newInputValue) => {
               setInputValue(newInputValue);
             }}

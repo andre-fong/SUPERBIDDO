@@ -27,6 +27,7 @@ import {
   AuctionCategoryFilters,
   AuctionSortByOption,
   AuctionSearchQuery,
+  Auction,
 } from "@/types/auctionTypes";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -174,18 +175,20 @@ export default function Results({
   const [results, setResults] = useState<Auction[]>([]);
   const [resultCount, setResultCount] = useState(0);
   const [resultsPageNum, setResultsPageNum] = useState(1);
+  const [redirectedCount, setRedirectedCount] = useState(0);
 
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
     let search = JSON.parse(context)?.search;
-    if (!!search) setSearchValue(search);
+    setSearchValue(search);
   }, [context]);
 
   // WHEN SEARCH VALUE CHANGES, RESET PAGE NUM, RESULTS, LOADING, AND FETCH RESULTS
   useEffect(() => {
-    if (searchValue || !JSON.parse(context)?.search) {
+    if (searchValue || !JSON.parse(context)?.search || redirectedCount > 0) {
       setResultsPageNum(1);
       fetchResults(1);
+      setRedirectedCount(1);
     }
   }, [searchValue]);
 
@@ -250,8 +253,8 @@ export default function Results({
     let searchParams: AuctionSearchQuery = {};
 
     // NAME
-    if (searchValue) {
-      searchParams.cardName = searchValue;
+    if (searchValue.trim()) {
+      searchParams.cardName = searchValue.trim();
     }
 
     // GAMES
@@ -847,15 +850,15 @@ export default function Results({
         </div>
 
         <div className={styles.results}>
-          {!!searchValue && !resultsLoading && (
+          {!!searchValue.trim() && !resultsLoading && (
             <h1 className={styles.results_num}>
               <span className={styles.bold}>{resultCount}</span> results for
               &quot;
-              <span className={styles.bold}>{searchValue}</span>&quot;
+              <span className={styles.bold}>{searchValue.trim()}</span>&quot;
             </h1>
           )}
 
-          {!searchValue && !resultsLoading && (
+          {!searchValue.trim() && !resultsLoading && (
             <h1 className={styles.results_num}>
               <span className={styles.bold}>{resultCount}</span> results
             </h1>
