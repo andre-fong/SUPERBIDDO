@@ -1522,16 +1522,18 @@ export default function Results({
             ))}
           </div>
 
-          <div className={styles.pagination}>
-            <Pagination
-              color="primary"
-              showFirstButton={Math.ceil(resultCount / 20) > 2}
-              showLastButton={Math.ceil(resultCount / 20) > 2}
-              count={Math.ceil(resultCount / 20)}
-              page={resultsPageNum}
-              onChange={(_, page) => changeResultsPageNum(page)}
-            />
-          </div>
+          {results.length > 0 && !resultsLoading && (
+            <div className={styles.pagination}>
+              <Pagination
+                color="primary"
+                showFirstButton={Math.ceil(resultCount / 20) > 2}
+                showLastButton={Math.ceil(resultCount / 20) > 2}
+                count={Math.ceil(resultCount / 20)}
+                page={resultsPageNum}
+                onChange={(_, page) => changeResultsPageNum(page)}
+              />
+            </div>
+          )}
         </div>
       </main>
 
