@@ -372,7 +372,8 @@ paths:
             oneOf:
               - type: string
                 format: uuid
-              - enum:
+              - type: string
+                enum:
                   - "null"
       responses:
         200:
@@ -620,7 +621,8 @@ components:
               readOnly: true
               oneOf:
                 - $ref: "#/components/schemas/Bid"
-                - enum:
+                - type: object
+                  enum:
                     - null
             numBids:
               readOnly: true
@@ -673,9 +675,11 @@ components:
                 - endTime
               properties:
                 startTime:
+                  type: string
                   enum:
                     - null
                 endTime:
+                  type: string
                   enum:
                     - null
     Card:
@@ -689,6 +693,7 @@ components:
         - type: object
           properties:
             game:
+              type: string
               enum:
                 - "MTG"
             rarity:
@@ -699,6 +704,7 @@ components:
         - type: object
           properties:
             game:
+              type: string
               enum:
                 - "Pokemon"
             rarity:
@@ -709,6 +715,7 @@ components:
         - type: object
           properties:
             game:
+              type: string
               enum:
                 - "Yugioh"
             rarity:
