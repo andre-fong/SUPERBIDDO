@@ -178,13 +178,15 @@ export default function Results({
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
     let search = JSON.parse(context)?.search;
-    setSearchValue(search || "");
+    if (!!search) setSearchValue(search);
   }, [context]);
 
   // WHEN SEARCH VALUE CHANGES, RESET PAGE NUM, RESULTS, LOADING, AND FETCH RESULTS
   useEffect(() => {
-    setResultsPageNum(1);
-    fetchResults(1);
+    if (searchValue || !JSON.parse(context)?.search) {
+      setResultsPageNum(1);
+      fetchResults(1);
+    }
   }, [searchValue]);
 
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
@@ -288,8 +290,6 @@ export default function Results({
 
     getAuctionSearchResults(setToast, searchParams).then(
       (results) => {
-        console.log(results);
-        console.log(results.auctions.count);
         setResults(results.auctions);
         setResultCount(results.totalNumAuctions);
         setResultsLoading(false);
