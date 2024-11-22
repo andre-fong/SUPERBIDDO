@@ -17,6 +17,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import Drawer from "@mui/material/Drawer";
 import InputLabel from "@mui/material/InputLabel";
 import {
   AuctionQualityFilters,
@@ -30,6 +31,7 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
 import Skeleton from "@mui/material/Skeleton";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, {
@@ -165,6 +167,7 @@ export default function Results({
   //                 FORM STATE                   //
   //////////////////////////////////////////////////
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [resultsLoading, setResultsLoading] = useState(true);
   const [results, setResults] = useState<Auction[]>([]);
@@ -847,6 +850,23 @@ export default function Results({
 
           <div className={styles.filter_dropdowns}>
             <div className={styles.left_filter_dropdowns}>
+              <div className={styles.left_filter_toggle}>
+                <IconButton
+                  size="small"
+                  sx={{
+                    // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                    backgroundColor: "primary.light",
+                    color: "white",
+                    "&:hover": { backgroundColor: "primary.main" },
+                    "&:focus-visible": { backgroundColor: "primary.main" },
+                  }}
+                  title="Show more auction filters"
+                  onClick={() => setDrawerOpen(true)}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </div>
+
               <button
                 className={styles.filter_dropdown}
                 style={{
@@ -1493,6 +1513,303 @@ export default function Results({
           <div className={styles.pagination}></div>
         </div>
       </main>
+
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <div className={styles.left_filters_drawer} role="presentation">
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="categories-content"
+            >
+              Game
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.categories}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.default}
+                          onChange={handleCategoryChange}
+                          name="all"
+                        />
+                      }
+                      label="All"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.pokemon}
+                          onChange={handleCategoryChange}
+                          name="pokemon"
+                        />
+                      }
+                      label="Pokémon"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.mtg}
+                          onChange={handleCategoryChange}
+                          name="mtg"
+                        />
+                      }
+                      label="Magic: The Gathering"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.yugioh}
+                          onChange={handleCategoryChange}
+                          name="yugioh"
+                        />
+                      }
+                      label="Yu-Gi-Oh!"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={categorySearchFilters.bundles}
+                          onChange={handleCategoryChange}
+                          name="bundles"
+                        />
+                      }
+                      label="Bundles"
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="prices-content"
+            >
+              Price
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.prices}>
+                <FormControl component="fieldset">
+                  <FormGroup sx={{ marginBottom: "15px" }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMinPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMinPrice"
+                        />
+                      }
+                      label={
+                        <TextField
+                          label="Min Price"
+                          variant="outlined"
+                          size="small"
+                          value={priceSearchFilters.minPrice || ""}
+                          onChange={handlePriceChange}
+                          name="minPrice"
+                          autoComplete="off"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={priceSearchFilters.includeMaxPrice}
+                          onChange={handlePriceCheckChange}
+                          name="includeMaxPrice"
+                        />
+                      }
+                      label={
+                        <TextField
+                          label="Max Price"
+                          variant="outlined"
+                          size="small"
+                          value={priceSearchFilters.maxPrice || ""}
+                          onChange={handlePriceChange}
+                          name="maxPrice"
+                          autoComplete="off"
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  $
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="rarities-content"
+            >
+              Rarity
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.rarities}>
+                {categorySearchFilters.default && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">All Rarities</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value="default"
+                      onChange={() => {}}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.pokemon && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Pokémon</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={pokemonRarityFilter}
+                      onChange={handlePokemonRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Pokemon.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.mtg && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">
+                      Magic: The Gathering
+                    </FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={mtgRarityFilter}
+                      onChange={handleMtgRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.MTG.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.yugioh && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={yugiohRarityFilter}
+                      onChange={handleYugiohRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                      {cardRarities.Yugioh.rarities.map((rarity) => (
+                        <FormControlLabel
+                          key={rarity}
+                          value={rarity}
+                          control={<Radio />}
+                          label={rarity}
+                        />
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                )}
+
+                {categorySearchFilters.bundles && (
+                  <FormControl
+                    component="fieldset"
+                    sx={{ marginBottom: "15px" }}
+                  >
+                    <FormLabel component="legend">Bundles</FormLabel>
+                    <RadioGroup
+                      aria-label="rarity"
+                      name="rarity"
+                      value={bundlesRarityFilter}
+                      onChange={handleBundlesRarityChange}
+                    >
+                      <FormControlLabel
+                        value="default"
+                        defaultChecked
+                        control={<Radio />}
+                        label="All"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
+        </div>
+      </Drawer>
     </>
   );
 }
