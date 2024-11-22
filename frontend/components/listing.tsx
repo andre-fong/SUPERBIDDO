@@ -13,7 +13,7 @@ export default function Listing({
   setCurPage: (page: PageName, context?: string) => void;
 }) {
   const { totalSeconds, seconds, minutes, hours, days } = useTimer({
-    expiryTimestamp: new Date(auction.endTime.getTime() + 60000),
+    expiryTimestamp: new Date(new Date(auction.endTime).getTime() + 60000),
     onExpire: () => {
       console.log("Timer expired");
     },
@@ -55,13 +55,20 @@ export default function Listing({
       <p className={styles.quality}>Ungraded: Near Mint</p>
 
       <div className={styles.price_row}>
-        <p className={styles.price}>$ {auction.topBid.amount.toFixed(2)}</p>
-        <p className={styles.num_bids}>5 Bids</p>
+        <p className={styles.price}>
+          ${" "}
+          {(
+            auction.topBid?.amount || auction.startPrice + auction.spread
+          ).toFixed(2)}
+        </p>
+        <p className={styles.num_bids}>
+          {auction.numBids} {auction.numBids !== 1 ? "Bids" : "Bid"}
+        </p>
       </div>
 
       <p
         className={styles.time_remaining}
-        title={auction.endTime.toLocaleDateString(undefined, {
+        title={new Date(auction.endTime).toLocaleDateString(undefined, {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -83,7 +90,7 @@ export default function Listing({
           {seconds}s
         </span>{" "}
         &middot;{" "}
-        {auction.endTime.toLocaleDateString(undefined, {
+        {new Date(auction.endTime).toLocaleDateString(undefined, {
           weekday: "long",
           hour: "numeric",
           minute: "numeric",

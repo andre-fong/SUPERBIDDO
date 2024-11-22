@@ -65,10 +65,12 @@ export type AuctionQualityFilters = {
   lowGrade: number | null;
   highGrade: number | null;
   ungraded: boolean;
+  mint: boolean;
   nearMint: boolean;
-  excellent: boolean;
-  veryGood: boolean;
-  poor: boolean;
+  lightlyPlayed: boolean;
+  moderatelyPlayed: boolean;
+  heavilyPlayed: boolean;
+  damaged: boolean;
 };
 
 export type AuctionFoilFilters = "default" | "foil" | "noFoil";
@@ -89,11 +91,32 @@ export type AuctionPriceFilters = {
 };
 
 export type AuctionSortByOption =
-  | "bestMatch"
-  | "endingSoon"
-  | "newlyListed"
-  | "priceLowToHigh"
-  | "priceHighToLow"
+  // | "bestMatch"
+  | "endTimeAsc"
+  | "startTimeDesc"
+  | "minNewBidPriceAsc"
+  | "minNewBidPriceDesc"
   | "bidsMostToLeast"
-  | "bidsLeastToMost"
-  | "location";
+  | "bidsLeastToMost";
+// | "location";
+
+export type AuctionSearchQuery = {
+  name?: string;
+  minMinNewBidPrice?: number;
+  maxMinNewBidPrice?: number;
+  minStartTime?: Date;
+  maxStartTime?: Date;
+  minEndTime?: Date;
+  maxEndTime?: Date;
+  cardGame?: string | string[];
+  cardName?: string;
+  cardManufacturer?: string;
+  cardQuality?: string | string[];
+  cardRarity?: string | string[];
+  cardSet?: string;
+  cardIsFoil?: boolean;
+  isBundle?: boolean;
+  sortBy?: AuctionSortByOption;
+  page?: number;
+  pageSize?: number;
+};

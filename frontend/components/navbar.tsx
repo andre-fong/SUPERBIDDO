@@ -176,12 +176,9 @@ export default function Navbar({
   setToast: (error: ErrorType) => void;
 }) {
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
-  const [categoryPopperOpen, setCategoryPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
-  const categoryAnchor = useRef<HTMLButtonElement | null>(null);
 
   // TODO: Mock data
-  const username = user ? user.username : "";
   const notificationCount = 2;
 
   // Track scroll position to make navbar sticky
@@ -209,6 +206,9 @@ export default function Navbar({
     }
   }, [navInView, vertScroll, ref, linksRef]);
 
+  // MUI Autocomplete controlled input state
+  const [inputValue, setInputValue] = useState("");
+
   function handleSignout(event: React.MouseEvent<HTMLButtonElement>): void {
     if (!user) {
       return;
@@ -230,11 +230,11 @@ export default function Navbar({
 
   function handleSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setCurPage("results");
+    setCurPage("results", JSON.stringify({ search: inputValue }));
   }
 
   function redirectToSearchResults(category: string) {
-    setCurPage("results", JSON.stringify({ category }));
+    setCurPage("results", JSON.stringify({ category, search: inputValue }));
   }
 
   // TODO: Remove log
@@ -264,6 +264,10 @@ export default function Navbar({
           {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
             freeSolo
+            inputValue={inputValue}
+            onInputChange={(event, newInputValue) => {
+              setInputValue(newInputValue);
+            }}
             disableClearable
             handleHomeEndKeys
             options={options}
@@ -300,6 +304,16 @@ export default function Navbar({
                   title={
                     !option.game ? undefined : `${option.name} (${option.game})`
                   }
+                  onClick={(e) => {
+                    if (!!optionProps.onClick) {
+                      optionProps.onClick(e);
+                    }
+                    // TODO: Fix bug where clicking "Search for <x> in <y>" literally searches for that string
+                    setCurPage(
+                      "results",
+                      JSON.stringify({ search: option.name })
+                    );
+                  }}
                 >
                   {!option.game || option.game === "Other Cards" ? (
                     <SearchIcon />
@@ -381,7 +395,9 @@ export default function Navbar({
                     onMouseOut={() => setAccountPopperOpen(false)}
                     onClick={() => setAccountPopperOpen(!accountPopperOpen)}
                   >
-                    <p className={styles.session_msg}>Hello, username</p>
+                    <p className={styles.session_msg}>
+                      Hello, {user?.username || "User"}
+                    </p>
                     <p className={styles.session_submsg}>
                       Account & Lists <ArrowDropDownIcon fontSize="small" />
                     </p>
@@ -559,7 +575,7 @@ export default function Navbar({
                 </>
               ) : (
                 <p className={styles.no_session_msg}>
-                  Hello guest! <br />
+                  Hello, guest! <br />
                   <button
                     className={styles.link}
                     onClick={() =>
