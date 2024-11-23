@@ -80,7 +80,7 @@ router.get("/", async (req, res) => {
   // :vomit: but it works
 
   const cardQualityUngraded =
-    !cardQualityUngradedQ && !(minCardQualityPsaQ && maxCardQualityPsaQ)
+    !cardQualityUngradedQ && !(!minCardQualityPsaQ && !maxCardQualityPsaQ)
       ? "impossible"
       : cardQualityUngradedQ;
   const minCardQualityPsa =
@@ -285,7 +285,7 @@ router.get("/", async (req, res) => {
         )
         SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
         top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
-        COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle,
+        COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
         cards_agg.cards, bundle_agg.bundle
         FROM filled_auctions
         LEFT JOIN top_bids USING (auction_id)
