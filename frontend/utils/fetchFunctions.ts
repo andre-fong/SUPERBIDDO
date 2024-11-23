@@ -249,26 +249,26 @@ export async function pollNotifications(
   signal: AbortSignal
 ) {
   try {
-      const response = await fetch(`${url}/notifications/${accountId}`, {
-          method: 'GET',
-      });
-      if (response.ok) {
-          const data = await response.json();
-          notifcationFcn(data.message);
-          pollNotifications(accountId, errorFcn, notifcationFcn, signal);
-      }
-      else {
-        errorFcn({ message: unkownError, severity: Severity.Critical });
-      }
+    const response = await fetch(`${url}/notifications/${accountId}`, {
+      method: "GET",
+    });
+    if (response.ok) {
+      const data = await response.json();
+      notifcationFcn(data.message);
+      pollNotifications(accountId, errorFcn, notifcationFcn, signal);
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.name === "AbortError") {
-      console.warn('Polling for notifications aborted');
+      console.warn("Polling for notifications aborted");
       return;
     } else {
       console.error(error);
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
-  } 
+  }
 }
 
 //

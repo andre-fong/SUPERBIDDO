@@ -195,6 +195,7 @@ export default function PageHandler() {
 
   useEffect(() => {
     changePageTitle(pages[curPage].title);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curPage]);
 
   return (

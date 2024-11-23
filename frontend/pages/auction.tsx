@@ -87,17 +87,19 @@ export default function Auction({
   const [watching, setWatching] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(new Date());
-  const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({  
+  const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({
     expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
     autoStart: true,
   });
 
   useEffect(() => {
-    const curBid = JSON.parse(context)
+    const curBid = JSON.parse(context);
 
     fetchAuction(setToast, curBid.auctionId).then((auction) => {
-      if (!auction) { return }
+      if (!auction) {
+        return;
+      }
 
       setSpread(parseFloat(auction.spread));
       setStartingBid(parseFloat(auction.startPrice));
@@ -107,7 +109,8 @@ export default function Auction({
       adjustedEndTime.setSeconds(adjustedEndTime.getSeconds() + 300);
       restart(adjustedEndTime);
       setBidsLoading(false);
-    })
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // /**
@@ -115,7 +118,6 @@ export default function Auction({
   //  */
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
     // e.preventDefault();
-
     // if (auctionEnded || winning) {
     //   console.warn("Cannot bid on an ended or winning auction");
     //   return;
@@ -367,6 +369,7 @@ export default function Auction({
               {/* TODO: Replace with downloaded default pfp (or api) */}
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png"
+                alt="Profile Picture"
                 className={styles.TEMP_pfp}
               />
               {/* TODO: Make username a link */}
