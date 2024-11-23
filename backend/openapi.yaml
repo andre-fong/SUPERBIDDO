@@ -117,13 +117,21 @@ paths:
           description: The status of an auction. If provided, only auctions with this status will be returned.
           required: false
           schema:
-            $ref: "#/components/schemas/AuctionStatus"
+            oneOf:
+              - $ref: "#/components/schemas/AuctionStatus"
+              - type: array
+                items:
+                  $ref: "#/components/schemas/AuctionStatus"
         - in: query
           name: bidStatus
           description: The bid status of an auction. Ignored if includeBidStatusFor is not provided. If both are provided, only auctions where the bidder's bid matches the provided status will be returned.
           required: false
           schema:
-            $ref: "#/components/schemas/BidStatus"
+            oneOf:
+              - $ref: "#/components/schemas/BidStatus"
+              - type: array
+                items:
+                  $ref: "#/components/schemas/BidStatus"
         - in: query
           name: minMinNewBidPrice
           description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
