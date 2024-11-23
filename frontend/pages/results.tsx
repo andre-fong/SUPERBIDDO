@@ -180,7 +180,7 @@ export default function Results({
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
     let search = JSON.parse(context)?.search;
-    setSearchValue(search);
+    if (search !== undefined) setSearchValue(search);
   }, [context]);
 
   // WHEN SEARCH VALUE CHANGES, RESET PAGE NUM, RESULTS, LOADING, AND FETCH RESULTS

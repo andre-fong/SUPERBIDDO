@@ -17,6 +17,7 @@ import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
 import { AnimatePresence, motion } from "motion/react";
 import Results from "@/pages/results";
+import Home from "@/pages/home";
 import { pollNotifications } from "@/utils/fetchFunctions";
 import useNotifications from "@/hooks/useNotfications";
 
@@ -92,7 +93,14 @@ export default function PageHandler() {
   const pages: PageData = {
     home: {
       title: "Home | SuperBiddo",
-      component: <h1 className={styles.title}>Home</h1>,
+      component: (
+        <Home
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
+          context={pageContext}
+        />
+      ),
     },
     results: {
       title: "Results | SuperBiddo",

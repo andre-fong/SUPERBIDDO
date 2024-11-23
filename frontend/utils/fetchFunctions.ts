@@ -145,8 +145,12 @@ export async function getAuctionSearchResults(
   errorFcn: (error: ErrorType) => void,
   searchQuery?: AuctionSearchQuery
 ) {
-  // TODO: Sort by option
-  const params = new URLSearchParams(searchQuery as Record<string, string>);
+  const params = Object.entries(searchQuery || {})
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value.toString())}`
+    )
+    .join("&");
 
   try {
     const response = await fetch(`${url}/auctions?${params}`, {
@@ -415,28 +419,44 @@ export async function fetchAuction(
 
 // NOTE:  THIS IS FOR YOURLISTINGS AND YOURBIDDINGS
 //TODO: search statuses
-export async function fetchSelfAuctions(errorFcn: (error: ErrorType) => void, type: AuctionSelfType, accountId: string, searchName: string, searchStatuses: string[], pageSize: number, currentPage: number) {
+export async function fetchSelfAuctions(
+  errorFcn: (error: ErrorType) => void,
+  type: AuctionSelfType,
+  accountId: string,
+  searchName: string,
+  searchStatuses: string[],
+  pageSize: number,
+  currentPage: number
+) {
   try {
-
-    const response = await fetch(`${url}/auctions?${type === 'biddings' ? 'bidderId' : 'auctioneerId'}=${accountId}&name=${searchName}&page=${currentPage}&pageSize=${pageSize}`, {
-      method: "GET",
-      headers: {
-      "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${url}/auctions?${
+        type === "biddings" ? "bidderId" : "auctioneerId"
+      }=${accountId}&name=${searchName}&page=${currentPage}&pageSize=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     if (response.ok) {
       const auctions = await response.json();
       return auctions;
     } else if (response.status === 404) {
       errorFcn({ message: "No auctions found", severity: Severity.Warning });
-    }
-    else if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
-    }
-    else if (response.status === 401) {
-      errorFcn({ message: "Action requires authentication", severity: Severity.Warning });
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
     } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
