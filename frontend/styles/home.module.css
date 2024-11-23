@@ -1,3 +1,114 @@
-.hero {
+.hero_container {
   width: 100%;
+  /* margin-top: -30px; */
+}
+
+.hero_banner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10/3;
+  min-height: 300px;
+}
+
+.hero_text {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, black, rgba(0, 0, 0, 0.6), transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  padding-left: 5%;
+}
+
+.hero_title {
+  color: white;
+  font-size: 3em;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.hero_subtitle {
+  color: var(--secondary);
+  /* filter: brightness(1.3); */
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-bottom: 35px;
+}
+
+.section_container {
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+
+.section_title {
+  padding: 0 35px;
+  margin-bottom: 25px;
+}
+
+.games {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  padding: 0 35px;
+}
+
+.game {
+  width: 100%;
+  aspect-ratio: 2;
+  position: relative;
+  padding: 0;
+  background: 0;
+  border: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.game_unclickable {
+  cursor: default;
+}
+
+.game_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.7),
+    rgba(0, 0, 0, 0.6),
+    transparent
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.game_overlay_dark {
+  background: radial-gradient(rgba(0, 0, 0), rgb(0, 0, 0, 0.7) transparent);
+}
+.game_title {
+  color: white;
+  font-size: 2.5em;
+  font-weight: 700;
+}
+.game_title_small {
+  font-size: 1.7em;
+}
+
+@media (max-width: 600px) {
+  .games {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 350px) {
+  .hero_title {
+    font-size: 2.5em;
+  }
+  .hero_subtitle {
+    font-size: 1.2em;
+  }
+  .game_title {
+    font-size: 1.5em;
+  }
 }
