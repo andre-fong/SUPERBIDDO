@@ -14,7 +14,6 @@ const useSelfAuctions = (type: AuctionSelfType, errorFcn: (error: ErrorType) => 
         fetchSelfAuctions(errorFcn, type, user.accountId, searchTerm, searchStatuses, pageSize, currentPage)
         .then((auctionsGet) => {
             setTotalPages(Math.ceil(auctionsGet.totalNumAuctions / pageSize));
-            console.log(auctionsGet);
             setAuctions(auctionsGet.auctions.map((auction: any) => {
                 //TODO set the image
                 return {

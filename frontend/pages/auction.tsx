@@ -30,6 +30,16 @@ import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
+import type { Auction } from "@/types/backendAuctionTypes";
+
+function auctionPollingStart(auctionId: string, setToast: (err: ErrorType) => void, bidId: string, signal: AbortSignal, setFunction: (bid: Auction) => void) {
+  pollForAuctionUpdates(setToast, auctionId, signal, bidId).then((bid: any) => {
+    if (!bid) { return }
+
+    setFunction(bid);
+    auctionPollingStart(auctionId, setToast, bid.topBid.bidId, signal, setFunction);
+  });
+}
 
 export default function Auction({
   setCurPage,
@@ -38,7 +48,7 @@ export default function Auction({
   context,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
-  user: User | null;
+  user: User;
   setToast: (err: ErrorType) => void;
   context: string;
 }) {
@@ -49,85 +59,66 @@ export default function Auction({
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
 
-  // useEffect(() => {
-  //   const controller = new AbortController();
-  //   const signal = controller.signal;
-
-  //   getAuctionBids(setToast, "auction1").then((bids: AuctionBidHistory[]) => {
-  //     setBids(bids);
-  //   });
-  //   pollForAuctionUpdates(setToast, "auction1", signal, setBids);
-  //   // pollForAuctionUpdates("auction2", signal, setBids);
-
-  //   return () => {
-  //     controller.abort("Polling aborted");
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   setBidCount(bids.reduce((acc, cur) => acc + cur.bids, 0));
-  // }, [bids]);
-
-  // // TODO: Use actual loading data
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setBidsLoading(false);
-  //   }, 3000);
-
-  //   return () => {
-  //     setBidsLoading(true);
-  //   };
-  // }, []);
-
-  //IDK what theese should be but constants wont work
-  const [spread, setSpread] = useState<number>(0.5);
-  const [startingBid, setStartingBid] = useState<number>(0.5);
+  const [spread, setSpread] = useState<number>(0);
+  const [curMinBid, setCurMinBid] = useState<number>(0);
   const [username, setUsername] = useState<string>("matt");
   const [winning, setWinning] = useState<boolean>(bids[0]?.bidder === username);
   const [watching, setWatching] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(new Date());
+  const [curBid, setCurBid] = useState<number>(0);
+  const curAuctionId = useRef<string>("");
   const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({  
     expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
     autoStart: true,
   });
 
+  function setAuctionData(auction: Auction) {
+    setBidsLoading(true);
+    setCurMinBid(auction.minNewBidPrice);
+    setBidCount(auction.numBids)
+    setCurBid(auction.topBid.amount)
+    setWinning(auction.topBid.bidder.accountId === user.accountId)
+    setBidsLoading(false);
+  }
+
   useEffect(() => {
     const curBid = JSON.parse(context)
+    const abortController = new AbortController();
+    const signal = abortController.signal;
 
-    fetchAuction(setToast, curBid.auctionId).then((auction) => {
+    fetchAuction(setToast, curBid.auctionId).then((auction: Auction) => {
       if (!auction) { return }
-
-      setSpread(parseFloat(auction.spread));
-      setStartingBid(parseFloat(auction.startPrice));
+      curAuctionId.current = auction.auctionId;
+      setSpread(auction.spread);
       setEndTime(new Date(auction.endTime));
       setStartTime(new Date(auction.startTime));
-      const adjustedEndTime = new Date(auction.endTime);
-      adjustedEndTime.setSeconds(adjustedEndTime.getSeconds() + 300);
-      restart(adjustedEndTime);
-      setBidsLoading(false);
+      setAuctionData(auction);
+      restart(new Date(auction.endTime));
+      auctionPollingStart(curBid.auctionId, setToast, auction.topBid.bidId, signal, (newBid: Auction) => {
+        setAuctionData(newBid);
+      });
     })
+
+    return () => {
+      abortController.abort();
+    }
   }, []);
 
   // /**
   //  * Handles submitting a new bid
   //  */
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
-    // e.preventDefault();
+    e.preventDefault();
 
-    // if (auctionEnded || winning) {
-    //   console.warn("Cannot bid on an ended or winning auction");
-    //   return;
-    // }
-    // const formData = new FormData(e.currentTarget);
-    // const bidAmount = parseFloat(formData.get("bid_amount") as string);
-    // (e.currentTarget as HTMLFormElement).reset();
-    // console.log("TRIED SUBMITTED BID WITH AMT " + bidAmount);
-    // submitBid(setToast, "auction1", bidAmount, username);
+    if (auctionEnded || winning) {
+      console.warn("Cannot bid on an ended or winning auction");
+      return;
+    }
+
+    submitBid(setToast, curAuctionId.current, parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value), user.accountId)
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SampleNextArrow(props: any) {
     const { className, style, onClick } = props;
     return (
@@ -225,8 +216,8 @@ export default function Auction({
                   >
                     ${" "}
                     {bidCount > 0
-                      ? bids[0]?.highBid.toFixed(2)
-                      : startingBid.toFixed(2)}
+                      ? curBid.toFixed(2)
+                      : curMinBid.toFixed(2)}
                   </p>
                 )}
                 {winning ? (
@@ -301,7 +292,7 @@ export default function Auction({
                   : bidsLoading
                   ? "Bid"
                   : `Bid $ ${(
-                      (bidCount > 0 ? bids[0]?.highBid : startingBid) + spread
+                      (bidCount > 0 ? curBid : curMinBid) + spread
                     ).toFixed(2)}`}
               </Button>
 
@@ -402,7 +393,7 @@ export default function Auction({
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
               <p className={styles.starting_bid_amt}>
-                $ {startingBid.toFixed(2)}
+                $ {curMinBid.toFixed(2)}
               </p>
               <p className={styles.bid_info_label}>STARTING BID</p>
             </div>
@@ -458,7 +449,7 @@ export default function Auction({
                     </TableCell>
                     <TableCell align="center">{bid.bids}</TableCell>
                     <TableCell align="center">
-                      {bid.highBid.toFixed(2)}
+                      {curBid.toFixed(2)}
                     </TableCell>
                     <TableCell
                       align="right"
@@ -530,7 +521,7 @@ export default function Auction({
             variant="outlined"
             name="bid_amount"
             defaultValue={(
-              (bidCount > 0 ? bids[0]?.highBid : startingBid) + spread
+              (bidCount > 0 ? curBid : curMinBid) + spread
             ).toFixed(2)}
             required
             slotProps={{
