@@ -20,7 +20,6 @@ const useSelfAuctions = (
 ) => {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
-
   useEffect(() => {
     fetchSelfAuctions(
       errorFcn,
@@ -60,6 +59,7 @@ const useSelfAuctions = (
             numberOfBids: auction.numBids,
             endDate: auction.endTime ? new Date(auction.endTime) : null,
           };
+
         })
       );
     });

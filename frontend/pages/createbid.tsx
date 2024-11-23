@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
 import { createAuction } from "@/utils/fetchFunctions";
-import cardRarities, { qualityList } from "@/types/cardGameInfo";
+import cardRarities, { qualityList, PSAList } from "@/types/cardGameInfo";
 import styles from "@/styles/CardListing.module.css";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
@@ -170,6 +170,12 @@ const CardListing: React.FC<CardListingProps> = ({
     }
   };
 
+  const getMinDatePlusTwoMinutes = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + 2);
+    return date.toLocaleString().slice(0, 16);
+  };
+
   const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -243,7 +249,14 @@ const CardListing: React.FC<CardListingProps> = ({
       });
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (startDateRef.current && new Date(startDateRef.current.value) < new Date()) {
+      setToast({
+        message: "Start date must be in the future",
+        severity: Severity.Warning,
+      });
+      return;
+    }
+
     const auctionData: any = {
       auctioneerId: user.accountId,
       name: cardNameRef.current?.value || "Unknown Name",
@@ -260,20 +273,19 @@ const CardListing: React.FC<CardListingProps> = ({
           : "",
       type: type,
       cards:
-        type === "Card"
-          ? {
-              game: cardType,
-              name: cardNameRef.current?.value || "Unknown Card Name",
-              description:
-                descriptionRef.current?.value || "No description provided",
-              manufacturer:
-                manufacturerRef.current?.value || "Unknown Manufacturer",
-              quality: quality,
-              rarity: rarity,
-              set: setRef.current?.value || "Unknown Set",
-              isFoil: isFoil === "Yes",
-            }
-          : undefined,
+      type === "Card"
+      ? {
+      game: cardType,
+      name: cardNameRef.current?.value || "Unknown Card Name",
+      description: descriptionRef.current?.value || "No description provided",
+      manufacturer: manufacturerRef.current?.value || "Unknown Manufacturer",
+      qualityUngraded: typeof quality === 'string' ? quality : undefined,
+      qualityPsa: typeof quality === 'number' ? quality : undefined,
+      rarity: rarity,
+      set: setRef.current?.value || "Unknown Set",
+      isFoil: isFoil === "Yes",
+      }
+      : undefined,
     };
 
     if (
@@ -298,9 +310,11 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
-    createAuction(setToast, auctionData).then((auction) =>
-      setCurPage("auction", JSON.stringify({ auctionId: auction.auctionId }))
-    );
+    createAuction(setToast, auctionData).then((auction) => {
+      if (!auction.auctionId) { return }
+      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+    });
+
   };
 
   const settings = {
@@ -394,9 +408,9 @@ const CardListing: React.FC<CardListingProps> = ({
                     onChange={(e) => setQuality(e.target.value)}
                     required
                   >
-                    {qualityList.map((quality: string, index: number) => (
+                    {[...qualityList, ...PSAList].map((quality: string | number, index: number) => (
                       <MenuItem value={quality} key={index}>
-                        {quality}
+                        {typeof quality === 'number' ? `PSA ${quality}` : quality}
                       </MenuItem>
                     ))}
                   </Select>
@@ -535,7 +549,7 @@ const CardListing: React.FC<CardListingProps> = ({
               margin="normal"
               InputLabelProps={{ shrink: true }}
               inputProps={{
-                min: new Date().toISOString().slice(0, 16),
+                min: getMinDatePlusTwoMinutes(),
               }}
             />
 

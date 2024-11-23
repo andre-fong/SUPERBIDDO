@@ -48,6 +48,18 @@ export type CardInput = {
   isFoil: boolean;
 };
 
+export type BidDetails = {
+  amount: number;
+  auctionId: string;
+  bidId: string;
+  bidder: {
+    accountId: string;
+    email: string;
+    username: string;
+  };
+  timestamp: string;
+};
+
 export type Card = {
   cardId: string;
   game: Game;

@@ -721,9 +721,9 @@ router.get("/:auctionId", async (req, res) => {
 router.post("/", async (req, res) => {
   const auctionInput: AuctionInput = req.body;
   // can only post auctions for self
-  if (auctionInput.auctioneerId !== req.session.accountId) {
-    throw unauthorized();
-  }
+  // if (auctionInput.auctioneerId !== req.session.accountId) {
+  //   throw unauthorized();
+  // }
 
   // validate context dependent fields
   // (openapi cannot define fields based on other fields)

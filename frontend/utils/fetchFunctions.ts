@@ -176,10 +176,12 @@ export async function getAuctionSearchResults(
 
 export async function getAuctionBids(
   errorFcn: (error: ErrorType) => void,
-  auctionId: string
+  auctionId: string,
+  page: number,
+  pageSize: number
 ) {
   try {
-    const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
+    const response = await fetch(`${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -189,8 +191,13 @@ export async function getAuctionBids(
 
     if (response.ok) {
       const bids = await response.json();
-      return bids;
-    } else if (response.status === 404) {
+      return bids.bids;
+    }
+    else if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return [];
+    } 
+    else if (response.status === 404) {
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
       return [];
     }
@@ -204,24 +211,23 @@ export async function pollForAuctionUpdates(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
-  setBids: (bids: AuctionBidHistory[]) => void
+  longPollMaxBidId: string,
 ) {
   try {
-    const response = await fetch(`${url}/bid/${auctionId}?poll=true`, {
+    const response = await fetch(`${url}/auctions/${auctionId}?longPollMaxBidId=${longPollMaxBidId}`, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
+      "Content-Type": "application/json",
       },
       credentials: "include",
       signal,
     });
 
     if (response.ok) {
-      const newBid: AuctionBidHistory[] = await response.json();
-      console.log(`POLLING New bid received for auction ${auctionId}:`, newBid);
-      setBids(newBid);
-    } else if (response.status === 502) {
-      console.log(`Polling for auction ${auctionId} timed out`);
+      const newBid = await response.json();
+      return newBid;
+    } else if (response.status === 400) {
+      errorFcn({message: "Request format is invalid", severity: Severity.Warning});
     } else if (response.status === 404) {
       errorFcn({
         message: "Error initiating connection for an auction",
@@ -232,16 +238,15 @@ export async function pollForAuctionUpdates(
         response.statusText
       );
     }
-    // Re-initiate polling after receiving an update without any delay
-    pollForAuctionUpdates(errorFcn, auctionId, signal, setBids);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return null;
   } catch (err: any) {
     if (err.name === "AbortError") {
       console.log(`Polling for auction ${auctionId} aborted`);
-      return;
     } else {
+      console.error(err);
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
+    return null;
   }
 }
 
@@ -279,26 +284,24 @@ export async function pollNotifications(
   }
 }
 
-//
-
 export async function submitBid(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   amount: number,
-  bidder: string
+  bidderId: string
 ) {
   try {
-    const response = await fetch(`${url}/bid/${auctionId}`, {
+    const response = await fetch(`${url}/auctions/${auctionId}/bids`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount, bidder }),
+      body: JSON.stringify({ amount, bidderId }),
       credentials: "include",
     });
 
     if (response.ok) {
-      console.log(`Bid for ${auctionId} submitted successfully`);
+      return await response.json();
     } else if (response.status === 400) {
       errorFcn({ message: "Bid too low", severity: Severity.Warning });
     } else if (response.status === 404) {
@@ -317,8 +320,10 @@ export async function submitBid(
         response.statusText
       );
     }
+    return null;
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null
   }
 }
 export async function createAuction(
@@ -441,8 +446,8 @@ export async function fetchSelfAuctions(
   try {
     const response = await fetch(
       `${url}/auctions?${
-        type === "biddings" ? "bidderId" : "auctioneerId"
-      }=${accountId}&name=${searchName}&page=${currentPage}&pageSize=${pageSize}`,
+        type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
+      }=${accountId}${searchName ? '&name=' + searchName : ""}&page=${currentPage}&pageSize=${pageSize}`,
       {
         method: "GET",
         headers: {
@@ -471,9 +476,11 @@ export async function fetchSelfAuctions(
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
 
-    return [];
+    return {auctions: [], totalNumAuctions: 0};
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
-    return [];
+    return {auctions: [], totalNumAuctions: 0};
   }
 }
+
+
