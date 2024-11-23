@@ -424,18 +424,30 @@ export default function Navbar({
                                 borderStyle: "none",
                                 display: "flex",
                                 alignItems: "center",
+                                justifyContent: "space-between",
                                 padding: "10px 20px",
                               }}
                             >
-                              <div className={styles.account_popper_avatar}>
-                                <AccountCircleIcon fontSize="inherit" />
+                              <div className={styles.account_popper_row}>
+                                <div className={styles.account_popper_avatar}>
+                                  <AccountCircleIcon fontSize="inherit" />
+                                </div>
+                                <div
+                                  className={
+                                    styles.account_popper_username_email
+                                  }
+                                >
+                                  <p className={styles.account_popper_username}>
+                                    {user.username}{" "}
+                                  </p>
+                                  <p
+                                    className={styles.account_popper_email}
+                                    title={user.email}
+                                  >
+                                    {user.email}
+                                  </p>
+                                </div>
                               </div>
-                              <p className={styles.account_popper_username}>
-                                Username{" "}
-                                <span className={styles.user_sell_count}>
-                                  (x)
-                                </span>
-                              </p>
 
                               <button
                                 className={styles.signout}

@@ -26,22 +26,22 @@ export default function Login({
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const username = (
-      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    const email = (
+      e.currentTarget.elements.namedItem("email") as HTMLInputElement
     ).value;
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
 
-    fetchLogin(setToast, username, password).then((loginData) => {
+    fetchLogin(setToast, email, password).then((loginData) => {
       if (!loginData) {
         return;
       }
 
       setUser({
         accountId: loginData.accountId,
-        username: username,
-        email: `${username}@gmail.com`,
+        username: email.split("@")[0],
+        email,
       });
       setCurPage((JSON.parse(context)?.next as PageName) || "home");
     });
@@ -78,15 +78,15 @@ export default function Login({
           </p>
 
           <label
-            htmlFor="username"
+            htmlFor="email"
             className={`${styles.label} ${styles.required}`}
           >
-            Username
+            Email
           </label>
           <TextField
-            id="username"
+            id="email"
             size="small"
-            placeholder="Enter your email / username"
+            placeholder="Enter your email"
             variant="outlined"
             required
             autoComplete="off"

@@ -135,10 +135,33 @@
   text-decoration: underline;
 }
 
-.account_popper_username {
+.account_popper_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+.account_popper_username_email {
   margin-left: 10px;
+  margin-bottom: -2px;
+}
+.account_popper_username {
   font-size: 1.1em;
   font-weight: 500;
+  max-width: 10ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account_popper_email {
+  margin-top: 2px;
+  font-size: 0.7em;
+  color: gray;
+  max-width: 25ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account_popper_avatar {
@@ -151,7 +174,9 @@
 }
 
 .user_sell_count {
-  font-size: 0.8em;
+  margin-bottom: -2px;
+  font-size: 0.9em;
+  margin-left: 0.5ch;
   color: var(--accent);
 }
 
@@ -181,7 +206,8 @@
 .account_popper_bottom {
   display: flex;
   height: fit-content;
-  justify-content: space-between;
+  justify-content: space-around;
+  gap: 10px;
   margin-top: 8px;
 }
 
