@@ -12,7 +12,7 @@
   padding: 10px 30px;
   gap: 20px;
   border-bottom: 1px solid lightgray;
-  z-index: 99;
+  z-index: 9999;
 }
 
 .right {
