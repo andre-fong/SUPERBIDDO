@@ -175,10 +175,12 @@ export async function getAuctionSearchResults(
 
 export async function getAuctionBids(
   errorFcn: (error: ErrorType) => void,
-  auctionId: string
+  auctionId: string,
+  page: number,
+  pageSize: number
 ) {
   try {
-    const response = await fetch(`${url}/bid/${auctionId}?poll=false`, {
+    const response = await fetch(`${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -187,8 +189,13 @@ export async function getAuctionBids(
 
     if (response.ok) {
       const bids = await response.json();
-      return bids;
-    } else if (response.status === 404) {
+      return bids.bids;
+    }
+    else if (response.status === 400) {
+      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+      return [];
+    } 
+    else if (response.status === 404) {
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
       return [];
     }
@@ -286,7 +293,6 @@ export async function submitBid(
     });
 
     if (response.ok) {
-      console.log(`Bid for ${auctionId} submitted successfully`);
       return await response.json();
     } else if (response.status === 400) {
       errorFcn({ message: "Bid too low", severity: Severity.Warning });

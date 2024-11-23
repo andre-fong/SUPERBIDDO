@@ -1,5 +1,5 @@
 import { PageName } from "@/types/pageTypes";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
@@ -30,7 +30,8 @@ import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
-import type { Auction } from "@/types/backendAuctionTypes";
+import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
+import { timeStamp } from "console";
 
 function auctionPollingStart(auctionId: string, setToast: (err: ErrorType) => void, bidId: string, signal: AbortSignal, setFunction: (bid: Auction) => void) {
   pollForAuctionUpdates(setToast, auctionId, signal, bidId).then((bid: any) => {
@@ -40,6 +41,8 @@ function auctionPollingStart(auctionId: string, setToast: (err: ErrorType) => vo
     auctionPollingStart(auctionId, setToast, bid.topBid.bidId, signal, setFunction);
   });
 }
+
+const pageSize = 8;
 
 export default function Auction({
   setCurPage,
@@ -53,27 +56,51 @@ export default function Auction({
   context: string;
 }) {
   const [viewingBids, setViewingBids] = useState<boolean>(false);
-  const [bids, setBids] = useState<AuctionBidHistory[]>([]);
   const [bidCount, setBidCount] = useState<number>(0);
   const [bidsLoading, setBidsLoading] = useState<boolean>(true);
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
-
   const [spread, setSpread] = useState<number>(0);
   const [curMinBid, setCurMinBid] = useState<number>(0);
   const [username, setUsername] = useState<string>("matt");
-  const [winning, setWinning] = useState<boolean>(bids[0]?.bidder === username);
+  const [winning, setWinning] = useState<boolean>(false);
   const [watching, setWatching] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(new Date());
   const [curBid, setCurBid] = useState<number>(0);
+  const [curPage, setCurHistoryPage] = useState<number>(1);
   const curAuctionId = useRef<string>("");
+  const [bids, setBids] = useState<AuctionBidHistory[]>([]);
+
+  //TODO: pagination for pages for mandre
+  useEffect(() => {
+    if (!curAuctionId.current) { return }
+    setBidsLoading(true);
+    getAuctionBids(setToast, curAuctionId.current, curPage, pageSize)
+      .then((newBids: BidDetails[]) => {
+        return []
+        // const newBidsFormatted = newBids.map((bid) => {
+        //   return {
+        //     bidder: bid.bidder.username,
+        //     bids: bidCount,
+        //     highBid: curBid,
+        //     lastBidTime: bid.timestamp,
+        //   }
+        // });
+        // setBids(newBidsFormatted);
+      });
+    setBidsLoading(false);
+  }, [curBid, curPage]);
+
   const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({  
     expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
     autoStart: true,
   });
 
+  
+
+  //THIS IS ONLY FOR NEW BIDS
   function setAuctionData(auction: Auction) {
     setBidsLoading(true);
     setCurMinBid(auction.minNewBidPrice);
@@ -138,7 +165,6 @@ export default function Auction({
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SamplePrevArrow(props: any) {
     const { className, style, onClick } = props;
     return (
