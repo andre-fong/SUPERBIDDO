@@ -290,8 +290,106 @@
   gap: 15px;
 }
 
+.listing_details_container {
+  display: flex;
+  padding: 20px 0;
+}
+
+.listing_details_left,
+.listing_details_right {
+  flex: 1;
+}
+
+.detail_row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.detail_title {
+  width: 15ch;
+  min-width: 15ch;
+  color: gray;
+}
+
+.description_title {
+  font-size: 1.3em;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: rgb(80, 80, 80);
+}
+.description {
+  line-height: 1.3;
+  padding-bottom: 15px;
+}
+
+.auctioneer_details_container {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px clamp(20px, 5vw, 300px);
+  gap: 20px;
+}
+
+.auctioneer_row,
+.auctioneer_location {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.auctioneer_divider {
+  border-left: 1px solid lightgray;
+  height: 70px;
+}
+
+.TEMP_auctioneer_pfp {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.auctioneer_username {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: rgb(80, 80, 80);
+  margin-bottom: 5px;
+}
+
+.auctioneer_num_listings {
+  font-size: 0.9em;
+  color: rgb(86, 86, 86);
+}
+
+.terms_and_conditions_container {
+  margin-top: 30px;
+}
+.terms_title {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+.terms {
+  padding-left: 20px;
+}
+.terms li {
+  line-height: 1.3;
+  margin-bottom: 7px;
+}
+
+.payment_details_container {
+  padding: 20px 0;
+}
+
 @media (max-width: 800px) {
   .hero_container {
     flex-direction: column;
+  }
+  .listing_details_container {
+    flex-direction: column;
+  }
+  .auctioneer_details_container {
+    flex-direction: column;
+  }
+  .auctioneer_divider {
+    display: none;
   }
 }
