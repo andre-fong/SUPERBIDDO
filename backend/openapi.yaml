@@ -35,6 +35,8 @@ paths:
                 $ref: "#/components/schemas/Account"
         400:
           $ref: "#/components/responses/BadRequest"
+        409:
+          $ref: "#/components/responses/Conflict"
   /api/v1/session:
     get:
       summary: Get the current session details.
@@ -91,8 +93,8 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: bidderId
-          description: The uuid of a bidder. If provided, only auctions that this bidder has bid on will be returned. Must match signed in user id.
+          name: includeBidStatusFor
+          description: The uuid of a bidder. If provided, the bid status of the bidder will be included in the response for each auction. Must match signed in user id.
           required: false
           schema:
             type: string
@@ -110,6 +112,18 @@ paths:
           required: false
           schema:
             type: string
+        - in: query
+          name: auctionStatus
+          description: The status of an auction. If provided, only auctions with this status will be returned.
+          required: false
+          schema:
+            $ref: "#/components/schemas/AuctionStatus"
+        - in: query
+          name: bidStatus
+          description: The bid status of an auction. Ignored if includeBidStatusFor is not provided. If both are provided, only auctions where the bidder's bid matches the provided status will be returned.
+          required: false
+          schema:
+            $ref: "#/components/schemas/BidStatus"
         - in: query
           name: minMinNewBidPrice
           description: The minimum smallest bid (current bid plus spread) of an auction. If provided, auctions with smallest bids below this value will be excluded.
@@ -364,6 +378,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: includeBidStatusFor
+          in: query
+          description: The uuid of a bidder. If provided, the bid status of the bidder will be included in the response. Must match signed in user id.
+          required: false
+          schema:
+            type: string
+            format: uuid
         - name: longPollMaxBidId
           in: query
           description: The uuid of the current bid. If provided, and the current leading bid on the auction is the provided id, the request will not return immediately. Instead, it will wait until a new bid is placed on the auction.
@@ -584,6 +605,7 @@ components:
             - minNewBidPrice
             - topBid
             - numBids
+            - auctionStatus
           properties:
             auctionId:
               readOnly: true
@@ -627,6 +649,14 @@ components:
               readOnly: true
               type: integer
               minimum: 0
+            auctionStatus:
+              readOnly: true
+              allOf:
+                - $ref: "#/components/schemas/AuctionStatus"
+            bidStatus:
+              readOnly: true
+              allOf:
+                - $ref: "#/components/schemas/BidStatus"
           not:
             required:
               - cards
@@ -674,11 +704,9 @@ components:
                 - endTime
               properties:
                 startTime:
-                  type: string
                   enum:
                     - null
                 endTime:
-                  type: string
                   enum:
                     - null
     Card:
@@ -775,6 +803,22 @@ components:
           properties:
             qualityPsa:
               $ref: "#/components/schemas/QualityPsa"
+    AuctionStatus:
+      type: string
+      enum:
+        - Not scheduled
+        - Scheduled
+        - Ongoing
+        - Ended
+    BidStatus:
+      type: string
+      enum:
+        - Not bid (ended)
+        - Not bid
+        - Leading
+        - Outbid
+        - Won
+        - Lost
     Bundle:
       type: object
       required:
