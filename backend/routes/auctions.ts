@@ -116,6 +116,11 @@ router.get("/", async (req, res) => {
     values.push(...value);
   }
 
+  const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);
+  if (includeBidStatusFor) {
+    values.push(includeBidStatusFor);
+  }
+
   addCondition(`auctioneer_id = ?`, auctioneerId);
   addCondition(
     `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
@@ -146,20 +151,19 @@ router.get("/", async (req, res) => {
   addCondition(`end_time <= ?`, maxEndTime);
   addCondition(
     `CASE
-      WHEN start_time IS NULL THEN 'not scheduled'
-      WHEN start_time >= NOW() THEN 'scheduled'
-      WHEN start_time <= NOW() AND end_time >= NOW() THEN 'active'
-      ELSE 'ended'
+      WHEN start_time IS NULL THEN 'Not scheduled'
+      WHEN start_time >= NOW() THEN 'Scheduled'
+      WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
+      ELSE 'Ended'
     END = ?`,
     auctionStatus
   );
-  // bidStatuses: leading, outbid, won, lost
-  addCondition(
-    `CASE
-      WHEN 
-    END = ?`,
-    bidStatus
-  );
+  if (includeBidStatusFor) {
+    addCondition(
+      `auction_id IN (SELECT auction_id FROM (${bidStatusCte}) WHERE bid_status = ?)`,
+      bidStatus
+    );
+  }
   addCondition(
     `auction_id IN (SELECT auction_id FROM card WHERE game = ?)`,
     cardGame
@@ -221,8 +225,6 @@ router.get("/", async (req, res) => {
     ? ` WHERE ${conditions.join(" AND ")}`
     : "";
 
-  console.log(whereClause);
-
   const orderBy = (() => {
     switch (sortBy) {
       case "startPriceAsc":
@@ -258,11 +260,6 @@ router.get("/", async (req, res) => {
   values.push(parseInt(pageSize));
   const offset = ` OFFSET $${values.length + 1}`;
   values.push((parseInt(page) - 1) * parseInt(pageSize));
-
-  const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);
-  if (includeBidStatusFor) {
-    values.push(includeBidStatusFor);
-  }
 
   const auctionRecords = camelize(
     await pool.query<
@@ -347,7 +344,6 @@ router.get("/", async (req, res) => {
     )
   ).rows;
 
-  console.log(auctionRecords);
   const auctions: Auction[] = auctionRecords.map((auctionRecord) => {
     if (auctionRecord.isBundle) {
       const bundleRecord = auctionRecord.bundle[0];
@@ -459,7 +455,7 @@ router.get("/", async (req, res) => {
       ` SELECT COUNT(*) FROM
       (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
       as count`,
-      values.slice(0, values.length - (includeBidStatusFor ? 3 : 2))
+      values.slice(0, values.length - 2) //page, and pageSize
     )
   ).rows[0].count;
 
@@ -595,8 +591,6 @@ router.get("/:auctionId", async (req, res) => {
     )
   ).rows[0];
 
-  console.log(auctionRecord);
-  console.log(includeBidStatusFor);
   if (!auctionRecord) {
     throw new BusinessError(404, "Auction not found");
   }
@@ -966,6 +960,10 @@ function getBidStatusCte(bidderId: string, valNum: number) {
     SELECT auction_id, end_time, max_bid_amount as max_bid,
     (SELECT MAX(amount) FROM bid WHERE auction_id = bid_agg.auction_id AND bidder_id = $${valNum}) as bidder_max_bid
     FROM auction
-    LEFT JOIN bid_agg USING(auction_id)
+    LEFT JOIN (
+          SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
+          FROM bid
+          GROUP BY auction_id
+        ) bid_agg USING(auction_id)
     ) bid_status`;
 }
