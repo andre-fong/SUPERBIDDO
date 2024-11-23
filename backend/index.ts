@@ -18,6 +18,9 @@ import { router as bidRouter } from "./routes/bids.js";
 import { router as biddingRouter } from "./routes/bidding.js";
 import { router as oauthRouter } from "./routes/oauth.js";
 import { router as notificationRouter } from "./routes/notifications.js";
+import { Server } from "socket.io";
+import camelize from "camelize";
+import { pool } from "./configServices/dbConfig.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -99,4 +102,40 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
 
 server.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
+});
+
+const io = new Server(server, {
+  cors: corsConfig,
+});
+
+//I believe this is where we put the groups of the user or whatever
+io.use(async (socket, next) => {
+
+  //TODO authorization i think?
+  //TODO: place in the user groups
+  
+  console.log(
+    "user connected"
+  );
+  next();
+});
+
+io.on("connection", async (socket) => {
+  console.log("connected", socket.id);
+
+  socket.use((event, next) => {
+    console.log("received event", event);
+    next();
+  });
+
+  socket.on("disconnecting", () => {
+    console.log("disconnecting", socket.id);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.log("connect_error:", err.message); // prints the message associated with the error
+  });
+  
+
+  
 });

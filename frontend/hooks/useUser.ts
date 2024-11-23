@@ -13,7 +13,6 @@ function useUser() {
       setUser(null);
       setLoading(false);
     }).then((user) => {
-      console.log(user);
       setUser(user);
       setLoading(false);
     });

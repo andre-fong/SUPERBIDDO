@@ -5,20 +5,6 @@ export const router = express.Router();
 
 let onlineClients = [];
 
-router.get("/:accountId", (req, res) => {
-    const accountId = req.params.accountId;
-    // Add the response object to the auction's client list
-    if (!onlineClients.some(client => client.accountId === accountId)) {
-        onlineClients.push({ accountId, res });
-    }
-
-    // Handle connection close
-    req.on("close", () => {
-        onlineClients = onlineClients.filter(client => client.res !== res);
-    });
-    return;
-});
-
 export function sendNotification(accountId: string, message: string) {
     onlineClients.forEach(client => {
         if (client.accountId === accountId) {
