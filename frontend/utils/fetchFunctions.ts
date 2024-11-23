@@ -158,6 +158,7 @@ export async function getAuctionSearchResults(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -183,6 +184,7 @@ export async function getAuctionBids(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -210,6 +212,7 @@ export async function pollForAuctionUpdates(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       signal,
     });
 
@@ -251,6 +254,11 @@ export async function pollNotifications(
   try {
     const response = await fetch(`${url}/notifications/${accountId}`, {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      signal,
     });
     if (response.ok) {
       const data = await response.json();
@@ -286,6 +294,7 @@ export async function submitBid(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ amount, bidder }),
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -347,8 +356,8 @@ export async function createAuction(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        credentials: "include",
       },
+      credentials: "include",
       body: JSON.stringify({
         ...auctionData,
         cards: auctionData.cards ? [auctionData.cards] : undefined,
@@ -393,6 +402,7 @@ export async function fetchAuction(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
