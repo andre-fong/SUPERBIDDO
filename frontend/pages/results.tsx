@@ -1516,7 +1516,7 @@ export default function Results({
                   />
                 </div>
               ))}
-            {results.map((auction) => (
+            {results?.map((auction) => (
               <Listing
                 key={auction.auctionId}
                 auction={auction}
