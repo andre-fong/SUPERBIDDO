@@ -674,11 +674,9 @@ components:
                 - endTime
               properties:
                 startTime:
-                  type: string
                   enum:
                     - null
                 endTime:
-                  type: string
                   enum:
                     - null
     Card:
