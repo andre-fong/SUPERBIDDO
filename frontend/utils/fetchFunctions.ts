@@ -446,7 +446,7 @@ export async function fetchSelfAuctions(
   try {
     const response = await fetch(
       `${url}/auctions?${
-        type === "biddings" ? "bidderId" : "auctioneerId"
+        type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
       }=${accountId}${searchName ? '&name=' + searchName : ""}&page=${currentPage}&pageSize=${pageSize}`,
       {
         method: "GET",
