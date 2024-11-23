@@ -103,7 +103,7 @@
 
 .results_grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   column-gap: 5px;
   row-gap: 40px;
 }
@@ -133,6 +133,10 @@
 }
 
 @media (max-width: 960px) {
+  .results_grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
   .left_filter_toggle {
     display: block;
   }

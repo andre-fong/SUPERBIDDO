@@ -158,6 +158,7 @@ export async function getAuctionSearchResults(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -185,6 +186,7 @@ export async function getAuctionBids(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -217,6 +219,7 @@ export async function pollForAuctionUpdates(
       headers: {
       "Content-Type": "application/json",
       },
+      credentials: "include",
       signal,
     });
 
@@ -254,26 +257,31 @@ export async function pollNotifications(
   signal: AbortSignal
 ) {
   try {
-      const response = await fetch(`${url}/notifications/${accountId}`, {
-          method: 'GET',
-      });
-      if (response.ok) {
-          const data = await response.json();
-          notifcationFcn(data.message);
-          pollNotifications(accountId, errorFcn, notifcationFcn, signal);
-      }
-      else {
-        errorFcn({ message: unkownError, severity: Severity.Critical });
-      }
+    const response = await fetch(`${url}/notifications/${accountId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      signal,
+    });
+    if (response.ok) {
+      const data = await response.json();
+      notifcationFcn(data.message);
+      pollNotifications(accountId, errorFcn, notifcationFcn, signal);
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.name === "AbortError") {
-      console.warn('Polling for notifications aborted');
+      console.warn("Polling for notifications aborted");
       return;
     } else {
       console.error(error);
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
-  } 
+  }
 }
 
 export async function submitBid(
@@ -353,8 +361,8 @@ export async function createAuction(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        credentials: "include",
       },
+      credentials: "include",
       body: JSON.stringify({
         ...auctionData,
         cards: auctionData.cards ? [auctionData.cards] : undefined,
@@ -399,6 +407,7 @@ export async function fetchAuction(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (response.ok) {

@@ -131,6 +131,7 @@ export default function Auction({
     return () => {
       abortController.abort();
     }
+
   }, []);
 
   // /**
@@ -138,6 +139,7 @@ export default function Auction({
   //  */
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
 
     if (auctionEnded || winning) {
       console.warn("Cannot bid on an ended or winning auction");
@@ -384,6 +386,7 @@ export default function Auction({
               {/* TODO: Replace with downloaded default pfp (or api) */}
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png"
+                alt="Profile Picture"
                 className={styles.TEMP_pfp}
               />
               {/* TODO: Make username a link */}

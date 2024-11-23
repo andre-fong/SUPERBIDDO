@@ -23,6 +23,7 @@ import { ErrorType, Severity } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import { PageName } from "@/types/pageTypes";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SampleNextArrow(props: any) {
   const { className, onClick } = props;
   return (
@@ -34,6 +35,7 @@ function SampleNextArrow(props: any) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SamplePrevArrow(props: any) {
   const { className, style, onClick } = props;
   return (
@@ -98,7 +100,7 @@ const CardListing: React.FC<CardListingProps> = ({
         );
       }
 
-      let missingFields = [];
+      const missingFields = [];
 
       if (cardInfo.type != "bundle") {
         if (cardInfo.quality) {
@@ -121,7 +123,6 @@ const CardListing: React.FC<CardListingProps> = ({
       }
 
       if (cardNameRef.current) {
-        console;
         if (cardInfo.type === "bundle") {
           cardNameRef.current.value = cardInfo.bundleName;
         } else {
@@ -238,7 +239,9 @@ const CardListing: React.FC<CardListingProps> = ({
     if (
       startDateRef.current &&
       endDateRef.current &&
-      new Date(endDateRef.current.value).getTime() - new Date(startDateRef.current.value).getTime() < 5 * 60 * 1000
+      new Date(endDateRef.current.value).getTime() -
+        new Date(startDateRef.current.value).getTime() <
+        5 * 60 * 1000
     ) {
       setToast({
         message: "The auction duration must be at least 5 minutes",
@@ -246,7 +249,6 @@ const CardListing: React.FC<CardListingProps> = ({
       });
       return;
     }
-
     if (startDateRef.current && new Date(startDateRef.current.value) < new Date()) {
       setToast({
         message: "Start date must be in the future",
@@ -261,8 +263,14 @@ const CardListing: React.FC<CardListingProps> = ({
       description: descriptionRef.current?.value,
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
       spread: parseFloat(spreadRef.current?.value || "0"),
-      startTime: startDateRef.current && startDateRef.current.value != "" ? new Date(startDateRef.current.value).toISOString() : "",
-      endTime: endDateRef.current && endDateRef.current.value != "" ? new Date(endDateRef.current.value).toISOString() : "",
+      startTime:
+        startDateRef.current && startDateRef.current.value != ""
+          ? new Date(startDateRef.current.value).toISOString()
+          : "",
+      endTime:
+        endDateRef.current && endDateRef.current.value != ""
+          ? new Date(endDateRef.current.value).toISOString()
+          : "",
       type: type,
       cards:
       type === "Card"
@@ -280,7 +288,10 @@ const CardListing: React.FC<CardListingProps> = ({
       : undefined,
     };
 
-    if (startDateRef.current?.value === "" && endDateRef.current?.value === "") {
+    if (
+      startDateRef.current?.value === "" &&
+      endDateRef.current?.value === ""
+    ) {
       delete auctionData.startTime;
       delete auctionData.endTime;
     }
@@ -303,6 +314,7 @@ const CardListing: React.FC<CardListingProps> = ({
       if (!auction.auctionId) { return }
       setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
     });
+
   };
 
   const settings = {

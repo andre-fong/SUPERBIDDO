@@ -27,14 +27,14 @@ export default function Signup({
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const username = (
-      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    const email = (
+      e.currentTarget.elements.namedItem("email") as HTMLInputElement
     ).value;
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
 
-    fetchSignup(setToast, username, password, `${username}@gmail.com`).then(
+    fetchSignup(setToast, email.split("@")[0], password, email).then(
       (loginData) => {
         if (!loginData) {
           return;
@@ -42,8 +42,8 @@ export default function Signup({
 
         setUser({
           accountId: loginData.accountId,
-          username: username,
-          email: `${username}@gmail.com`,
+          username: email.split("@")[0],
+          email,
         });
         setCurPage((JSON.parse(context)?.next as PageName) || "home");
       }
@@ -81,15 +81,15 @@ export default function Signup({
           </p>
 
           <label
-            htmlFor="username"
+            htmlFor="email"
             className={`${styles.label} ${styles.required}`}
           >
-            Username
+            Email
           </label>
           <TextField
-            id="username"
+            id="email"
             size="small"
-            placeholder="Enter your email / username"
+            placeholder="Enter your email"
             variant="outlined"
             required
             autoComplete="off"

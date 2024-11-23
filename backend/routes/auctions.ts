@@ -8,8 +8,8 @@ export const router = express.Router();
 
 router.get("/", async (req, res) => {
   const {
+    includeBidStatusFor,
     auctioneerId,
-    bidderId,
     savedBy,
     name,
     minMinNewBidPrice,
@@ -18,6 +18,8 @@ router.get("/", async (req, res) => {
     maxStartTime,
     minEndTime,
     maxEndTime,
+    auctionStatus,
+    bidStatus,
     cardGame,
     cardName,
     cardManufacturer,
@@ -36,6 +38,7 @@ router.get("/", async (req, res) => {
     page = "1",
     pageSize = "20",
   } = req.query as {
+    includeBidStatusFor: string;
     auctioneerId: string;
     bidderId: string;
     savedBy: string;
@@ -46,6 +49,8 @@ router.get("/", async (req, res) => {
     maxStartTime: string;
     minEndTime: string;
     maxEndTime: string;
+    auctionStatus: string;
+    bidStatus: string;
     cardGame: string | string[];
     cardName: string | string[];
     cardManufacturer: string | string[];
@@ -65,7 +70,7 @@ router.get("/", async (req, res) => {
     pageSize: string;
   };
 
-  if (bidderId && req.session.accountId !== bidderId) {
+  if (includeBidStatusFor && req.session.accountId !== includeBidStatusFor) {
     throw unauthorized();
   }
 
@@ -80,7 +85,7 @@ router.get("/", async (req, res) => {
   // :vomit: but it works
 
   const cardQualityUngraded =
-    !cardQualityUngradedQ && !(minCardQualityPsaQ && maxCardQualityPsaQ)
+    !cardQualityUngradedQ && !(!minCardQualityPsaQ && !maxCardQualityPsaQ)
       ? "impossible"
       : cardQualityUngradedQ;
   const minCardQualityPsa =
@@ -111,11 +116,12 @@ router.get("/", async (req, res) => {
     values.push(...value);
   }
 
+  const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);
+  if (includeBidStatusFor) {
+    values.push(includeBidStatusFor);
+  }
+
   addCondition(`auctioneer_id = ?`, auctioneerId);
-  addCondition(
-    `auction_id IN (SELECT auction_id FROM bid WHERE bidder_id = ?)`,
-    bidderId
-  );
   addCondition(
     `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
     savedBy
@@ -143,6 +149,21 @@ router.get("/", async (req, res) => {
   addCondition(`start_time <= ?`, maxStartTime);
   addCondition(`end_time >= ?`, minEndTime);
   addCondition(`end_time <= ?`, maxEndTime);
+  addCondition(
+    `CASE
+      WHEN start_time IS NULL THEN 'Not scheduled'
+      WHEN start_time >= NOW() THEN 'Scheduled'
+      WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
+      ELSE 'Ended'
+    END = ?`,
+    auctionStatus
+  );
+  if (includeBidStatusFor) {
+    addCondition(
+      `auction_id IN (SELECT auction_id FROM (${bidStatusCte}) WHERE bid_status = ?)`,
+      bidStatus
+    );
+  }
   addCondition(
     `auction_id IN (SELECT auction_id FROM card WHERE game = ?)`,
     cardGame
@@ -249,7 +270,11 @@ router.get("/", async (req, res) => {
         } & {
           num_bids: string;
           is_bundle: boolean;
-        } & { cards: CardDb<Game>[] } & { bundle: BundleDb }
+        } & { cards: CardDb<Game>[] } & { bundle: BundleDb } & {
+          auction_status: AuctionStatus;
+        } & {
+          bid_status?: BidStatus;
+        }
     >(
       ` WITH bid_agg AS (
           SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
@@ -282,11 +307,23 @@ router.get("/", async (req, res) => {
           SELECT auction_id, JSON_AGG(bundle.*) as bundle
           FROM bundle
           GROUP BY auction_id
-        )
+        ),
+        auction_status AS (
+          SELECT auction_id,
+          CASE
+            WHEN start_time IS NULL THEN 'Not scheduled'
+            WHEN end_time < NOW() THEN 'Ended'
+            WHEN start_time < NOW() THEN 'Ongoing'
+            ELSE 'Scheduled'
+          END AS auction_status
+          FROM auction
+        ) ${includeBidStatusFor ? `, bid_status AS (${bidStatusCte})` : ""}
         SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
         top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
-        COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle,
+        COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
+        auction_status.auction_status,
         cards_agg.cards, bundle_agg.bundle
+        ${includeBidStatusFor ? `, bid_status.bid_status` : ""}
         FROM filled_auctions
         LEFT JOIN top_bids USING (auction_id)
         LEFT JOIN bid_agg USING (auction_id)
@@ -296,6 +333,8 @@ router.get("/", async (req, res) => {
         ) is_bundle USING (auction_id)
         LEFT JOIN cards_agg USING (auction_id)
         LEFT JOIN bundle_agg USING (auction_id)
+        LEFT JOIN auction_status USING (auction_id)
+        ${includeBidStatusFor ? `LEFT JOIN bid_status USING (auction_id)` : ""}
         ${whereClause}
         ${orderBy}
         ${limit}
@@ -348,6 +387,8 @@ router.get("/", async (req, res) => {
             }
           : null,
         numBids: parseInt(auctionRecord.numBids),
+        auctionStatus: auctionRecord.auctionStatus,
+        ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
         bundle: bundle,
       };
       return auction;
@@ -402,6 +443,8 @@ router.get("/", async (req, res) => {
           }
         : null,
       numBids: parseInt(auctionRecord.numBids),
+      auctionStatus: auctionRecord.auctionStatus,
+      ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
       cards: cards,
     };
     return auction;
@@ -412,7 +455,7 @@ router.get("/", async (req, res) => {
       ` SELECT COUNT(*) FROM
       (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
       as count`,
-      values.slice(0, values.length - 2)
+      values.slice(0, values.length - 2) //page, and pageSize
     )
   ).rows[0].count;
 
@@ -424,6 +467,14 @@ router.get("/", async (req, res) => {
 
 router.get("/:auctionId", async (req, res) => {
   const auctionId = req.params.auctionId;
+
+  const includeBidStatusFor = req.query.includeBidStatusFor as string;
+
+  if (includeBidStatusFor && req.session.accountId !== includeBidStatusFor) {
+    throw unauthorized();
+  }
+
+  const bidStatusCte = getBidStatusCte(includeBidStatusFor, 2);
 
   // TODO can pass longPoll object of current state with more than just bid
   // and hold response if state matches entirely
@@ -480,6 +531,10 @@ router.get("/:auctionId", async (req, res) => {
         } & {
           num_bids: string;
           is_bundle: boolean;
+        } & {
+          auction_status: AuctionStatus;
+        } & {
+          bid_status?: BidStatus;
         }
     >(
       ` WITH bid_agg AS (
@@ -506,9 +561,21 @@ router.get("/:auctionId", async (req, res) => {
           JOIN account ON account.account_id = bid.bidder_id
           WHERE auction_id = $1
           AND bid.amount = (SELECT max_bid_amount FROM bid_agg)
-        )
+        ), 
+        auction_status AS (
+          SELECT auction_id,
+          CASE
+            WHEN start_time IS NULL THEN 'Not scheduled'
+            WHEN end_time < NOW() THEN 'Ended'
+            WHEN start_time < NOW() THEN 'Ongoing'
+            ELSE 'Scheduled'
+          END AS auction_status
+          FROM auction
+        ) ${includeBidStatusFor ? `, bid_status AS (${bidStatusCte})` : ""}
         SELECT filled_auction.*, top_bid.*, 
-        COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle
+        COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle,
+        auction_status.auction_status
+        ${includeBidStatusFor ? `, bid_status.bid_status` : ""}
         FROM filled_auction
         LEFT JOIN top_bid ON true
         LEFT JOIN bid_agg USING (auction_id)
@@ -517,8 +584,10 @@ router.get("/:auctionId", async (req, res) => {
           FROM bundle
           WHERE auction_id = $1
         ) is_bundle USING (auction_id)
+        LEFT JOIN auction_status USING (auction_id)
+        ${includeBidStatusFor ? `LEFT JOIN bid_status USING (auction_id)` : ""}
         WHERE auction_id = $1`,
-      [auctionId]
+      [auctionId, ...(includeBidStatusFor ? [includeBidStatusFor] : [])]
     )
   ).rows[0];
 
@@ -572,6 +641,8 @@ router.get("/:auctionId", async (req, res) => {
           }
         : null,
       numBids: parseInt(auctionRecord.numBids),
+      auctionStatus: auctionRecord.auctionStatus,
+      ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
       bundle: bundleRecord,
     };
     res.json(auction);
@@ -639,6 +710,8 @@ router.get("/:auctionId", async (req, res) => {
         }
       : null,
     numBids: parseInt(auctionRecord.numBids),
+    auctionStatus: auctionRecord.auctionStatus,
+    ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
     cards: cards,
   };
 
@@ -766,6 +839,7 @@ router.post("/", async (req, res) => {
       endTime: auctionRecord.endTime,
       topBid: null,
       numBids: 0,
+      auctionStatus: auctionInput.startTime ? "Scheduled" : "Not scheduled",
       bundle: bundleRecord,
     };
 
@@ -851,8 +925,45 @@ router.post("/", async (req, res) => {
     endTime: auctionRecord.endTime,
     topBid: null,
     numBids: 0,
+    auctionStatus: auctionInput.startTime ? "Scheduled" : "Not scheduled",
     cards: cards,
   };
 
   res.status(201).json(auction);
 });
+
+function getBidStatusCte(bidderId: string, valNum: number) {
+  if (!bidderId) {
+    return null;
+  }
+  return `
+    SELECT auction_id,
+    CASE
+      WHEN bidder_max_bid IS NULL THEN 
+        CASE 
+          WHEN end_time < NOW() THEN 'Not bid (ended)' 
+          ELSE 'Not bid' 
+        END
+      WHEN bidder_max_bid = max_bid THEN 
+        CASE 
+          WHEN end_time < NOW() THEN 'Won' 
+          ELSE 'Leading' 
+        END
+      WHEN bidder_max_bid < max_bid THEN
+        CASE 
+          WHEN end_time < NOW() THEN 'Lost' 
+          ELSE 'Outbid' 
+        END
+      ELSE 'error'
+    END AS bid_status
+    FROM (
+    SELECT auction_id, end_time, max_bid_amount as max_bid,
+    (SELECT MAX(amount) FROM bid WHERE auction_id = bid_agg.auction_id AND bidder_id = $${valNum}) as bidder_max_bid
+    FROM auction
+    LEFT JOIN (
+          SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
+          FROM bid
+          GROUP BY auction_id
+        ) bid_agg USING(auction_id)
+    ) bid_status`;
+}

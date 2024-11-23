@@ -35,10 +35,22 @@ type Auction = {
   endTime: Date;
   topBid: Bid;
   numBids: number;
+  auctionStatus: AuctionStatus;
+  bidStatus?: BidStatus;
 } & (
   | { cards: Card<Game>[]; bundle?: never }
   | { cards?: never; bundle: Bundle }
 );
+
+type AuctionStatus = "Not scheduled" | "Scheduled" | "Ongoing" | "Ended";
+
+type BidStatus =
+  | "Not bid (ended)"
+  | "Not bid"
+  | "Leading"
+  | "Outbid"
+  | "Won"
+  | "Lost";
 
 type CardInput<T extends Game> = {
   game: T;

@@ -179,7 +179,7 @@ export default function Results({
 
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
-    let search = JSON.parse(context)?.search;
+    const search = JSON.parse(context)?.search;
     if (search !== undefined) setSearchValue(search);
   }, [context]);
 
@@ -190,6 +190,7 @@ export default function Results({
       fetchResults(1);
       setRedirectedCount(1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
   const [qualityPopperOpen, setQualityPopperOpen] = useState(false);
@@ -250,7 +251,7 @@ export default function Results({
 
     // TODO: Quality, rarity, sort by
 
-    let searchParams: AuctionSearchQuery = {};
+    const searchParams: AuctionSearchQuery = {};
 
     // NAME
     if (searchValue.trim()) {
@@ -258,7 +259,7 @@ export default function Results({
     }
 
     // GAMES
-    let categories = [];
+    const categories = [];
     if (categorySearchFilters.pokemon) {
       categories.push("pokemon");
     }
@@ -319,6 +320,7 @@ export default function Results({
 
       return () => clearTimeout(timeout);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     qualitySearchFilters,
     foilSearchFilter,
@@ -333,10 +335,10 @@ export default function Results({
 
   // Navigated to results from clicking Category
   useEffect(() => {
-    let category = JSON.parse(context).category;
+    const category = JSON.parse(context).category;
     if (!category) return;
 
-    let newFilters = {
+    const newFilters = {
       pokemon: category === "pokemon",
       mtg: category === "mtg",
       yugioh: category === "yugioh",
@@ -399,7 +401,7 @@ export default function Results({
       }));
     } else {
       setQualitySearchFilters((prev) => {
-        let newFilters = { ...prev, [name]: checked };
+        const newFilters = { ...prev, [name]: checked };
 
         return {
           ...prev,
@@ -427,7 +429,7 @@ export default function Results({
 
   function handlePSAChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
-    let grade = parseInt(value);
+    const grade = parseInt(value);
 
     if (value === "") {
       setQualitySearchFilters((prev) => ({
@@ -465,7 +467,7 @@ export default function Results({
       setBundlesRarityFilter("default");
     } else {
       setCategorySearchFilters((prev) => {
-        let newFilters = { ...prev, [name]: checked };
+        const newFilters = { ...prev, [name]: checked };
 
         switch (name) {
           case "pokemon":
@@ -525,7 +527,7 @@ export default function Results({
 
   function handlePriceChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
-    let price = parseFloat(value);
+    const price = parseFloat(value);
 
     if (value === "") {
       setPriceSearchFilters((prev) => ({
