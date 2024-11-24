@@ -181,23 +181,27 @@ export async function getAuctionBids(
   pageSize: number
 ) {
   try {
-    const response = await fetch(`${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     if (response.ok) {
       const bids = await response.json();
       return bids.bids;
-    }
-    else if (response.status === 400) {
-      errorFcn({ message: "Request format is invalid", severity: Severity.Warning });
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
       return [];
-    } 
-    else if (response.status === 404) {
+    } else if (response.status === 404) {
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
       return [];
     }
@@ -211,23 +215,29 @@ export async function pollForAuctionUpdates(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   signal: AbortSignal,
-  longPollMaxBidId: string,
+  longPollMaxBidId: string
 ) {
   try {
-    const response = await fetch(`${url}/auctions/${auctionId}?longPollMaxBidId=${longPollMaxBidId}`, {
-      method: "GET",
-      headers: {
-      "Content-Type": "application/json",
-      },
-      credentials: "include",
-      signal,
-    });
+    const response = await fetch(
+      `${url}/auctions/${auctionId}?longPollMaxBidId=${longPollMaxBidId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        signal,
+      }
+    );
 
     if (response.ok) {
       const newBid = await response.json();
       return newBid;
     } else if (response.status === 400) {
-      errorFcn({message: "Request format is invalid", severity: Severity.Warning});
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
     } else if (response.status === 404) {
       errorFcn({
         message: "Error initiating connection for an auction",
@@ -239,6 +249,7 @@ export async function pollForAuctionUpdates(
       );
     }
     return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.name === "AbortError") {
       console.log(`Polling for auction ${auctionId} aborted`);
@@ -323,7 +334,7 @@ export async function submitBid(
     return null;
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
-    return null
+    return null;
   }
 }
 export async function createAuction(
@@ -356,10 +367,12 @@ export async function createAuction(
     };
   }
 ) {
-  console.log(JSON.stringify({
-    ...auctionData,
-    cards: auctionData.cards ? [auctionData.cards] : undefined,
-  }))
+  console.log(
+    JSON.stringify({
+      ...auctionData,
+      cards: auctionData.cards ? [auctionData.cards] : undefined,
+    })
+  );
   try {
     const response = await fetch(`${url}/auctions`, {
       method: "POST",
@@ -448,12 +461,19 @@ export async function fetchSelfAuctions(
   currentPage: number
 ) {
   try {
-    const searchStatusQuery = searchStatuses.map((status) => `${type === 'biddings' ? 'bidStatus' : 'auctionStatus'}=${status}`).join("&");
-    
+    const searchStatusQuery = searchStatuses
+      .map(
+        (status) =>
+          `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
+      )
+      .join("&");
+
     const response = await fetch(
       `${url}/auctions?${
-        type === 'biddings' ? 'includeBidStatusFor' : 'auctioneerId'
-      }=${accountId}${searchName ? '&name=' + searchName : ""}&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}`,
+        type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
+      }=${accountId}${
+        searchName ? "&name=" + searchName : ""
+      }&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}`,
       {
         method: "GET",
         headers: {
@@ -482,11 +502,9 @@ export async function fetchSelfAuctions(
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
 
-    return {auctions: [], totalNumAuctions: 0};
+    return { auctions: [], totalNumAuctions: 0 };
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
-    return {auctions: [], totalNumAuctions: 0};
+    return { auctions: [], totalNumAuctions: 0 };
   }
 }
-
-

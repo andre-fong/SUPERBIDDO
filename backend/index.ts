@@ -15,7 +15,6 @@ import { router as sessionRouter } from "./routes/session.js";
 import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
 import { router as bidRouter } from "./routes/bids.js";
-import { router as biddingRouter } from "./routes/bidding.js";
 import { router as oauthRouter } from "./routes/oauth.js";
 import { Server } from "socket.io";
 import camelize from "camelize";
@@ -57,7 +56,6 @@ app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
-app.use("/api/v1/bid", biddingRouter);
 app.use("/api/v1/oauth", oauthRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
