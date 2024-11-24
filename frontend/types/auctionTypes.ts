@@ -31,15 +31,15 @@ export enum AuctionStatusColorEnum {
 }
 
 export enum BiddingStatusEnum {
-  Winning = "Winning",
-  Outbidded = "Outbidded",
+  Leading = "Leading",
+  Outbid = "Outbid",
   Won = "Won",
   Lost = "Lost",
 }
 
 export enum BiddingStatusColorEnum {
-  Winning = "green",
-  Outbidded = "orange",
+  Leading = "green",
+  Outbid = "orange",
   Won = "gold",
   Lost = "red",
 }

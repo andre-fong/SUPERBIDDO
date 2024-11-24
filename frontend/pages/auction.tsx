@@ -33,7 +33,6 @@ import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
 import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
-import { timeStamp } from "console";
 
 function auctionPollingStart(auctionId: string, setToast: (err: ErrorType) => void, bidId: string, signal: AbortSignal, setFunction: (bid: Auction) => void) {
   pollForAuctionUpdates(setToast, auctionId, signal, bidId).then((bid: any) => {
@@ -107,8 +106,8 @@ export default function Auction({
     setBidsLoading(true);
     setCurMinBid(auction.minNewBidPrice);
     setBidCount(auction.numBids)
-    setCurBid(auction.topBid.amount)
-    setWinning(auction.topBid.bidder.accountId === user.accountId)
+    setCurBid(auction.topBid ? auction.topBid.amount: 0)
+    setWinning(auction.topBid ? auction.topBid.bidder.accountId === user.accountId : false)
     setBidsLoading(false);
   }
 
@@ -120,6 +119,7 @@ export default function Auction({
     fetchAuction(setToast, curBid.auctionId).then((auction: Auction) => {
       if (!auction) { return }
       curAuctionId.current = auction.auctionId;
+      console.log(auction)
       setSpread(auction.spread);
       setEndTime(new Date(auction.endTime));
       setStartTime(new Date(auction.startTime));
