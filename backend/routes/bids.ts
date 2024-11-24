@@ -3,6 +3,10 @@ import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
 import { closeLpRequest } from "../longPolling/longPolling.js";
+import {
+  handler1,
+  notificationMiddleware,
+} from "../middlewares/notifications.js";
 
 export const router = express.Router({ mergeParams: true });
 
@@ -39,7 +43,7 @@ function formatBids(bids) {
 
 router.post(
   "/",
-  express.json(),
+  notificationMiddleware(handler1),
   async (
     req: Request<
       {
