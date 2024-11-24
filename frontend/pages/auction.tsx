@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
-import { ErrorType } from "@/types/errorTypes";
+import { ErrorType, Severity } from "@/types/errorTypes";
 import {
   pollForAuctionUpdates,
   getAuctionBids,
@@ -153,7 +153,7 @@ export default function Auction({
   context,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
-  user: User;
+  user: User | null;
   setToast: (err: ErrorType) => void;
   context: string;
 }) {
@@ -223,7 +223,9 @@ export default function Auction({
     setCurMinBid(auction.minNewBidPrice);
     setBidCount(auction.numBids);
     setCurBid(auction.topBid?.amount || 0);
-    setWinning(auction.topBid?.bidder?.accountId === user.accountId);
+    setWinning(
+      !user ? false : auction.topBid?.bidder?.accountId === user.accountId
+    );
     setBidsLoading(false);
   }
 
@@ -317,11 +319,19 @@ export default function Auction({
       return;
     }
 
+    if (!user) {
+      setToast({
+        severity: Severity.Critical,
+        message: "You must be logged in to bid",
+      });
+      return;
+    }
+
     submitBid(
       setToast,
       curAuctionId.current,
       parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value),
-      user.accountId
+      user?.accountId
     );
   }
 
@@ -506,6 +516,23 @@ export default function Auction({
                   onClick={() => setCurPage("editAuction", context)}
                 >
                   Edit Auction
+                </Button>
+              ) : !user ? (
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  size="large"
+                  onClick={() =>
+                    setCurPage(
+                      "login",
+                      JSON.stringify({
+                        next: "auction",
+                        auctionId: curAuctionId.current,
+                      })
+                    )
+                  }
+                >
+                  Log in to bid!
                 </Button>
               ) : (
                 <>

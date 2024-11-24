@@ -138,15 +138,13 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: user ? (
+      component: (
         <Auction
           user={user}
           setCurPage={setCurPage}
           setToast={setToast}
           context={pageContext}
         />
-      ) : (
-        <div>Loading...</div>
       ),
     },
     profile: {

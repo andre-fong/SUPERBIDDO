@@ -45,7 +45,7 @@ export default function Signup({
           username: email.split("@")[0],
           email,
         });
-        setCurPage((JSON.parse(context)?.next as PageName) || "home");
+        setCurPage((JSON.parse(context)?.next as PageName) || "home", context);
       }
     );
   }
