@@ -10,7 +10,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
+import { useRef } from "react";
 import GoogleSessionButton from "@/components/googleSessionButton";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Severity } from "@/types/errorTypes";
+
+const enableCaptcha = false;
 
 export default function Signup({
   setCurPage,
@@ -23,9 +28,18 @@ export default function Signup({
   setToast: (error: ErrorType) => void;
   setUser: (user: User) => void;
 }) {
+  const recaptchaRef = useRef<boolean>(false);
   // TODO: Save previous action and redirect to it after signup
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (enableCaptcha && !recaptchaRef.current) {
+      setToast({
+        message: "Please complete the captcha",
+        severity: Severity.Warning,
+      });
+      return;
+    }
 
     const email = (
       e.currentTarget.elements.namedItem("email") as HTMLInputElement
@@ -111,9 +125,13 @@ export default function Signup({
             autoComplete="off"
           />
 
-          <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
+          <Button variant="contained" type="submit" sx={{ marginTop: "20px", marginBottom: "10px" }}>
             Sign up
           </Button>
+          {enableCaptcha && <ReCAPTCHA
+            sitekey={""}
+            onChange={() => (recaptchaRef.current = true)}
+          />}
         </form>
 
         <div className={styles.divider_container}>
