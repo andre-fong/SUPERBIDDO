@@ -4,7 +4,7 @@ import camelize from "camelize";
 import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
 import { closeLpRequest } from "../longPolling/longPolling.js";
 import {
-  handler1,
+  postBidNotification,
   notificationMiddleware,
 } from "../middlewares/notifications.js";
 
@@ -43,7 +43,7 @@ function formatBids(bids) {
 
 router.post(
   "/",
-  notificationMiddleware(handler1),
+  notificationMiddleware(postBidNotification),
   async (
     req: Request<
       {

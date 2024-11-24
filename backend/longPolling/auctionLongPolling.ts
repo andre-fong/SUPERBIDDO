@@ -1,6 +1,7 @@
 import camelize from "camelize";
 import { pool } from "../configServices/dbConfig";
 import { Response } from "express";
+import fetch from "node-fetch"; // Import node-fetch
 
 export function handleCloseAuctionRequest(
   auctionId: string,
