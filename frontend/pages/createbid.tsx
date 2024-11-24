@@ -259,9 +259,6 @@ const CardListing: React.FC<CardListingProps> = ({
       });
       return;
     }
-    if (startDateRef.current) {
-      console.log(new Date(startDateRef.current.value).toISOString());
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auctionData: any = {
@@ -324,7 +321,7 @@ const CardListing: React.FC<CardListingProps> = ({
       if (!auction.auctionId) {
         return;
       }
-      // setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
       console.log("Auction created with ID: " + auction.auctionId);
     });
   };
