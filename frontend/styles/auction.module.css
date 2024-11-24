@@ -41,6 +41,13 @@
   font-size: 1.8em;
   font-weight: bold;
   margin-bottom: 15px;
+  /* max 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .account_row {
@@ -296,9 +303,13 @@
   padding: 20px 0;
 }
 
-.listing_details_left,
+.listing_details_left {
+  flex: 1;
+  padding-right: 15px;
+}
 .listing_details_right {
   flex: 1;
+  padding-left: 15px;
 }
 
 .detail_row {
