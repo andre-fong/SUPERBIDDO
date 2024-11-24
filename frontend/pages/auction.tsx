@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
-import { ErrorType } from "@/types/errorTypes";
+import { ErrorType, Severity } from "@/types/errorTypes";
 import {
   pollForAuctionUpdates,
   getAuctionBids,
@@ -59,7 +59,91 @@ function auctionPollingStart(
   );
 }
 
-const pageSize = 8;
+/**
+ * Formats ALL bids into a more readable format for frontend UI
+ * @param bids Bid history array (important that ALL bids are present, not a subset of the full history)
+ */
+function formatBids(bids: BidDetails[]): AuctionBidHistory[] {
+  const bidders: {
+    [key: string]: { bids: number; highBid: number; lastBidTime: string };
+  } = {};
+  for (const bid of bids) {
+    const username = bid.bidder.username;
+    if (!bidders[username]) {
+      bidders[username] = { bids: 0, highBid: 0, lastBidTime: bid.timestamp };
+    }
+    bidders[username].bids++;
+    if (bid.amount > bidders[username].highBid) {
+      bidders[username].highBid = bid.amount;
+      bidders[username].lastBidTime = bid.timestamp;
+    }
+  }
+
+  const formattedBids = [];
+  for (const bidder in bidders) {
+    formattedBids.push({
+      bidder,
+      bids: bidders[bidder].bids,
+      highBid: bidders[bidder].highBid,
+      lastBidTime: bidders[bidder].lastBidTime,
+    });
+  }
+
+  formattedBids.sort((a, b) => b.highBid - a.highBid);
+
+  return formattedBids;
+}
+
+function handleQualityTooltip(
+  qualityType: "PSA" | "Ungraded",
+  quality: string | number
+) {
+  if (qualityType === "PSA") {
+    switch (quality) {
+      case 1:
+        return "Poor: Card is heavily damaged and may be missing pieces. Heavy creasing, discoloration, or other destructive effects may be present.";
+      case 2:
+        return "Good: Card is intact and shows signs of surface wear. Card corners may show accelerated rounding and and surface discoloration.";
+      case 3:
+        return "Very Good: Card corners have some rounding and some surface wear is visible. Card may have minor creasing or discoloration.";
+      case 4:
+        return "Very Good - Excellent: Card corners have little rounding and surface wear is minimal. Card may have minor creasing or discoloration.";
+      case 5:
+        return "Excellent: Card corners have very minor rounding, minor chipping on edges, and surface wear is minimal.";
+      case 6:
+        return "Excellent - Mint: Card is in excellent condition with little to no visible wear. Very light scratches or slight edge notches may be present.";
+      case 7:
+        return "Near Mint: Card is in excellent condition with little to no visible wear. Very slight corner fraying or minor printing blemishes may be present. Most of the original gloss is retained.";
+      case 8:
+        return "Near Mint - Mint: Card is in super high-end condition that appears Mint at first glance. The card can exhibit slight fraying at one or two corners, a minor printing imperfection, or slightly off-white borders.";
+      case 9:
+        return "Mint: Card is in superb condition, only exhibiting one of the following minor flaws: a slight wax stain on reverse, slight off-white borders, or slight printing imperfection.";
+      case 10:
+        return "Gem Mint: Card is in perfect condition with four sharp corners, sharp focus, and full original gloss.";
+      default:
+        return "Quality not specified.";
+    }
+  } else {
+    switch (quality) {
+      case "Damaged":
+        return "D (Ungraded): Card is heavily damaged and may be missing pieces. Heavy creasing, discoloration, or other destructive effects may be present.";
+      case "Heavily Played":
+        return "HP (Ungraded): Card is intact and shows signs of surface wear. Card corners may show accelerated rounding and and surface discoloration.";
+      case "Moderately Played":
+        return "MP (Ungraded): Card corners have some rounding and some surface wear is visible. Card may have minor creasing or discoloration.";
+      case "Lightly Played":
+        return "LP (Ungraded): Card corners have little rounding and surface wear is minimal. Card may have minor creasing or discoloration.";
+      case "Near Mint":
+        return "NM (Ungraded): Card is in excellent condition with little to no visible wear. Very light scratches or slight edge notches may be present.";
+      case "Mint":
+        return "M (Ungraded): Card is in superb condition, only exhibiting one of the following minor flaws: a slight wax stain on reverse, slight off-white borders, or slight printing imperfection.";
+      default:
+        return "Quality not specified.";
+    }
+  }
+}
+
+const pageSize = 999999999;
 
 export default function Auction({
   setCurPage,
@@ -68,18 +152,33 @@ export default function Auction({
   context,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
-  user: User;
+  user: User | null;
   setToast: (err: ErrorType) => void;
   context: string;
 }) {
+  const [auctionLoading, setAuctionLoading] = useState<boolean>(true);
   const [viewingBids, setViewingBids] = useState<boolean>(false);
   const [bidCount, setBidCount] = useState<number>(0);
   const [bidsLoading, setBidsLoading] = useState<boolean>(true);
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
+  const [auctionName, setAuctionName] = useState<string>("");
+  const [isBundle, setIsBundle] = useState<boolean>(false);
+  const [qualityType, setQualityType] = useState<"PSA" | "Ungraded">("PSA");
+  const [quality, setQuality] = useState<string | number>("");
+  const [game, setGame] = useState<string>("");
+  const [listingName, setListingName] = useState<string>("");
+  const [set, setSet] = useState<string>("");
+  const [rarity, setRarity] = useState<string>("");
+  const [foil, setFoil] = useState<boolean>(false);
+  const [manufacturer, setManufacturer] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [sellerAccountId, setSellerAccountId] = useState<string>("");
+  const [sellerUsername, setSellerUsername] = useState<string>("");
   const [spread, setSpread] = useState<number>(0);
+  const [startPrice, setStartPrice] = useState<number>(0);
   /**
-   * Starting price
+   * Current minimum bid amount a user would have to make to outbid the current top bid
    */
   const [curMinBid, setCurMinBid] = useState<number>(0);
   const [winning, setWinning] = useState<boolean>(false);
@@ -90,35 +189,26 @@ export default function Auction({
    * Current bid for long polling
    */
   const [curBid, setCurBid] = useState<number>(0);
-  /**
-   * Bids history pagination
-   */
-  const [curPage, setCurHistoryPage] = useState<number>(1);
-  const curAuctionId = useRef<string>("");
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
+  const curAuctionId = useRef<string>("");
 
   useEffect(() => {
     if (!curAuctionId.current) {
       return;
     }
     setBidsLoading(true);
-    getAuctionBids(setToast, curAuctionId.current, curPage, pageSize).then(
+    getAuctionBids(setToast, curAuctionId.current, 1, pageSize).then(
       (newBids: BidDetails[]) => {
-        return [];
-        // const newBidsFormatted = newBids.map((bid) => {
-        //   return {
-        //     bidder: bid.bidder.username,
-        //     bids: bidCount,
-        //     highBid: curBid,
-        //     lastBidTime: bid.timestamp,
-        //   }
-        // });
-        // setBids(newBidsFormatted);
+        if (!newBids) {
+          return;
+        }
+        setBids(formatBids(newBids));
+        setBidsLoading(false);
       }
     );
     setBidsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [curBid, curPage]);
+  }, [curBid]);
 
   const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({
     expiryTimestamp: new Date(),
@@ -132,7 +222,9 @@ export default function Auction({
     setCurMinBid(auction.minNewBidPrice);
     setBidCount(auction.numBids);
     setCurBid(auction.topBid?.amount || 0);
-    setWinning(auction.topBid?.bidder?.accountId === user.accountId);
+    setWinning(
+      !user ? false : auction.topBid?.bidder?.accountId === user.accountId
+    );
     setBidsLoading(false);
   }
 
@@ -147,10 +239,52 @@ export default function Auction({
         if (!auction) {
           return;
         }
+        console.log(auction);
+        const auctionIsBundle = auction.bundle !== undefined;
+
         curAuctionId.current = auction.auctionId;
+        setAuctionName(auction.name);
+        setIsBundle(auctionIsBundle);
+        setGame(
+          auctionIsBundle
+            ? auction.bundle.game
+            : auction.cards?.at(0)?.game || ""
+        );
+        setListingName(
+          auctionIsBundle
+            ? auction.bundle.name
+            : auction.cards?.at(0)?.name || ""
+        );
+        setSet(
+          auctionIsBundle ? auction.bundle.set : auction.cards?.at(0)?.set || ""
+        );
+        setManufacturer(
+          auctionIsBundle
+            ? auction.bundle.manufacturer
+            : auction.cards?.at(0)?.manufacturer || ""
+        );
+        setDescription(auction.description || "");
+        setSellerAccountId(auction.auctioneer.accountId);
+        setSellerUsername(auction.auctioneer.username);
+
+        if (!auctionIsBundle) {
+          const qualityType = auction.cards?.at(0)?.qualityUngraded
+            ? "Ungraded"
+            : "PSA";
+          setQualityType(qualityType);
+          setQuality(
+            qualityType === "PSA"
+              ? auction.cards?.at(0)?.qualityPsa || 0
+              : auction.cards?.at(0)?.qualityUngraded || ""
+          );
+          setRarity(auction.cards?.at(0)?.rarity || "");
+          setFoil(auction.cards?.at(0)?.isFoil || false);
+        }
+
         setSpread(auction.spread);
         setEndTime(new Date(auction.endTime));
         setStartTime(new Date(auction.startTime));
+        setStartPrice(auction.startPrice);
         setAuctionData(auction);
         restart(new Date(auction.endTime));
         auctionPollingStart(
@@ -162,6 +296,7 @@ export default function Auction({
             setAuctionData(newAuction);
           }
         );
+        setAuctionLoading(false);
       }
     );
 
@@ -183,11 +318,19 @@ export default function Auction({
       return;
     }
 
+    if (!user) {
+      setToast({
+        severity: Severity.Critical,
+        message: "You must be logged in to bid",
+      });
+      return;
+    }
+
     submitBid(
       setToast,
       curAuctionId.current,
       parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value),
-      user.accountId
+      user?.accountId
     );
   }
 
@@ -271,7 +414,20 @@ export default function Auction({
           </div>
 
           <div className={styles.info_container}>
-            <h1 className={styles.title}>Charizard Birth Japanese Card VM</h1>
+            {auctionLoading ? (
+              <>
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "2em", width: "100%" }}
+                />
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "2em", width: "100%" }}
+                />
+              </>
+            ) : (
+              <h1 className={styles.title}>{auctionName}</h1>
+            )}
 
             <div className={styles.auction_main_data}>
               <div className={styles.high_bid}>
@@ -322,7 +478,7 @@ export default function Auction({
                 <div className={styles.main_data_label_row}>
                   <p className={styles.main_data_label}>CLOSING IN</p>
                   <Tooltip
-                    title="The time remaining will extend by 1 minute if a bid is placed within the last 5 minutes of the auction."
+                    title="Once the auction timer ends, all following bids will be blocked and the highest bidder will win the item."
                     placement="left"
                     arrow
                   >
@@ -350,79 +506,173 @@ export default function Auction({
             </div>
 
             <div className={styles.button_row}>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                disabled={bidsLoading || winning || auctionEnded}
-                onClick={() => setIsBidding(true)}
-              >
-                {auctionEnded
-                  ? "Auction Ended"
-                  : winning
-                  ? "Winning Bid!"
-                  : bidsLoading
-                  ? "Bid"
-                  : `Bid $ ${(
-                      (bidCount > 0 ? curBid : curMinBid) + spread
-                    ).toFixed(2)}`}
-              </Button>
-
-              {bidsLoading ? (
-                <Button variant="outlined" fullWidth size="large" disabled>
-                  Watch
-                </Button>
-              ) : watching ? (
-                <Button
-                  variant="contained"
-                  startIcon={<StarIcon />}
-                  fullWidth
-                  size="large"
-                >
-                  Watching
-                </Button>
-              ) : (
+              {!auctionLoading && sellerAccountId === user?.accountId ? (
                 <Button
                   variant="outlined"
-                  startIcon={<StarIcon />}
+                  fullWidth
+                  color="info"
+                  size="large"
+                  onClick={() => setCurPage("editAuction", context)}
+                >
+                  Edit Auction
+                </Button>
+              ) : !user ? (
+                <Button
+                  variant="outlined"
                   fullWidth
                   size="large"
+                  onClick={() =>
+                    setCurPage(
+                      "login",
+                      JSON.stringify({
+                        next: "auction",
+                        auctionId: curAuctionId.current,
+                      })
+                    )
+                  }
                 >
-                  Watch
+                  Log in to bid!
                 </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    disabled={bidsLoading || winning || auctionEnded}
+                    onClick={() => setIsBidding(true)}
+                  >
+                    {auctionEnded
+                      ? "Auction Ended"
+                      : winning
+                      ? "Winning Bid!"
+                      : bidsLoading
+                      ? "Bid"
+                      : `Bid $ ${(
+                          (bidCount > 0 ? curBid : curMinBid) + spread
+                        ).toFixed(2)}`}
+                  </Button>
+
+                  {bidsLoading ? (
+                    <Button variant="outlined" fullWidth size="large" disabled>
+                      Watch
+                    </Button>
+                  ) : watching ? (
+                    <Button
+                      variant="contained"
+                      startIcon={<StarIcon />}
+                      fullWidth
+                      size="large"
+                    >
+                      Watching
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      startIcon={<StarIcon />}
+                      fullWidth
+                      size="large"
+                    >
+                      Watch
+                    </Button>
+                  )}
+                </>
               )}
             </div>
 
             <div className={styles.auction_secondary_data}>
-              <p className={styles.secondary_data_label}>Condition: </p>
-              <div className={styles.condition_row}>
-                <p className={styles.condition}>Near Mint</p>
-                <Tooltip
-                  title="Near Mint: Card is in excellent condition with little to no visible wear."
-                  placement="top"
-                  arrow
-                >
-                  <InfoIcon className={styles.info_icon} fontSize="small" />
-                </Tooltip>
-              </div>
+              {!isBundle && (
+                <>
+                  <p className={styles.secondary_data_label}>Quality: </p>
+                  {auctionLoading ? (
+                    <Skeleton
+                      variant="text"
+                      sx={{ fontSize: "1.2rem", width: "10ch" }}
+                    />
+                  ) : (
+                    <div className={styles.condition_row}>
+                      <p className={styles.condition}>
+                        {qualityType === "PSA" ? `PSA ${quality}` : quality}
+                      </p>
+                      <Tooltip
+                        title={handleQualityTooltip(qualityType, quality)}
+                        placement="top"
+                        arrow
+                      >
+                        <InfoIcon
+                          className={styles.info_icon}
+                          fontSize="small"
+                        />
+                      </Tooltip>
+                    </div>
+                  )}
+                </>
+              )}
               <p className={styles.secondary_data_label}>Location: </p>
-              <div className={styles.location_row}>
-                <p className={styles.location}>Toronto, ON</p>
-                <button
-                  className={styles.view_map}
-                  title="View location on Google Maps"
-                >
-                  <PlaceIcon fontSize="small" />
-                </button>
-              </div>
+              {auctionLoading ? (
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "1.2rem", width: "10ch" }}
+                />
+              ) : (
+                <div className={styles.location_row}>
+                  <p className={styles.location}>Toronto, ON</p>
+                  <button
+                    className={styles.view_map}
+                    title="View location on Google Maps"
+                  >
+                    <PlaceIcon fontSize="small" />
+                  </button>
+                </div>
+              )}
               <p className={styles.secondary_data_label}>Start date: </p>
-              <p className={styles.start_date} title="10/31/2021">
-                {startTime.toLocaleDateString("en-US", {})}
-              </p>
+              {auctionLoading ? (
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "1.2rem", width: "10ch" }}
+                />
+              ) : (
+                <p
+                  className={styles.start_date}
+                  title={startTime.toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    weekday: "long",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                >
+                  {startTime.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                </p>
+              )}
               <p className={styles.secondary_data_label}>End date: </p>
-              <p className={styles.end_date} title="11/31/2021">
-                {endTime.toLocaleDateString("en-US", {})}
-              </p>
+              {auctionLoading ? (
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "1.2rem", width: "10ch" }}
+                />
+              ) : (
+                <p
+                  className={styles.end_date}
+                  title={endTime.toLocaleDateString(undefined, {
+                    month: "long",
+                    day: "numeric",
+                    weekday: "long",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                >
+                  {endTime.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })}
+                </p>
+              )}
             </div>
 
             <div className={styles.account_row}>
@@ -433,11 +683,17 @@ export default function Auction({
                 alt="Profile Picture"
                 className={styles.TEMP_pfp}
               />
-              {/* TODO: Make username a link */}
-              <p className={styles.username}>
-                Account Name{" "}
-                <span className={styles.user_num_listings}>(x)</span>
-              </p>
+              {auctionLoading ? (
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "1.5rem", width: "10ch" }}
+                />
+              ) : (
+                <p className={styles.username}>
+                  {sellerUsername}{" "}
+                  <span className={styles.user_num_listings}></span>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -468,54 +724,66 @@ export default function Auction({
           />
         </Tabs>
 
-        {tabIndex === 0 && (
+        {tabIndex === 0 && !auctionLoading && (
           <>
             <section className={styles.listing_details_container}>
               {/* TODO: Fill in details */}
               <div className={styles.listing_details_left}>
-                <div className={styles.detail_row}>
-                  <p className={styles.detail_title}>Quality</p>
-                  <p className={styles.detail}>Near Mint</p>
-                </div>
+                {!isBundle && (
+                  <div className={styles.detail_row}>
+                    <p className={styles.detail_title}>Quality</p>
+                    <p className={styles.detail}>
+                      {qualityType === "PSA" ? `PSA ${quality}` : quality}
+                    </p>
+                  </div>
+                )}
                 <div className={styles.detail_row}>
                   <p className={styles.detail_title}>Game</p>
-                  <p className={styles.detail}>Magic: The Gathering</p>
+                  <p className={styles.detail}>{game}</p>
                 </div>
                 <div className={styles.detail_row}>
-                  <p className={styles.detail_title}>Card Name</p>
-                  <p className={styles.detail}>Llanowar Elves</p>
+                  <p className={styles.detail_title}>
+                    {isBundle ? "Bundle Name" : "Card Name"}
+                  </p>
+                  <p className={styles.detail}>{listingName}</p>
                 </div>
                 <div className={styles.detail_row}>
                   <p className={styles.detail_title}>Set</p>
-                  <p className={styles.detail}>Foundations</p>
+                  <p className={styles.detail}>{set}</p>
                 </div>
               </div>
               <div className={styles.listing_details_right}>
-                <div className={styles.detail_row}>
-                  <p className={styles.detail_title}>Rarity</p>
-                  <p className={styles.detail}>Common</p>
-                </div>
-                <div className={styles.detail_row}>
-                  <p className={styles.detail_title}>Foil</p>
-                  <p className={styles.detail}>Yes</p>
-                </div>
+                {!isBundle && (
+                  <>
+                    <div className={styles.detail_row}>
+                      <p className={styles.detail_title}>Rarity</p>
+                      <p className={styles.detail}>{rarity}</p>
+                    </div>
+                    <div className={styles.detail_row}>
+                      <p className={styles.detail_title}>Foil</p>
+                      <p className={styles.detail}>{foil ? "Yes" : "No"}</p>
+                    </div>
+                  </>
+                )}
                 <div className={styles.detail_row}>
                   <p className={styles.detail_title}>Manufacturer</p>
-                  <p className={styles.detail}>Wizards of the Coast (WOTC)</p>
+                  <p className={styles.detail}>{manufacturer}</p>
                 </div>
               </div>
             </section>
 
-            <p className={styles.description_title}>Description</p>
-            <p className={styles.description}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
-              venenatis, ligula eget lacinia ultricies, nunc nisl tincidunt
-              turpis, nec varius purus nunc a nunc. Sed auctor, quam nec
-            </p>
+            {description && (
+              <>
+                <p className={styles.description_title}>
+                  Seller&apos;s Description
+                </p>
+                <p className={styles.description}>{description}</p>
+              </>
+            )}
           </>
         )}
 
-        {tabIndex === 1 && (
+        {tabIndex === 1 && !auctionLoading && (
           <section className={styles.auctioneer_details_container}>
             <div className={styles.auctioneer_row}>
               <img
@@ -524,8 +792,10 @@ export default function Auction({
                 className={styles.TEMP_auctioneer_pfp}
               />
               <div className={styles.auctioneer_info}>
-                <p className={styles.auctioneer_username}>Account Name</p>
-                <p className={styles.auctioneer_num_listings}>0 Listings</p>
+                <p className={styles.auctioneer_username}>{sellerUsername}</p>
+                <p className={styles.auctioneer_num_listings}>
+                  SuperBiddo auctioneer
+                </p>
               </div>
             </div>
 
@@ -538,7 +808,7 @@ export default function Auction({
           </section>
         )}
 
-        {tabIndex === 2 && (
+        {tabIndex === 2 && !auctionLoading && (
           <section className={styles.payment_details_container}>
             <div className={styles.detail_row}>
               <p className={styles.detail_title}>Payment Type</p>
@@ -590,9 +860,9 @@ export default function Auction({
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
               <p className={styles.starting_bid_amt}>
-                $ {curMinBid.toFixed(2)}
+                $ {(startPrice + spread).toFixed(2)}
               </p>
-              <p className={styles.bid_info_label}>STARTING BID</p>
+              <p className={styles.bid_info_label}>STARTING PRICE</p>
             </div>
             <div className={styles.spread}>
               <p className={styles.spread_amt}>$ {spread.toFixed(2)}</p>
@@ -645,7 +915,9 @@ export default function Auction({
                       {bid.bidder}
                     </TableCell>
                     <TableCell align="center">{bid.bids}</TableCell>
-                    <TableCell align="center">{curBid.toFixed(2)}</TableCell>
+                    <TableCell align="center">
+                      {bid.highBid.toFixed(2)}
+                    </TableCell>
                     <TableCell
                       align="right"
                       title={new Date(bid.lastBidTime).toLocaleDateString(

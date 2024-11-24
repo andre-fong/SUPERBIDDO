@@ -138,15 +138,13 @@ export default function PageHandler() {
     },
     auction: {
       title: "Auction | SuperBiddo",
-      component: user ? (
+      component: (
         <Auction
           user={user}
           setCurPage={setCurPage}
           setToast={setToast}
           context={pageContext}
         />
-      ) : (
-        <div>Loading...</div>
       ),
     },
     profile: {
@@ -200,9 +198,7 @@ export default function PageHandler() {
           user={user}
           setToast={setToast}
           // TODO: Remove hardcoded auctionId and use context when redirecting to this page
-          context={JSON.stringify({
-            auctionId: "b5ff82e0-709f-4a91-81d1-c89c680f159e",
-          })}
+          context={pageContext}
         />
       ),
     },

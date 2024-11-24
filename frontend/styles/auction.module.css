@@ -41,6 +41,13 @@
   font-size: 1.8em;
   font-weight: bold;
   margin-bottom: 15px;
+  /* max 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .account_row {
@@ -242,6 +249,7 @@
 
 .bid_info_label {
   font-size: 0.8em;
+  text-align: center;
   color: rgb(86, 86, 86);
 }
 
@@ -295,9 +303,13 @@
   padding: 20px 0;
 }
 
-.listing_details_left,
+.listing_details_left {
+  flex: 1;
+  padding-right: 15px;
+}
 .listing_details_right {
   flex: 1;
+  padding-left: 15px;
 }
 
 .detail_row {
@@ -321,6 +333,7 @@
 .description {
   line-height: 1.3;
   padding-bottom: 15px;
+  white-space: pre-line;
 }
 
 .auctioneer_details_container {
