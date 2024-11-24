@@ -20,6 +20,7 @@ import Results from "@/pages/results";
 import Home from "@/pages/home";
 import { pollNotifications } from "@/utils/fetchFunctions";
 import useNotifications from "@/hooks/useNotfications";
+import EditAuction from "@/pages/editAuction";
 
 const theme = createTheme({
   palette: {
@@ -67,7 +68,7 @@ const pageVariants = {
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPageState] = useState<PageName>("home");
+  const [curPage, setCurPageState] = useState<PageName>("editAuction");
   // Stringified JSON context for pages to use
   const [pageContext, setPageContext] = useState<string>("{}");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -189,6 +190,17 @@ export default function PageHandler() {
         />
       ) : (
         <div>Loading...</div>
+      ),
+    },
+    editAuction: {
+      title: "Edit Auction | SuperBiddo",
+      component: (
+        <EditAuction
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
+          context={pageContext}
+        />
       ),
     },
   };
