@@ -410,7 +410,7 @@ export default function Navbar({
                     onMouseEnter={() => setAccountPopperOpen(true)}
                     onMouseLeave={() => setAccountPopperOpen(false)}
                     onClick={handleAccountPopperClick}
-                    sx={{ zIndex: 100 }}
+                    sx={{ zIndex: 9999 }}
                     transition
                   >
                     {({ TransitionProps }) => (

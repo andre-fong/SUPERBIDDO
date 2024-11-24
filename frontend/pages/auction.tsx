@@ -16,6 +16,8 @@ import StarIcon from "@mui/icons-material/Star";
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -185,6 +187,8 @@ export default function Auction({
       />
     );
   }
+
+  const [tabIndex, setTabIndex] = useState(0);
 
   return (
     <>
@@ -398,13 +402,137 @@ export default function Auction({
           </div>
         </div>
 
-        <section className={styles.listing_details_container}></section>
+        <Tabs
+          value={tabIndex}
+          onChange={(e, newValue) => setTabIndex(newValue)}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="fullWidth"
+          aria-label="auction details tabs"
+          sx={{ marginTop: "30px" }}
+        >
+          <Tab
+            label="Listing Details"
+            id="auction-tab-1"
+            aria-controls="auction-tabpanel-1"
+          />
+          <Tab
+            label="About Seller"
+            id="auction-tab-2"
+            aria-controls="auction-tabpanel-2"
+          />
+          <Tab
+            label="Payment Details"
+            id="auction-tab-3"
+            aria-controls="auction-tabpanel-3"
+          />
+        </Tabs>
 
-        <section className={styles.auctioneer_details_container}></section>
+        {tabIndex === 0 && (
+          <>
+            <section className={styles.listing_details_container}>
+              {/* TODO: Fill in details */}
+              <div className={styles.listing_details_left}>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Quality</p>
+                  <p className={styles.detail}>Near Mint</p>
+                </div>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Game</p>
+                  <p className={styles.detail}>Magic: The Gathering</p>
+                </div>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Card Name</p>
+                  <p className={styles.detail}>Llanowar Elves</p>
+                </div>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Set</p>
+                  <p className={styles.detail}>Foundations</p>
+                </div>
+              </div>
+              <div className={styles.listing_details_right}>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Rarity</p>
+                  <p className={styles.detail}>Common</p>
+                </div>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Foil</p>
+                  <p className={styles.detail}>Yes</p>
+                </div>
+                <div className={styles.detail_row}>
+                  <p className={styles.detail_title}>Manufacturer</p>
+                  <p className={styles.detail}>Wizards of the Coast (WOTC)</p>
+                </div>
+              </div>
+            </section>
 
-        <section className={styles.terms_and_conditions_container}></section>
-        {/* <section className={styles.payment_details_container}></section>
-      <section className={styles.shipping_pickup_details_container}></section> */}
+            <p className={styles.description_title}>Description</p>
+            <p className={styles.description}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+              venenatis, ligula eget lacinia ultricies, nunc nisl tincidunt
+              turpis, nec varius purus nunc a nunc. Sed auctor, quam nec
+            </p>
+          </>
+        )}
+
+        {tabIndex === 1 && (
+          <section className={styles.auctioneer_details_container}>
+            <div className={styles.auctioneer_row}>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png"
+                alt="Profile Picture"
+                className={styles.TEMP_auctioneer_pfp}
+              />
+              <div className={styles.auctioneer_info}>
+                <p className={styles.auctioneer_username}>Account Name</p>
+                <p className={styles.auctioneer_num_listings}>0 Listings</p>
+              </div>
+            </div>
+
+            <div className={styles.auctioneer_divider} />
+
+            <div className={styles.auctioneer_location}>
+              <PlaceIcon fontSize="large" />
+              <p className={styles.auctioneer_location_text}>Toronto, ON</p>
+            </div>
+          </section>
+        )}
+
+        {tabIndex === 2 && (
+          <section className={styles.payment_details_container}>
+            <div className={styles.detail_row}>
+              <p className={styles.detail_title}>Payment Type</p>
+              <p className={styles.detail}>CAD</p>
+            </div>
+            <div className={styles.detail_row}>
+              <p className={styles.detail_title}>Payment Terms</p>
+              <p className={styles.detail}>
+                Buyer must pay for their winning auction by e-transfer via the
+                seller's email, or pay during pick up on the buyer and seller's
+                own discussed terms.
+              </p>
+            </div>
+          </section>
+        )}
+
+        <section className={styles.terms_and_conditions_container}>
+          <h2 className={styles.terms_title}>Terms and Conditions</h2>
+          <ul className={styles.terms}>
+            <li>
+              All bids are <span className={styles.bold}>FINAL</span> and cannot
+              be retracted. Please ensure you are bidding on the correct item
+              before placing a bid.
+            </li>
+            <li>
+              The seller and SuperBiddo reserves the right to cancel any bid or
+              auction at any time.
+            </li>
+            <li>
+              By participating in this auction, you agree to the terms and
+              conditions set forth by the seller and SuperBiddo.
+            </li>
+          </ul>
+        </section>
       </main>
 
       <Dialog

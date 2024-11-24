@@ -9,7 +9,8 @@ export type PageName =
   | "profile"
   | "create"
   | "yourListings"
-  | "yourBiddings";
+  | "yourBiddings"
+  | "editAuction";
 export type PageData = Record<
   PageName,
   { title: string; component: ReactNode }

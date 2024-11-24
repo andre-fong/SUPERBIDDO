@@ -66,7 +66,8 @@ export type Card = {
   name: string;
   description?: string;
   manufacturer: string;
-  quality: Quality;
+  qualityUngraded?: Quality;
+  qualityPsa?: number;
   rarity: Rarity;
   set: string;
   isFoil: boolean;
@@ -84,6 +85,8 @@ export type Bundle = {
   bundleId: string;
   game: Game;
   name: string;
+  qualityUngraded?: Quality;
+  qualityPsa?: number;
   description?: string;
   manufacturer: string;
   set: string;
@@ -104,12 +107,8 @@ export type Bid = {
 
 export enum Game {
   MTG = "MTG",
-  YGO = "YGO",
-  PKM = "PKM",
-  DBS = "DBS",
-  FF = "FF",
-  WS = "WS",
-  VG = "VG",
+  Yugioh = "Yugioh",
+  Pokemon = "Pokemon",
 }
 
 export enum Quality {
