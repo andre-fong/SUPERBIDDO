@@ -68,7 +68,7 @@ const pageVariants = {
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
 export default function PageHandler() {
-  const [curPage, setCurPageState] = useState<PageName>("editAuction");
+  const [curPage, setCurPageState] = useState<PageName>("home");
   // Stringified JSON context for pages to use
   const [pageContext, setPageContext] = useState<string>("{}");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -199,6 +199,7 @@ export default function PageHandler() {
           setCurPage={setCurPage}
           user={user}
           setToast={setToast}
+          // TODO: Remove hardcoded auctionId and use context when redirecting to this page
           context={JSON.stringify({
             auctionId: "b5ff82e0-709f-4a91-81d1-c89c680f159e",
           })}
