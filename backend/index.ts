@@ -110,13 +110,10 @@ const io = new Server(server, {
 
 //I believe this is where we put the groups of the user or whatever
 io.use(async (socket, next) => {
-
   //TODO authorization i think?
   //TODO: place in the user groups
-  
-  console.log(
-    "user connected"
-  );
+
+  console.log("user connected");
   next();
 });
 
@@ -135,7 +132,4 @@ io.on("connection", async (socket) => {
   socket.on("connect_error", (err) => {
     console.log("connect_error:", err.message); // prints the message associated with the error
   });
-  
-
-  
 });
