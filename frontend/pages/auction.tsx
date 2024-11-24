@@ -60,7 +60,42 @@ function auctionPollingStart(
   );
 }
 
-const pageSize = 8;
+/**
+ * Formats ALL bids into a more readable format for frontend UI
+ * @param bids Bid history array (important that ALL bids are present, not a subset of the full history)
+ */
+function formatBids(bids: BidDetails[]): AuctionBidHistory[] {
+  const bidders: {
+    [key: string]: { bids: number; highBid: number; lastBidTime: string };
+  } = {};
+  for (const bid of bids) {
+    const username = bid.bidder.username;
+    if (!bidders[username]) {
+      bidders[username] = { bids: 0, highBid: 0, lastBidTime: bid.timestamp };
+    }
+    bidders[username].bids++;
+    if (bid.amount > bidders[username].highBid) {
+      bidders[username].highBid = bid.amount;
+      bidders[username].lastBidTime = bid.timestamp;
+    }
+  }
+
+  const formattedBids = [];
+  for (const bidder in bidders) {
+    formattedBids.push({
+      bidder,
+      bids: bidders[bidder].bids,
+      highBid: bidders[bidder].highBid,
+      lastBidTime: bidders[bidder].lastBidTime,
+    });
+  }
+
+  formattedBids.sort((a, b) => b.highBid - a.highBid);
+
+  return formattedBids;
+}
+
+const pageSize = 999999999;
 
 export default function Auction({
   setCurPage,
@@ -79,8 +114,9 @@ export default function Auction({
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
   const [spread, setSpread] = useState<number>(0);
+  const [startPrice, setStartPrice] = useState<number>(0);
   /**
-   * Starting price
+   * Current minimum bid amount a user would have to make to outbid the current top bid
    */
   const [curMinBid, setCurMinBid] = useState<number>(0);
   const [winning, setWinning] = useState<boolean>(false);
@@ -95,8 +131,8 @@ export default function Auction({
    * Bids history pagination
    */
   const [curPage, setCurHistoryPage] = useState<number>(1);
-  const curAuctionId = useRef<string>("");
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
+  const curAuctionId = useRef<string>("");
 
   useEffect(() => {
     if (!curAuctionId.current) {
@@ -105,16 +141,12 @@ export default function Auction({
     setBidsLoading(true);
     getAuctionBids(setToast, curAuctionId.current, curPage, pageSize).then(
       (newBids: BidDetails[]) => {
-        return [];
-        // const newBidsFormatted = newBids.map((bid) => {
-        //   return {
-        //     bidder: bid.bidder.username,
-        //     bids: bidCount,
-        //     highBid: curBid,
-        //     lastBidTime: bid.timestamp,
-        //   }
-        // });
-        // setBids(newBidsFormatted);
+        if (!newBids) {
+          return;
+        }
+        console.log(newBids);
+        setBids(formatBids(newBids));
+        setBidsLoading(false);
       }
     );
     setBidsLoading(false);
@@ -152,6 +184,7 @@ export default function Auction({
         setSpread(auction.spread);
         setEndTime(new Date(auction.endTime));
         setStartTime(new Date(auction.startTime));
+        setStartPrice(auction.startPrice);
         setAuctionData(auction);
         restart(new Date(auction.endTime));
         auctionPollingStart(
@@ -591,9 +624,9 @@ export default function Auction({
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
               <p className={styles.starting_bid_amt}>
-                $ {curMinBid.toFixed(2)}
+                $ {(startPrice + spread).toFixed(2)}
               </p>
-              <p className={styles.bid_info_label}>STARTING BID</p>
+              <p className={styles.bid_info_label}>STARTING PRICE</p>
             </div>
             <div className={styles.spread}>
               <p className={styles.spread_amt}>$ {spread.toFixed(2)}</p>
@@ -646,7 +679,9 @@ export default function Auction({
                       {bid.bidder}
                     </TableCell>
                     <TableCell align="center">{bid.bids}</TableCell>
-                    <TableCell align="center">{curBid.toFixed(2)}</TableCell>
+                    <TableCell align="center">
+                      {bid.highBid.toFixed(2)}
+                    </TableCell>
                     <TableCell
                       align="right"
                       title={new Date(bid.lastBidTime).toLocaleDateString(
