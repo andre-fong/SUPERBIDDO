@@ -455,7 +455,10 @@ router.get("/", async (req, res) => {
       ` SELECT COUNT(*) FROM
       (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
       as count`,
-      values.slice(0, values.length - 2) //page, and pageSize
+      // capped at 1001 to prevent large queries
+      // if includeBidStatusFor, first value is bidder_id
+      // however, it's only included in where clause if bidStatus is present
+      values.slice(includeBidStatusFor && !bidStatus ? 1 : 0, values.length - 2) // exclude page, and pageSize
     )
   ).rows[0].count;
 
