@@ -311,8 +311,6 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
-    console.log(auctionData);
-
     createAuction(setToast, auctionData).then((auction) => {
       if (!auction.auctionId) { return }
       // setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
