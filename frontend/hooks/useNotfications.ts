@@ -19,24 +19,34 @@ function useNotifications(user: User | null, setToast: (error: ErrorType) => voi
                 withCredentials: true,
             });
 
-            socketRef.current.on('connect_error', (err) => {
+            socketRef.current?.on('connect_error', (err) => {
                 setToast({ message: "There was an error establishing connections for notifications",  severity: Severity.Critical});
             });
 
+            socketRef.current?.emit('join', user.accountId);
+
             socketRef.current?.on('auction_outbidded', (auctionName: string) => {
-                console.log(auctionName);
+                new Notification("Outbidded!", {
+                    body: `You have been outbid on the auction: ${auctionName}`,
+                });
             }); 
 
             socketRef.current?.on('auction_recieved_bid', (auctionName: string) => {
-                console.log(auctionName);
+                new Notification("New Bid!", {
+                    body: `A new bid has been placed on your auction: ${auctionName}`,
+                });
             });
 
             socketRef.current?.on('auction_bid_won', (auctionName: string) => {
-                console.log(auctionName);
+                new Notification("Auction Won!", {
+                    body: `You have won the auction: ${auctionName}`,
+                });
             });
 
             socketRef.current?.on('auction_bid_lost', (auctionName: string) => {
-                console.log(auctionName);
+                new Notification("Auction Lost!", {
+                    body: `You have lost the auction: ${auctionName}`,
+                });
             })
 
             socketRef.current?.on('auction_bid_ending_soon', (auctionName: string) => {
@@ -44,7 +54,9 @@ function useNotifications(user: User | null, setToast: (error: ErrorType) => voi
             });
 
             socketRef.current?.on('auction_owning_ended', (auctionName: string) => {
-                console.log(auctionName);
+                new Notification("Auction Ended!", {
+                    body: `Your auction: ${auctionName} has ended`,
+                });
             });
         });
 

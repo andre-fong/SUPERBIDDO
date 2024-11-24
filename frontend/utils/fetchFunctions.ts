@@ -367,6 +367,12 @@ export async function createAuction(
     };
   }
 ) {
+  console.log(
+    JSON.stringify({
+      ...auctionData,
+      cards: auctionData.cards ? [auctionData.cards] : undefined,
+    })
+  );
   try {
     const response = await fetch(`${url}/auctions`, {
       method: "POST",
@@ -455,12 +461,19 @@ export async function fetchSelfAuctions(
   currentPage: number
 ) {
   try {
+    const searchStatusQuery = searchStatuses
+      .map(
+        (status) =>
+          `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
+      )
+      .join("&");
+
     const response = await fetch(
       `${url}/auctions?${
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
       }=${accountId}${
         searchName ? "&name=" + searchName : ""
-      }&page=${currentPage}&pageSize=${pageSize}`,
+      }&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}`,
       {
         method: "GET",
         headers: {

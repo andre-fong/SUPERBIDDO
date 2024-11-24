@@ -16,7 +16,6 @@ import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
 import { router as bidRouter } from "./routes/bids.js";
 import { router as oauthRouter } from "./routes/oauth.js";
-import { router as notificationRouter } from "./routes/notifications.js";
 import { Server } from "socket.io";
 import camelize from "camelize";
 import { pool } from "./configServices/dbConfig.js";
@@ -58,7 +57,6 @@ app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/oauth", oauthRouter);
-app.use("/api/v1/notifications", notificationRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
@@ -102,7 +100,7 @@ server.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
 
-const io = new Server(server, {
+export const io = new Server(server, {
   cors: corsConfig,
 });
 
@@ -110,7 +108,6 @@ const io = new Server(server, {
 io.use(async (socket, next) => {
   //TODO authorization i think?
   //TODO: place in the user groups
-
   console.log("user connected");
   next();
 });
@@ -129,5 +126,10 @@ io.on("connection", async (socket) => {
 
   socket.on("connect_error", (err) => {
     console.log("connect_error:", err.message); // prints the message associated with the error
+  });
+
+  socket.on("join", (accountId: string) => {
+    console.log("joining notifications for account", accountId); 
+    socket.join(accountId);
   });
 });

@@ -170,10 +170,9 @@ const CardListing: React.FC<CardListingProps> = ({
     }
   };
 
-  const getMinDatePlusTwoMinutes = () => {
+  const getCurDate = () => {
     const date = new Date();
-    date.setMinutes(date.getMinutes() + 2);
-    return date.toLocaleString().slice(0, 16);
+    return date.toLocaleString()
   };
 
   const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,17 +234,16 @@ const CardListing: React.FC<CardListingProps> = ({
       });
       return;
     }
-
     if (
       startDateRef.current &&
       endDateRef.current &&
       new Date(endDateRef.current.value).getTime() -
-        new Date(startDateRef.current.value).getTime() <
-        5 * 60 * 1000
+      new Date(startDateRef.current.value).getTime() <
+      5 * 60 * 1000
     ) {
       setToast({
-        message: "The auction duration must be at least 5 minutes",
-        severity: Severity.Warning,
+      message: "The auction duration must be at least 5 minutes",
+      severity: Severity.Warning,
       });
       return;
     }
@@ -256,6 +254,9 @@ const CardListing: React.FC<CardListingProps> = ({
       });
       return;
     }
+    if (startDateRef.current) {
+      console.log(new Date(startDateRef.current.value).toISOString());
+    }
 
     const auctionData: any = {
       auctioneerId: user.accountId,
@@ -265,11 +266,11 @@ const CardListing: React.FC<CardListingProps> = ({
       spread: parseFloat(spreadRef.current?.value || "0"),
       startTime:
         startDateRef.current && startDateRef.current.value != ""
-          ? new Date(startDateRef.current.value).toISOString()
+          ? new Date(startDateRef.current.value).toJSON()
           : "",
       endTime:
         endDateRef.current && endDateRef.current.value != ""
-          ? new Date(endDateRef.current.value).toISOString()
+          ? new Date(endDateRef.current.value).toJSON()
           : "",
       type: type,
       cards:
@@ -310,9 +311,12 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
+    console.log(auctionData);
+
     createAuction(setToast, auctionData).then((auction) => {
       if (!auction.auctionId) { return }
-      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+      // setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+      console.log("Auction created with ID: " + auction.auctionId);
     });
 
   };
@@ -549,7 +553,7 @@ const CardListing: React.FC<CardListingProps> = ({
               margin="normal"
               InputLabelProps={{ shrink: true }}
               inputProps={{
-                min: getMinDatePlusTwoMinutes(),
+                min: getCurDate(),
               }}
             />
 
@@ -560,9 +564,6 @@ const CardListing: React.FC<CardListingProps> = ({
               fullWidth
               margin="normal"
               InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: new Date().toISOString().slice(0, 16),
-              }}
             />
 
             <Button

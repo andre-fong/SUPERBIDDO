@@ -8,9 +8,9 @@ interface StatusLabelProps {
 
 const StatusLabel: React.FC<StatusLabelProps> = ({ status }) => {
   const statusColor = 
-    status in AuctionStatusEnum 
-      ? AuctionStatusColorEnum[status === "Not scheduled" ? "NotScheduled" : status as keyof typeof AuctionStatusColorEnum]
-      : BiddingStatusColorEnum[status as BiddingStatusEnum];
+    status in BiddingStatusEnum
+      ? BiddingStatusColorEnum[status as BiddingStatusEnum]
+      : AuctionStatusColorEnum[status.toString() === AuctionStatusEnum.NotScheduled.toString() ? "NotScheduled" : status as keyof typeof AuctionStatusColorEnum]
 
   return (
     <Box display="flex" alignItems="center" padding="5px 10px" borderRadius="20px" bgcolor="#f0f0f0">

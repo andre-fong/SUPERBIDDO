@@ -33,7 +33,6 @@ import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
 import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
-import { timeStamp } from "console";
 
 function auctionPollingStart(
   auctionId: string,
