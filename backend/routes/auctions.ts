@@ -3,6 +3,7 @@ import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
 import { addLpClient } from "../longPolling/longPolling.js";
+import { postAuctionNotification, notificationMiddleware } from "../middlewares/notifications.js";
 
 export const router = express.Router();
 
@@ -721,7 +722,7 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.post("/", async (req, res) => {
+router.post("/",  notificationMiddleware(postAuctionNotification), async (req, res) => {
   const auctionInput: AuctionInput = req.body;
   // can only post auctions for self
   // if (auctionInput.auctioneerId !== req.session.accountId) {
@@ -732,6 +733,7 @@ router.post("/", async (req, res) => {
   // (openapi cannot define fields based on other fields)
 
   // must start in the future
+  console.log(new Date(auctionInput.startTime).getTime(), Date.now());
   if (new Date(auctionInput.startTime).getTime() < Date.now()) {
     throw new BusinessError(
       400,
