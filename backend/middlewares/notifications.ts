@@ -42,7 +42,7 @@ async function getTopBidder(auctionId: string) {
 }
 
 function scheduleBidEndReminder(auctionId: string, auctionName: string, auctioneerId: string, reminderDate: Date) {
-  return schedule.scheduleJob(true ? new Date(new Date().getTime() + 40 * 1000) : reminderDate, () => {
+  return schedule.scheduleJob(true ? new Date(new Date().getTime() + 30 * 1000) : reminderDate, () => {
     const allBidders = getAllBidders(auctionId);
     const topBidder = getTopBidder(auctionId);
     Promise.all([allBidders, topBidder]).then(([allBiddersResult, topBidderResult]) => {
@@ -58,7 +58,6 @@ function scheduleBidEndReminder(auctionId: string, auctionName: string, auctione
         io.to(topBidderId).emit("auction_bid_won", auctionName);
       }
     });
-    console.log(auctioneerId)
     io.to(auctioneerId).emit("auction_owning_ended", auctionName);
     delete reminderJobs[auctionId];
   });
@@ -67,8 +66,7 @@ function scheduleBidEndReminder(auctionId: string, auctionName: string, auctione
 // 4 minutes
 function scheduleAuctionSoonEndReminder(auctionId: string, auctionName: string, reminderDate: Date) {
   return reminderDate.getTime() - (4 * 60 * 1000) >= 0
-    ? schedule.scheduleJob(true ? new Date(new Date().getTime() + 30 * 1000) : new Date(reminderDate.getTime() - (4 * 60 * 1000)), () => {
-        console.log("auction ending soon");
+    ? schedule.scheduleJob(true ? new Date(new Date().getTime() + 20 * 1000) : new Date(reminderDate.getTime() - (4 * 60 * 1000)), () => {
         getAllBidders(auctionId).then((allBiddersResult) => {
           allBiddersResult.rows.forEach((row) => {
             io.to(row.bidder_id).emit("auction_ending_soon", auctionName);
@@ -95,6 +93,8 @@ export async function postBidNotification(req: Request, res: Response, body: any
       [body.auctionId]
     )
   ).rows[0];
+
+  if (!bidRecord) { return }
 
   const outbidBidder: Bid = 
      {
@@ -123,8 +123,6 @@ export async function postBidNotification(req: Request, res: Response, body: any
   ).rows[0];
 
   //Why is there a red line here?
-  console.log("auctioneer id: " + auction.auctioneerId);
-
   io.to(outbidBidder.bidder.accountId).emit("auction_outbidded", auction.name);
   io.to(auction.auctioneerId).emit("auction_recieved_bid", auction.name);
 }

@@ -49,8 +49,10 @@ function useNotifications(user: User | null, setToast: (error: ErrorType) => voi
                 });
             })
 
-            socketRef.current?.on('auction_bid_ending_soon', (auctionName: string) => {
-                console.log(auctionName);
+            socketRef.current?.on('auction_ending_soon', (auctionName: string) => {
+                new Notification("Auction Ending Soon!", {
+                    body: `The auction: ${auctionName} you bid on is ending soon`,
+                });
             });
 
             socketRef.current?.on('auction_owning_ended', (auctionName: string) => {
@@ -61,12 +63,12 @@ function useNotifications(user: User | null, setToast: (error: ErrorType) => voi
         });
 
         return () => {
-            socketRef.current?.off('auction_owning_ended');
             socketRef.current?.off('auction_outbidded');
             socketRef.current?.off('auction_recieved_bid');
             socketRef.current?.off('auction_bid_won');
             socketRef.current?.off('auction_bid_lost');
-            socketRef.current?.off('auction_bid_ending_soon');
+            socketRef.current?.off('auction_ending_soon');
+            socketRef.current?.off('auction_owning_ended');
             socketRef.current?.disconnect();
         }
     }, [user]);
