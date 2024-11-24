@@ -165,7 +165,6 @@ router.get(
       };
     });
 
-    console.log(bids);
     res.json({
       bids: bids,
       totalNumBids: bidRecords[0] ? bidRecords[0].total : 0,
