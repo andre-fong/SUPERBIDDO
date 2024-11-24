@@ -9,6 +9,9 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Skeleton from "@mui/material/Skeleton";
+import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchAuction } from "@/utils/fetchFunctions";
 import { Auction } from "@/types/backendAuctionTypes";
@@ -226,6 +229,47 @@ export default function EditAuction({
 
   return (
     <>
+      <div
+        role="presentation"
+        onClick={(e) => e.preventDefault()}
+        style={{
+          marginLeft: "30px",
+          marginBottom: "10px",
+        }}
+      >
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: "15px" }}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("home")}
+          >
+            Home
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("results", context)}
+          >
+            Auctions
+          </Link>
+          {loading ? (
+            <Skeleton variant="text" width={100} />
+          ) : (
+            <Link
+              underline="hover"
+              color="inherit"
+              href="/"
+              onClick={() => setCurPage("auction", context)}
+            >
+              {cardName}
+            </Link>
+          )}
+          <p style={{ color: "black" }}>Edit Auction</p>
+        </Breadcrumbs>
+      </div>
+
       <main className={styles.main}>
         <form className={styles.form} onSubmit={handleEditSubmit}>
           <h1>Edit Auction</h1>
