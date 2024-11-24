@@ -4,6 +4,7 @@ import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { fetchLogin } from "@/utils/fetchFunctions";
+import { useRef } from "react";
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -11,6 +12,10 @@ import { motion } from "motion/react";
 import { User } from "@/types/userTypes";
 import { ErrorType } from "@/types/errorTypes";
 import GoogleSessionButton from "@/components/googleSessionButton";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Severity } from "@/types/errorTypes";
+
+const enableCaptcha = false;
 
 export default function Login({
   setCurPage,
@@ -23,8 +28,17 @@ export default function Login({
   setUser: (user: User) => void;
   setToast: (error: ErrorType) => void;
 }) {
+  const recaptchaRef = useRef<boolean>(false);
+
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (enableCaptcha && !recaptchaRef.current) {
+      setToast({
+        message: "Please complete the captcha",
+        severity: Severity.Warning,
+      });
+      return;
+    }
 
     const email = (
       e.currentTarget.elements.namedItem("email") as HTMLInputElement
@@ -32,6 +46,8 @@ export default function Login({
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
+
+
 
     fetchLogin(setToast, email, password).then((loginData) => {
       if (!loginData) {
@@ -108,9 +124,13 @@ export default function Login({
             autoComplete="off"
           />
 
-          <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
+          <Button variant="contained" type="submit" sx={{ marginTop: "20px", marginBottom: "10px" }}>
             Log in
           </Button>
+          {enableCaptcha && <ReCAPTCHA
+            sitekey={""}
+            onChange={() => (recaptchaRef.current = true)}
+          />}
         </form>
 
         <div className={styles.divider_container}>
