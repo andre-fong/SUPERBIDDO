@@ -2,7 +2,7 @@ import { PageName } from "@/types/pageTypes";
 import { useEffect, useState, useRef } from "react";
 import styles from "@/styles/editAuction.module.css";
 import { User } from "@/types/userTypes";
-import { ErrorType } from "@/types/errorTypes";
+import { ErrorType, Severity } from "@/types/errorTypes";
 import TextField from "@mui/material/TextField";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -10,6 +10,14 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { fetchAuction } from "@/utils/fetchFunctions";
+import { Auction } from "@/types/backendAuctionTypes";
+
+const gameMap = {
+  MTG: "Magic: The Gathering",
+  Yugioh: "Yu-Gi-Oh!",
+  Pokemon: "Pokemon",
+};
 
 export default function EditAuction({
   setCurPage,
@@ -23,7 +31,7 @@ export default function EditAuction({
   context: string;
 }) {
   const [type, setType] = useState<string>("");
-  const [cardBundleType, setCardBundleType] = useState<string>("");
+  const [game, setGame] = useState<string>("");
   const [qualityType, setQualityType] = useState<string>("");
   const [psaQuality, setPsaQuality] = useState<number>(0);
   const [ungradedQuality, setUngradedQuality] = useState<string>("");
@@ -35,16 +43,87 @@ export default function EditAuction({
   const [set, setSet] = useState<string>("");
   const [startingPrice, setStartingPrice] = useState<number>(0);
   const [spread, setSpread] = useState<number>(0);
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<number>(0);
+  const [endDate, setEndDate] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const auctionId = JSON.parse(context)?.auctionId;
+    if (auctionId === undefined) {
+      setToast({
+        message: "Invalid auction ID",
+        severity: Severity.Critical,
+      });
+      setCurPage("home");
+    } else {
+      // Fetch auction data
+      fetchAuction(setToast, auctionId).then((auction: Auction) => {
+        if (auction === null) {
+          setToast({
+            message: "Auction not found",
+            severity: Severity.Critical,
+          });
+          setCurPage("home");
+        } else {
+          const isBundle = auction.cards === undefined;
+          isBundle
+            ? auction.bundle.qualityUngraded
+              ? "Ungraded"
+              : "PSA"
+            : auction.cards[0].qualityUngraded
+            ? "Ungraded"
+            : "PSA";
+          setGame(
+            isBundle
+              ? gameMap[auction.bundle.game]
+              : gameMap[auction.cards[0].game]
+          );
+          setQualityType(qualityType);
+          setPsaQuality(
+            qualityType === "PSA"
+              ? isBundle
+                ? (auction.bundle.qualityPsa as number)
+                : (auction.cards[0].qualityPsa as number)
+              : 1
+          );
+          setUngradedQuality(
+            qualityType === "Ungraded"
+              ? isBundle
+                ? (auction.bundle.qualityUngraded as string)
+                : (auction.cards[0].qualityUngraded as string)
+              : "Damaged"
+          );
+          setFoil(isBundle ? false : auction.cards[0].isFoil);
+          setRarity(isBundle ? "" : auction.cards[0].rarity);
+          setCardName(isBundle ? auction.bundle.name : auction.cards[0].name);
+          setDescription(
+            isBundle
+              ? auction.bundle.description || ""
+              : auction.cards[0].description || ""
+          );
+          setManufacturer(
+            isBundle
+              ? auction.bundle.manufacturer
+              : auction.cards[0].manufacturer
+          );
+          setSet(isBundle ? auction.bundle.set : auction.cards[0].set);
+          setStartingPrice(auction.startPrice);
+          setSpread(auction.spread);
+          setStartDate(new Date(auction.startTime).getTime());
+          // Put auction.endTime in datetime format
+          setEndDate(new Date(auction.endTime).getTime());
+          setLoading(false);
+        }
+      });
+    }
+  }, [context]);
 
   const handleTypeChange = (event: SelectChangeEvent) => {
     setType(event.target.value);
   };
 
-  const handleCardBundleTypeChange = (event: SelectChangeEvent) => {
-    setCardBundleType(event.target.value);
+  const handleGameChange = (event: SelectChangeEvent) => {
+    setGame(event.target.value);
   };
 
   const handleQualityTypeChange = (event: SelectChangeEvent) => {
@@ -104,11 +183,11 @@ export default function EditAuction({
   const handleStartDateChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setStartDate(event.target.value);
+    setStartDate(new Date(event.target.value).getTime());
   };
 
   const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEndDate(event.target.value);
+    setEndDate(new Date(event.target.value).getTime());
   };
 
   return (
@@ -116,26 +195,13 @@ export default function EditAuction({
       <main className={styles.main}>
         <form className={styles.form}>
           <h1>Edit Auction</h1>
-          <FormControl fullWidth>
-            <InputLabel>Type</InputLabel>
-            <Select
-              label="Type"
-              value={type}
-              onChange={handleTypeChange}
-              MenuProps={{ disableScrollLock: true }}
-              required
-            >
-              <MenuItem value="Card">Card</MenuItem>
-              <MenuItem value="Bundle">Bundle</MenuItem>
-            </Select>
-          </FormControl>
 
           <FormControl fullWidth>
-            <InputLabel>Card / Bundle Type</InputLabel>
+            <InputLabel>Game</InputLabel>
             <Select
-              label="Card / Bundle Type"
-              value={cardBundleType}
-              onChange={handleCardBundleTypeChange}
+              label="Game"
+              value={game}
+              onChange={handleGameChange}
               MenuProps={{ disableScrollLock: true }}
               required
             >

@@ -199,7 +199,9 @@ export default function PageHandler() {
           setCurPage={setCurPage}
           user={user}
           setToast={setToast}
-          context={pageContext}
+          context={JSON.stringify({
+            auctionId: "b5ff82e0-709f-4a91-81d1-c89c680f159e",
+          })}
         />
       ),
     },
