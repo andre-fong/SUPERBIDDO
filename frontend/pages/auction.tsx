@@ -35,13 +35,29 @@ import { fetchAuction } from "@/utils/fetchFunctions";
 import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
 import { timeStamp } from "console";
 
-function auctionPollingStart(auctionId: string, setToast: (err: ErrorType) => void, bidId: string, signal: AbortSignal, setFunction: (bid: Auction) => void) {
-  pollForAuctionUpdates(setToast, auctionId, signal, bidId).then((bid: any) => {
-    if (!bid) { return }
+function auctionPollingStart(
+  auctionId: string,
+  setToast: (err: ErrorType) => void,
+  bidId: string,
+  signal: AbortSignal,
+  updateAuction: (auction: Auction) => void
+) {
+  pollForAuctionUpdates(setToast, auctionId, signal, bidId).then(
+    (newAuction: Auction) => {
+      if (!newAuction) {
+        return;
+      }
 
-    setFunction(bid);
-    auctionPollingStart(auctionId, setToast, bid.topBid.bidId, signal, setFunction);
-  });
+      updateAuction(newAuction);
+      auctionPollingStart(
+        auctionId,
+        setToast,
+        newAuction.topBid?.bidId || "null",
+        signal,
+        updateAuction
+      );
+    }
+  );
 }
 
 const pageSize = 8;
@@ -63,24 +79,33 @@ export default function Auction({
   const [isBidding, setIsBidding] = useState<boolean>(false);
   const [auctionEnded, setAuctionEnded] = useState<boolean>(false);
   const [spread, setSpread] = useState<number>(0);
+  /**
+   * Starting price
+   */
   const [curMinBid, setCurMinBid] = useState<number>(0);
-  const [username, setUsername] = useState<string>("matt");
   const [winning, setWinning] = useState<boolean>(false);
   const [watching, setWatching] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<Date>(new Date());
+  /**
+   * Current bid for long polling
+   */
   const [curBid, setCurBid] = useState<number>(0);
+  /**
+   * Bids history pagination
+   */
   const [curPage, setCurHistoryPage] = useState<number>(1);
   const curAuctionId = useRef<string>("");
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
 
-  //TODO: pagination for pages for mandre
   useEffect(() => {
-    if (!curAuctionId.current) { return }
+    if (!curAuctionId.current) {
+      return;
+    }
     setBidsLoading(true);
-    getAuctionBids(setToast, curAuctionId.current, curPage, pageSize)
-      .then((newBids: BidDetails[]) => {
-        return []
+    getAuctionBids(setToast, curAuctionId.current, curPage, pageSize).then(
+      (newBids: BidDetails[]) => {
+        return [];
         // const newBidsFormatted = newBids.map((bid) => {
         //   return {
         //     bidder: bid.bidder.username,
@@ -90,50 +115,62 @@ export default function Auction({
         //   }
         // });
         // setBids(newBidsFormatted);
-      });
+      }
+    );
     setBidsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curBid, curPage]);
 
-  const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({  
+  const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({
     expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
     autoStart: true,
   });
 
-  
-
   //THIS IS ONLY FOR NEW BIDS
   function setAuctionData(auction: Auction) {
     setBidsLoading(true);
     setCurMinBid(auction.minNewBidPrice);
-    setBidCount(auction.numBids)
-    setCurBid(auction.topBid.amount)
-    setWinning(auction.topBid.bidder.accountId === user.accountId)
+    setBidCount(auction.numBids);
+    setCurBid(auction.topBid?.amount || 0);
+    setWinning(auction.topBid?.bidder?.accountId === user.accountId);
     setBidsLoading(false);
   }
 
+  // This useEffect should only run once, since it initiates the long polling
   useEffect(() => {
-    const curBid = JSON.parse(context)
+    const auctionContext = JSON.parse(context);
     const abortController = new AbortController();
     const signal = abortController.signal;
 
-    fetchAuction(setToast, curBid.auctionId).then((auction: Auction) => {
-      if (!auction) { return }
-      curAuctionId.current = auction.auctionId;
-      setSpread(auction.spread);
-      setEndTime(new Date(auction.endTime));
-      setStartTime(new Date(auction.startTime));
-      setAuctionData(auction);
-      restart(new Date(auction.endTime));
-      auctionPollingStart(curBid.auctionId, setToast, auction.topBid.bidId, signal, (newBid: Auction) => {
-        setAuctionData(newBid);
-      });
-    })
+    fetchAuction(setToast, auctionContext.auctionId).then(
+      (auction: Auction) => {
+        if (!auction) {
+          return;
+        }
+        curAuctionId.current = auction.auctionId;
+        setSpread(auction.spread);
+        setEndTime(new Date(auction.endTime));
+        setStartTime(new Date(auction.startTime));
+        setAuctionData(auction);
+        restart(new Date(auction.endTime));
+        auctionPollingStart(
+          auctionContext.auctionId,
+          setToast,
+          auction.topBid?.bidId || "null",
+          signal,
+          (newAuction: Auction) => {
+            setAuctionData(newAuction);
+          }
+        );
+      }
+    );
 
     return () => {
       abortController.abort();
-    }
+    };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // /**
@@ -142,14 +179,20 @@ export default function Auction({
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-
     if (auctionEnded || winning) {
       console.warn("Cannot bid on an ended or winning auction");
       return;
     }
 
-    submitBid(setToast, curAuctionId.current, parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value), user.accountId)
+    submitBid(
+      setToast,
+      curAuctionId.current,
+      parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value),
+      user.accountId
+    );
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SampleNextArrow(props: any) {
     const { className, style, onClick } = props;
     return (
@@ -169,6 +212,7 @@ export default function Auction({
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function SamplePrevArrow(props: any) {
     const { className, style, onClick } = props;
     return (
@@ -246,10 +290,7 @@ export default function Auction({
                         : styles.high_bid_amt
                     }
                   >
-                    ${" "}
-                    {bidCount > 0
-                      ? curBid.toFixed(2)
-                      : curMinBid.toFixed(2)}
+                    $ {bidCount > 0 ? curBid.toFixed(2) : curMinBid.toFixed(2)}
                   </p>
                 )}
                 {winning ? (
@@ -508,8 +549,8 @@ export default function Auction({
               <p className={styles.detail_title}>Payment Terms</p>
               <p className={styles.detail}>
                 Buyer must pay for their winning auction by e-transfer via the
-                seller's email, or pay during pick up on the buyer and seller's
-                own discussed terms.
+                seller&apos;s email, or pay during pick up on the buyer and
+                seller&apos;s own discussed terms.
               </p>
             </div>
           </section>
@@ -605,9 +646,7 @@ export default function Auction({
                       {bid.bidder}
                     </TableCell>
                     <TableCell align="center">{bid.bids}</TableCell>
-                    <TableCell align="center">
-                      {curBid.toFixed(2)}
-                    </TableCell>
+                    <TableCell align="center">{curBid.toFixed(2)}</TableCell>
                     <TableCell
                       align="right"
                       title={new Date(bid.lastBidTime).toLocaleDateString(
