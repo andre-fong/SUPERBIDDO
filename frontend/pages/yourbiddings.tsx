@@ -15,7 +15,7 @@ interface YourBiddingsProps {
 
 const auctionStatuses: BiddingStatus[] = Object.values(BiddingStatusEnum).map(status => status.toString() as BiddingStatus);
 
-const cardsPerPage = 2;
+const cardsPerPage = 9;
 
 const YourBiddings: React.FC<YourBiddingsProps> = ({ user, setToast, setCurPage }) => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
