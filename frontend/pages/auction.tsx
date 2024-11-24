@@ -174,6 +174,7 @@ export default function Auction({
   const [foil, setFoil] = useState<boolean>(false);
   const [manufacturer, setManufacturer] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [sellerAccountId, setSellerAccountId] = useState<string>("");
   const [sellerUsername, setSellerUsername] = useState<string>("");
   const [spread, setSpread] = useState<number>(0);
   const [startPrice, setStartPrice] = useState<number>(0);
@@ -262,6 +263,7 @@ export default function Auction({
             : auction.cards?.at(0)?.manufacturer || ""
         );
         setDescription(auction.description || "");
+        setSellerAccountId(auction.auctioneer.accountId);
         setSellerUsername(auction.auctioneer.username);
 
         if (!auctionIsBundle) {
@@ -495,46 +497,60 @@ export default function Auction({
             </div>
 
             <div className={styles.button_row}>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                disabled={bidsLoading || winning || auctionEnded}
-                onClick={() => setIsBidding(true)}
-              >
-                {auctionEnded
-                  ? "Auction Ended"
-                  : winning
-                  ? "Winning Bid!"
-                  : bidsLoading
-                  ? "Bid"
-                  : `Bid $ ${(
-                      (bidCount > 0 ? curBid : curMinBid) + spread
-                    ).toFixed(2)}`}
-              </Button>
-
-              {bidsLoading ? (
-                <Button variant="outlined" fullWidth size="large" disabled>
-                  Watch
-                </Button>
-              ) : watching ? (
-                <Button
-                  variant="contained"
-                  startIcon={<StarIcon />}
-                  fullWidth
-                  size="large"
-                >
-                  Watching
-                </Button>
-              ) : (
+              {!auctionLoading && sellerAccountId === user?.accountId ? (
                 <Button
                   variant="outlined"
-                  startIcon={<StarIcon />}
                   fullWidth
+                  color="info"
                   size="large"
+                  onClick={() => setCurPage("editAuction", context)}
                 >
-                  Watch
+                  Edit Auction
                 </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    disabled={bidsLoading || winning || auctionEnded}
+                    onClick={() => setIsBidding(true)}
+                  >
+                    {auctionEnded
+                      ? "Auction Ended"
+                      : winning
+                      ? "Winning Bid!"
+                      : bidsLoading
+                      ? "Bid"
+                      : `Bid $ ${(
+                          (bidCount > 0 ? curBid : curMinBid) + spread
+                        ).toFixed(2)}`}
+                  </Button>
+
+                  {bidsLoading ? (
+                    <Button variant="outlined" fullWidth size="large" disabled>
+                      Watch
+                    </Button>
+                  ) : watching ? (
+                    <Button
+                      variant="contained"
+                      startIcon={<StarIcon />}
+                      fullWidth
+                      size="large"
+                    >
+                      Watching
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      startIcon={<StarIcon />}
+                      fullWidth
+                      size="large"
+                    >
+                      Watch
+                    </Button>
+                  )}
+                </>
               )}
             </div>
 
