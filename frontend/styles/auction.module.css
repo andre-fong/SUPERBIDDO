@@ -1,5 +1,5 @@
 .main {
-  padding: 30px clamp(30px, 5vw, 300px);
+  padding: 30px clamp(30px, 10vw, 300px);
 }
 
 .hero_container {
@@ -13,6 +13,7 @@
 
   /* Needed for react-slick to calculate width of carousel */
   min-width: 0;
+  max-width: 700px;
   padding: 10px 0 20px 0;
   background-color: rgb(220, 220, 220);
   border-radius: 15px;

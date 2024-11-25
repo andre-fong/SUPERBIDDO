@@ -404,7 +404,7 @@ export default function Auction({
         role="presentation"
         onClick={(e) => e.preventDefault()}
         style={{
-          marginLeft: "clamp(30px, 5vw, 300px)",
+          marginLeft: "clamp(30px, 10vw, 300px)",
           marginBottom: "-15px",
         }}
       >
@@ -980,9 +980,7 @@ export default function Auction({
       >
         <div className={styles.bids_container}>
           <h2 className={styles.bids_title}>Bid History</h2>
-          <h3 className={styles.bids_listing_title}>
-            Charizard FX Rebirth 88/110 Shiny
-          </h3>
+          <h3 className={styles.bids_listing_title}>{auctionName}</h3>
 
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
@@ -1128,11 +1126,7 @@ export default function Auction({
           />
 
           <p className={styles.confirm_msg_end}>
-            on{" "}
-            <span className={styles.bold}>
-              &quot;Charizard Birth Japanese Card VM&quot;
-            </span>
-            ?
+            on <span className={styles.bold}>&quot;{auctionName}&quot;</span>?
           </p>
 
           <div className={styles.confirm_button_row}>
