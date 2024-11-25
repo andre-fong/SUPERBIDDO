@@ -1,23 +1,52 @@
+CREATE OR REPLACE FUNCTION public.check_auction_ongoing()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+	_start_time timestamptz;
+	_end_time timestamptz;
+BEGIN
+	SELECT start_time, end_time INTO _start_time, _end_time FROM auction WHERE auction_id = NEW.auction_id;
+	IF 
+		_start_time > now() THEN
+			RAISE EXCEPTION 'auction_not_started' 
+			USING CONSTRAINT = 'auction_not_started';
+	END IF;
+	IF 
+		_end_time < now() THEN
+			RAISE EXCEPTION 'auction_ended' 
+			USING CONSTRAINT = 'auction_ended';
+	END IF;
+	RETURN NEW;
+END;
+$function$
+;
+
 CREATE OR REPLACE FUNCTION public.check_bid_valid()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
 DECLARE
     max_current_bid NUMERIC(12,2);
+	current_leading_bidder_id UUID;
     auction_spread NUMERIC(12,2);
     min_valid_bid NUMERIC(12,2);
 BEGIN
-	SELECT COALESCE(
-			MAX(amount), 
-			(SELECT start_price FROM auction WHERE auction_id = NEW.auction_id)
-		) INTO max_current_bid
-	FROM bid WHERE auction_id = NEW.auction_id;
+	SELECT amount, bidder_id INTO max_current_bid, current_leading_bidder_id FROM bid WHERE auction_id = NEW.auction_id ORDER BY amount DESC LIMIT 1;
+	
+	IF current_leading_bidder_id = NEW.bidder_id THEN
+		RAISE EXCEPTION 'already_leading' 
+		USING CONSTRAINT = 'already_leading';
+	END IF;
+
+	IF max_current_bid IS NULL THEN
+		max_current_bid := (SELECT start_price FROM auction WHERE auction_id = NEW.auction_id);
+	END IF;
 	
 	SELECT spread INTO auction_spread FROM auction WHERE auction_id = NEW.auction_id;
 
 	min_valid_bid := max_current_bid + auction_spread;
-	
-	
+
 	IF 
 	    NEW.amount < min_valid_bid THEN
         RAISE EXCEPTION 'bid_amount_insufficient'
@@ -55,7 +84,7 @@ CREATE OR REPLACE FUNCTION public.check_start_timestamp_in_future()
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-		IF NEW.start_time < now() THEN
+		IF NEW.start_time < now() - INTERVAL '1 second' THEN -- 1 SECOND buffer FOR TRIGGER TO run
 				RAISE EXCEPTION 'start_time_in_past';
 		END IF;
 		RETURN NEW;
@@ -159,6 +188,10 @@ CREATE INDEX bid_bidder_id_idx ON public.bid USING btree (bidder_id);
 
 -- Table Triggers
 
+CREATE TRIGGER check_auction_ongoing_trigger BEFORE
+INSERT
+    ON
+    public.bid FOR EACH ROW EXECUTE FUNCTION check_auction_ongoing();
 CREATE TRIGGER check_bid_valid_trigger BEFORE
 INSERT
     ON
