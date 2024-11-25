@@ -759,7 +759,10 @@ router.patch("/:auctionId", async (req, res) => {
     throw unauthorized();
   }
 
-  if (new Date(auctionRecord.startTime).getTime() < Date.now()) {
+  if (
+    auctionRecord.startTime &&
+    new Date(auctionRecord.startTime).getTime() < Date.now()
+  ) {
     throw new BusinessError(
       409,
       "Cannot modify auction",
@@ -1137,7 +1140,10 @@ router.delete("/:auctionId", async (req, res) => {
     throw unauthorized();
   }
 
-  if (new Date(auctionRecord.startTime).getTime() < Date.now()) {
+  if (
+    auctionRecord.startTime &&
+    new Date(auctionRecord.startTime).getTime() < Date.now()
+  ) {
     throw new BusinessError(
       409,
       "Cannot delete auction",
@@ -1176,7 +1182,10 @@ router.post(
     // (openapi cannot define fields based on other fields)
 
     // must start in the future
-    if (new Date(auctionInput.startTime).getTime() < Date.now()) {
+    if (
+      auctionInput.startTime &&
+      new Date(auctionInput.startTime).getTime() < Date.now()
+    ) {
       throw new BusinessError(
         409,
         "Invalid auction start time",
@@ -1186,9 +1195,11 @@ router.post(
 
     // must last at least 5 minutes
     if (
+      auctionInput.startTime &&
+      auctionInput.endTime &&
       new Date(auctionInput.endTime).getTime() -
         new Date(auctionInput.startTime).getTime() <
-      5 * 60 * 1000
+        5 * 60 * 1000
     ) {
       throw new BusinessError(
         400,
