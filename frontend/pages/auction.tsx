@@ -498,7 +498,7 @@ export default function Auction({
                   >
                     {unscheduled
                       ? "Unscheduled"
-                      : inPast || auctionEnded
+                      : inPast
                       ? "Ended"
                       : inFuture
                       ? "Scheduled"
@@ -617,7 +617,7 @@ export default function Auction({
                   fullWidth
                   color="info"
                   size="large"
-                  disabled={!inFuture && !unscheduled}
+                  disabled={(!inFuture && !unscheduled) || auctionEnded}
                   onClick={() => setCurPage("editAuction", context)}
                 >
                   Edit Auction
