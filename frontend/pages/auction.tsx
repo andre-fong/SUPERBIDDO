@@ -147,6 +147,12 @@ function handleQualityTooltip(
 
 const pageSize = 999999999;
 
+const gameMap = {
+  MTG: "Magic: The Gathering",
+  Yugioh: "Yu-Gi-Oh!",
+  Pokemon: "Pokémon",
+};
+
 export default function Auction({
   setCurPage,
   user,
@@ -498,7 +504,7 @@ export default function Auction({
                   >
                     {unscheduled
                       ? "Unscheduled"
-                      : inPast || auctionEnded
+                      : inPast
                       ? "Ended"
                       : inFuture
                       ? "Scheduled"
@@ -617,7 +623,7 @@ export default function Auction({
                   fullWidth
                   color="info"
                   size="large"
-                  disabled={!inFuture && !unscheduled}
+                  disabled={(!inFuture && !unscheduled) || auctionEnded}
                   onClick={() => setCurPage("editAuction", context)}
                 >
                   Edit Auction
@@ -866,7 +872,11 @@ export default function Auction({
                 )}
                 <div className={styles.detail_row}>
                   <p className={styles.detail_title}>Game</p>
-                  <p className={styles.detail}>{game}</p>
+                  <p className={styles.detail}>
+                    {Object.keys(gameMap).includes(game)
+                      ? gameMap[game as "Pokemon" | "MTG" | "Yugioh"]
+                      : game}
+                  </p>
                 </div>
                 <div className={styles.detail_row}>
                   <p className={styles.detail_title}>

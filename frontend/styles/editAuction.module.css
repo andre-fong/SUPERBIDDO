@@ -9,3 +9,20 @@
   justify-content: center;
   gap: 20px;
 }
+
+.delete_container {
+  padding: 30px 40px;
+}
+.delete_title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.delete_text {
+  margin-bottom: 30px;
+}
+.delete_buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+}

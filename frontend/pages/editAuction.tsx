@@ -1,5 +1,5 @@
 import { PageName } from "@/types/pageTypes";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "@/styles/editAuction.module.css";
 import { User } from "@/types/userTypes";
 import { ErrorType, Severity } from "@/types/errorTypes";
@@ -13,14 +13,19 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Skeleton from "@mui/material/Skeleton";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { fetchAuction } from "@/utils/fetchFunctions";
-import { Auction } from "@/types/backendAuctionTypes";
-
-const gameMap = {
-  MTG: "Magic: The Gathering",
-  Yugioh: "Yu-Gi-Oh!",
-  Pokemon: "Pokemon",
-};
+import {
+  editAuction,
+  deleteAuction,
+  fetchAuction,
+} from "@/utils/fetchFunctions";
+import {
+  Auction,
+  AuctionPatchBody,
+  QualityPsa,
+  QualityUngraded,
+} from "@/types/backendAuctionTypes";
+import Dialog from "@mui/material/Dialog";
+import cardRarities from "@/types/cardGameInfo";
 
 export default function EditAuction({
   setCurPage,
@@ -50,6 +55,12 @@ export default function EditAuction({
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [editing, setEditing] = useState<boolean>(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<boolean>(false);
+
   useEffect(() => {
     const auctionId = JSON.parse(context)?.auctionId;
     if (auctionId === undefined) {
@@ -71,11 +82,7 @@ export default function EditAuction({
           const isBundle = auction.cards === undefined;
 
           setType(isBundle ? "Bundle" : "Card");
-          setGame(
-            isBundle
-              ? gameMap[auction.bundle.game]
-              : gameMap[auction.cards[0].game]
-          );
+          setGame(isBundle ? auction.bundle.game : auction.cards[0].game);
           setQualityType(
             isBundle
               ? ""
@@ -108,11 +115,7 @@ export default function EditAuction({
           setFoil(isBundle ? false : auction.cards[0].isFoil);
           setRarity(isBundle ? "" : auction.cards[0].rarity);
           setCardName(isBundle ? auction.bundle.name : auction.cards[0].name);
-          setDescription(
-            isBundle
-              ? auction.bundle.description || ""
-              : auction.cards[0].description || ""
-          );
+          setDescription(auction.description || "");
           setManufacturer(
             isBundle
               ? auction.bundle.manufacturer
@@ -145,18 +148,11 @@ export default function EditAuction({
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context]);
-
-  const handleTypeChange = (event: SelectChangeEvent) => {
-    setType(event.target.value);
-  };
 
   const handleGameChange = (event: SelectChangeEvent) => {
     setGame(event.target.value);
-  };
-
-  const handleQualityTypeChange = (event: SelectChangeEvent) => {
-    setQualityType(event.target.value);
   };
 
   const handlePsaQualityChange = (event: SelectChangeEvent) => {
@@ -175,7 +171,7 @@ export default function EditAuction({
     }
   };
 
-  const handleRarityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRarityChange = (event: SelectChangeEvent) => {
     setRarity(event.target.value);
   };
 
@@ -221,10 +217,68 @@ export default function EditAuction({
 
   const handleEditSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const auctionId = JSON.parse(context)?.auctionId;
+    if (auctionId === undefined) {
+      setToast({
+        message: "Invalid auction ID, could not edit auction",
+        severity: Severity.Critical,
+      });
+      setCurPage("home");
+      return;
+    }
+    if (editing || deleting) return;
+
+    const auctionData: AuctionPatchBody = {
+      name: cardName,
+      description: description,
+      startPrice: startingPrice,
+      spread: spread,
+      startTime: new Date(startDate)?.toISOString(),
+      endTime: new Date(endDate)?.toISOString(),
+    };
+
+    if (type === "Card") {
+      auctionData.cardName = cardName;
+      auctionData.cardDescription = description;
+      auctionData.cardManufacturer = manufacturer;
+      auctionData.cardSet = set;
+      auctionData.cardIsFoil = foil;
+      auctionData.cardGame = game as "MTG" | "Yugioh" | "Pokemon";
+      if (qualityType === "PSA") {
+        auctionData.cardQualityPsa = psaQuality as QualityPsa;
+      } else {
+        auctionData.cardQualityUngraded = ungradedQuality as QualityUngraded;
+      }
+      auctionData.cardRarity = rarity;
+    } else if (type === "Bundle") {
+      auctionData.bundleName = cardName;
+      auctionData.bundleDescription = description;
+      auctionData.bundleManufacturer = manufacturer;
+      auctionData.bundleSet = set;
+      auctionData.bundleGame = game as "MTG" | "Yugioh" | "Pokemon";
+    }
+
+    setEditing(true);
+    await editAuction(setToast, auctionId, auctionData);
+    setCurPage("auction", context);
   };
 
-  const handleDeleteAuction = async () => {
-    // Delete
+  const handleDeleteAuction = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (deleteConfirmText !== cardName) {
+      setToast({
+        message: "Delete confirmation text does not match card name",
+        severity: Severity.Warning,
+      });
+      setDeleteError(true);
+      return;
+    }
+    if (editing || deleting) return;
+
+    setDeleteError(false);
+    setDeleting(true);
+    await deleteAuction(setToast, JSON.parse(context)?.auctionId);
+    setCurPage("results");
   };
 
   return (
@@ -284,30 +338,11 @@ export default function EditAuction({
               required
               disabled={loading}
             >
-              <MenuItem value="Pokemon">Pokemon</MenuItem>
-              <MenuItem value="Magic: The Gathering">
-                Magic: The Gathering
-              </MenuItem>
-              <MenuItem value="Yu-Gi-Oh!">Yu-Gi-Oh!</MenuItem>
+              <MenuItem value="Pokemon">Pokémon</MenuItem>
+              <MenuItem value="MTG">Magic: The Gathering</MenuItem>
+              <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
             </Select>
           </FormControl>
-
-          {type === "Card" && (
-            <FormControl fullWidth>
-              <InputLabel required={type === "Card"}>Quality Type</InputLabel>
-              <Select
-                label="Quality Type"
-                value={qualityType}
-                onChange={handleQualityTypeChange}
-                MenuProps={{ disableScrollLock: true }}
-                required={type === "Card"}
-                disabled={loading}
-              >
-                <MenuItem value="PSA">PSA</MenuItem>
-                <MenuItem value="Ungraded">Ungraded</MenuItem>
-              </Select>
-            </FormControl>
-          )}
 
           {qualityType === "PSA" && type === "Card" && (
             <FormControl fullWidth>
@@ -372,15 +407,23 @@ export default function EditAuction({
           )}
 
           {type === "Card" && (
-            <TextField
-              label="Rarity"
-              InputLabelProps={{ shrink: true }}
-              value={rarity}
-              onChange={handleRarityChange}
-              fullWidth
-              required={type === "Card"}
-              disabled={loading}
-            />
+            <FormControl fullWidth>
+              <InputLabel required>Rarity</InputLabel>
+              <Select
+                label="Rarity"
+                value={rarity}
+                onChange={handleRarityChange}
+                MenuProps={{ disableScrollLock: true }}
+                required
+                disabled={loading}
+              >
+                {cardRarities[game]?.rarities.map((rarity, index) => (
+                  <MenuItem key={index} value={rarity}>
+                    {rarity}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
           <TextField
             label={
@@ -468,7 +511,7 @@ export default function EditAuction({
             color="primary"
             type="submit"
             fullWidth
-            disabled={loading}
+            disabled={loading || editing || deleting}
           >
             Finish Editing
           </Button>
@@ -478,13 +521,64 @@ export default function EditAuction({
             color="primary"
             fullWidth
             startIcon={<DeleteIcon />}
-            disabled={loading}
-            onClick={handleDeleteAuction}
+            disabled={loading || editing || deleting}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             Delete Auction
           </Button>
         </form>
       </main>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <form
+          className={styles.delete_container}
+          onSubmit={handleDeleteAuction}
+        >
+          <h2 className={styles.delete_title}>
+            Are you sure you want to delete this auction?
+          </h2>
+          <p className={styles.delete_text}>
+            Warning: This action cannot be undone. Type below to confirm.
+          </p>
+
+          <TextField
+            label={'Type "' + cardName + '" to confirm deletion'}
+            fullWidth
+            required
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            disabled={deleting}
+            autoComplete="off"
+            error={deleteError}
+            helperText={
+              deleteError ? "Text does not match card name" : undefined
+            }
+          />
+
+          <div className={styles.delete_buttons}>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              disabled={deleting}
+            >
+              Yes
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              No
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </>
   );
 }

@@ -792,7 +792,10 @@ router.patch("/:auctionId", async (req, res) => {
           req.body.cardQualityPsa || auctionRecord.cards[0].qualityPsa,
         cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
         cardSet: req.body.cardSet || auctionRecord.cards[0].set,
-        cardIsFoil: req.body.cardIsFoil || auctionRecord.cards[0].isFoil,
+        cardIsFoil:
+          req.body.cardIsFoil !== undefined
+            ? req.body.cardIsFoil
+            : auctionRecord.cards[0].isFoil,
         cardGame: req.body.cardGame || auctionRecord.cards[0].game,
       }
     : null;

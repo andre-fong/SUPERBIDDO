@@ -118,6 +118,16 @@ export enum Quality {
   HP = "HP",
 }
 
+export type QualityUngraded =
+  | "Mint"
+  | "Near Mint"
+  | "Lightly Played"
+  | "Moderately Played"
+  | "Heavily Played"
+  | "Damaged";
+
+export type QualityPsa = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
 export type CardRarities = {
   MTG: {
     rarities: [
@@ -161,7 +171,7 @@ export type CardRarities = {
       "Ultimate Rare",
       "Ghost Rare",
       "Starlight Rare",
-      "Collector’s Rare",
+      "Collector's Rare",
       "Prismatic Secret Rare",
       "Parallel Rare",
       "Platinum Rare"
@@ -175,5 +185,28 @@ export enum Rarity {
   R = "R",
   M = "M",
 }
+
+export type AuctionPatchBody = {
+  name: string;
+  description?: string;
+  startPrice: number;
+  spread: number;
+  startTime?: string;
+  endTime?: string;
+  cardName?: string;
+  cardDescription?: string;
+  cardManufacturer?: string;
+  cardSet?: string;
+  cardIsFoil?: boolean;
+  cardGame?: "MTG" | "Yugioh" | "Pokemon";
+  cardQualityUngraded?: QualityUngraded;
+  cardQualityPsa?: QualityPsa;
+  cardRarity?: string;
+  bundleName?: string;
+  bundleDescription?: string;
+  bundleManufacturer?: string;
+  bundleSet?: string;
+  bundleGame?: "MTG" | "Yugioh" | "Pokemon";
+};
 
 export type AuctionSelfType = "biddings" | "listings";
