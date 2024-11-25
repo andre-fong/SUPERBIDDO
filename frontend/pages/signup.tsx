@@ -10,12 +10,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
-import { useRef } from "react";
 import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-const enableCaptcha = false;
+const enableCaptcha = true;
 
 export default function Signup({
   setCurPage,
@@ -28,18 +27,20 @@ export default function Signup({
   setToast: (error: ErrorType) => void;
   setUser: (user: User) => void;
 }) {
-  const recaptchaRef = useRef<boolean>(false);
-
+  const [reCAPTCHAPassed, setReCAPTCHAPassed] = useState<boolean>(false);
+  const [reCAPTCHAError, setReCAPTCHAError] = useState<boolean>(false);
   const [passwordMatchError, setPasswordMatchError] = useState<boolean>(false);
 
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (enableCaptcha && !recaptchaRef.current) {
+    if (enableCaptcha && !reCAPTCHAPassed) {
       setToast({
         message: "Please complete the captcha",
         severity: Severity.Warning,
       });
+      setReCAPTCHAError(true);
+
       return;
     }
 
@@ -161,19 +162,27 @@ export default function Signup({
             helperText={passwordMatchError ? "Passwords do not match." : ""}
           />
 
+          {enableCaptcha && (
+            <div
+              className={styles.recaptcha}
+              style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}
+            >
+              <ReCAPTCHA
+                sitekey={process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY as string}
+                onChange={() => {
+                  setReCAPTCHAPassed(true);
+                  setReCAPTCHAError(false);
+                }}
+              />
+            </div>
+          )}
           <Button
             variant="contained"
             type="submit"
-            sx={{ marginTop: "7%", marginBottom: "10px" }}
+            sx={{ marginTop: "20px", marginBottom: "10px" }}
           >
             Sign up
           </Button>
-          {enableCaptcha && (
-            <ReCAPTCHA
-              sitekey={""}
-              onChange={() => (recaptchaRef.current = true)}
-            />
-          )}
         </form>
 
         <div className={styles.divider_container}>
