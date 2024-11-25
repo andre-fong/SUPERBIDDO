@@ -79,12 +79,21 @@ router.post(
           switch (err.constraint) {
             case "bid_fk_auction":
               throw new BusinessError(404, "Auction not found");
+            case "auction_ended":
+              throw new BusinessError(409, "Auction has ended");
+            case "auction_not_started":
+              throw new BusinessError(409, "Auction has not started");
+            case "already_leading":
+              throw new BusinessError(
+                409,
+                "You are already the leading bidder"
+              );
             case "bid_fk_bidder":
-              throw new BusinessError(400, "Invalid bidder ID");
+              throw new BusinessError(404, "Bidder not found");
             case "bidder_same_as_auctioneer":
-              throw new BusinessError(400, "Cannot bid on own auction");
+              throw new BusinessError(409, "Cannot bid on own auction");
             case "bid_amount_insufficient":
-              throw new BusinessError(400, "Bid too low", err.hint);
+              throw new BusinessError(409, "Bid too low", err.hint);
             default:
               throw new ServerError(500, "Error inserting bid");
           }
