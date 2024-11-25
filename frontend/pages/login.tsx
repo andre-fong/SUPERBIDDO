@@ -47,8 +47,6 @@ export default function Login({
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
 
-
-
     fetchLogin(setToast, email, password).then((loginData) => {
       if (!loginData) {
         return;
@@ -124,13 +122,19 @@ export default function Login({
             autoComplete="off"
           />
 
-          <Button variant="contained" type="submit" sx={{ marginTop: "20px", marginBottom: "10px" }}>
+          <Button
+            variant="contained"
+            type="submit"
+            sx={{ marginTop: "10%", marginBottom: "10px" }}
+          >
             Log in
           </Button>
-          {enableCaptcha && <ReCAPTCHA
-            sitekey={""}
-            onChange={() => (recaptchaRef.current = true)}
-          />}
+          {enableCaptcha && (
+            <ReCAPTCHA
+              sitekey={""}
+              onChange={() => (recaptchaRef.current = true)}
+            />
+          )}
         </form>
 
         <div className={styles.divider_container}>
