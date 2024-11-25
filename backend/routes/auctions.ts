@@ -759,7 +759,7 @@ router.patch("/:auctionId", async (req, res) => {
     throw unauthorized();
   }
 
-  if (auctionRecord.startTime < new Date(Date.now())) {
+  if (new Date(auctionRecord.startTime).getTime() < Date.now()) {
     throw new BusinessError(
       409,
       "Cannot modify auction",
@@ -1134,7 +1134,7 @@ router.delete("/:auctionId", async (req, res) => {
     throw unauthorized();
   }
 
-  if (new Date(auctionRecord.startTime).getTime() > Date.now()) {
+  if (new Date(auctionRecord.startTime).getTime() < Date.now()) {
     throw new BusinessError(
       409,
       "Cannot delete auction",
