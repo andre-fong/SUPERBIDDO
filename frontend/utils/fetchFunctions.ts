@@ -146,12 +146,20 @@ export async function getAuctionSearchResults(
   searchQuery?: AuctionSearchQuery
 ) {
   const params = Object.entries(searchQuery || {})
-    .map(
-      ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(value.toString())}`
-    )
+    .map(([key, value]) => {
+      if (value === undefined || value === null) {
+        return "";
+      }
+      if (typeof value === "object") {
+        return Object.entries(value)
+          .map(([subKey, subValue]) => `${key}=${subValue.toString()}`)
+          .join("&");
+      }
+      return `${key}=${value.toString()}`;
+    })
     .join("&");
 
+  console.log(params);
   try {
     const response = await fetch(`${url}/auctions?${params}`, {
       method: "GET",

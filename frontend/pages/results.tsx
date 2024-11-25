@@ -114,7 +114,7 @@ const AccordionDetails = styled((props: AccordionDetailsProps) => (
 
 /**
  * Search Results page.
- * @param context.category - Category to filter by ("pokemon" | "mtg" | "yugioh" | "bundles").
+ * @param context.category - Category to filter by ("pokemon" | "mtg" | "yugioh").
  * @param context.searchQuery - Search query to filter by.
  */
 export default function Results({
@@ -128,45 +128,6 @@ export default function Results({
   setToast: (err: ErrorType) => void;
   context: string;
 }) {
-  //////////////////////////////////////////////////
-  //                 MOCK DATA                    //
-  //////////////////////////////////////////////////
-
-  const auction = {
-    auctionId: "TODO",
-    auctioneerId: "TODO",
-    name: "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
-    description: "This is the last of its kind. Buy now.",
-    startPrice: 0.5,
-    spread: 1,
-    startTime: new Date(),
-    endTime: new Date(),
-    currentPrice: 500.69,
-    topBid: {
-      bidId: "TODO",
-      bidderId: "TODO",
-      auctionId: "TODO",
-      amount: 500.69,
-      timestamp: new Date(),
-    },
-    numBids: 1,
-    cards: [
-      {
-        cardId: "TODO",
-        game: Game.PKM,
-        name: "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
-        description:
-          "Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection",
-        manufacturer: "Nintendo",
-        quality: Quality.NM,
-        rarity: Rarity.C,
-        set: "1999 Addition",
-        isFoil: false,
-      },
-    ],
-    bundle: undefined,
-  };
-
   //////////////////////////////////////////////////
   //                 FORM STATE                   //
   //////////////////////////////////////////////////
@@ -225,7 +186,6 @@ export default function Results({
       pokemon: false,
       mtg: false,
       yugioh: false,
-      bundles: false,
     });
 
   // Rarities change based on category
@@ -233,8 +193,6 @@ export default function Results({
     useState<string>("default");
   const [mtgRarityFilter, setMtgRarityFilter] = useState<string>("default");
   const [yugiohRarityFilter, setYugiohRarityFilter] =
-    useState<string>("default");
-  const [bundlesRarityFilter, setBundlesRarityFilter] =
     useState<string>("default");
 
   const [priceSearchFilters, setPriceSearchFilters] =
@@ -263,13 +221,13 @@ export default function Results({
     // GAMES
     const categories = [];
     if (categorySearchFilters.pokemon) {
-      categories.push("pokemon");
+      categories.push("Pokemon");
     }
     if (categorySearchFilters.mtg) {
-      categories.push("mtg");
+      categories.push("MTG");
     }
     if (categorySearchFilters.yugioh) {
-      categories.push("yugioh");
+      categories.push("Yugioh");
     }
     if (categories.length > 0) searchParams.cardGame = categories;
 
@@ -344,17 +302,11 @@ export default function Results({
       pokemon: category === "pokemon",
       mtg: category === "mtg",
       yugioh: category === "yugioh",
-      bundles: category === "bundles",
     };
 
     setCategorySearchFilters({
       ...newFilters,
-      default: !(
-        newFilters.pokemon ||
-        newFilters.mtg ||
-        newFilters.yugioh ||
-        newFilters.bundles
-      ),
+      default: !(newFilters.pokemon || newFilters.mtg || newFilters.yugioh),
     });
   }, [context]);
 
@@ -461,12 +413,10 @@ export default function Results({
         pokemon: false,
         mtg: false,
         yugioh: false,
-        bundles: false,
       }));
       setPokemonRarityFilter("default");
       setMtgRarityFilter("default");
       setYugiohRarityFilter("default");
-      setBundlesRarityFilter("default");
     } else {
       setCategorySearchFilters((prev) => {
         const newFilters = { ...prev, [name]: checked };
@@ -481,19 +431,11 @@ export default function Results({
           case "yugioh":
             setYugiohRarityFilter("default");
             break;
-          case "bundles":
-            setBundlesRarityFilter("default");
-            break;
         }
 
         return {
           ...newFilters,
-          default: !(
-            newFilters.pokemon ||
-            newFilters.mtg ||
-            newFilters.yugioh ||
-            newFilters.bundles
-          ),
+          default: !(newFilters.pokemon || newFilters.mtg || newFilters.yugioh),
         };
       });
     }
@@ -511,11 +453,6 @@ export default function Results({
     event: React.ChangeEvent<HTMLInputElement>
   ) {
     setYugiohRarityFilter(event.target.value);
-  }
-  function handleBundlesRarityChange(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    setBundlesRarityFilter(event.target.value);
   }
 
   function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -627,16 +564,6 @@ export default function Results({
                         />
                       }
                       label="Yu-Gi-Oh!"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={categorySearchFilters.bundles}
-                          onChange={handleCategoryChange}
-                          name="bundles"
-                        />
-                      }
-                      label="Bundles"
                     />
                   </FormGroup>
                 </FormControl>
@@ -841,28 +768,6 @@ export default function Results({
                           label={rarity}
                         />
                       ))}
-                    </RadioGroup>
-                  </FormControl>
-                )}
-
-                {categorySearchFilters.bundles && (
-                  <FormControl
-                    component="fieldset"
-                    sx={{ marginBottom: "15px" }}
-                  >
-                    <FormLabel component="legend">Bundles</FormLabel>
-                    <RadioGroup
-                      aria-label="rarity"
-                      name="rarity"
-                      value={bundlesRarityFilter}
-                      onChange={handleBundlesRarityChange}
-                    >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                     </RadioGroup>
                   </FormControl>
                 )}
@@ -1547,7 +1452,7 @@ export default function Results({
             ))}
           </div>
 
-          {results.length > 0 && !resultsLoading && (
+          {results?.length > 0 && !resultsLoading && (
             <div className={styles.pagination}>
               <Pagination
                 color="primary"
@@ -1614,16 +1519,6 @@ export default function Results({
                         />
                       }
                       label="Yu-Gi-Oh!"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={categorySearchFilters.bundles}
-                          onChange={handleCategoryChange}
-                          name="bundles"
-                        />
-                      }
-                      label="Bundles"
                     />
                   </FormGroup>
                 </FormControl>
@@ -1828,28 +1723,6 @@ export default function Results({
                           label={rarity}
                         />
                       ))}
-                    </RadioGroup>
-                  </FormControl>
-                )}
-
-                {categorySearchFilters.bundles && (
-                  <FormControl
-                    component="fieldset"
-                    sx={{ marginBottom: "15px" }}
-                  >
-                    <FormLabel component="legend">Bundles</FormLabel>
-                    <RadioGroup
-                      aria-label="rarity"
-                      name="rarity"
-                      value={bundlesRarityFilter}
-                      onChange={handleBundlesRarityChange}
-                    >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                     </RadioGroup>
                   </FormControl>
                 )}

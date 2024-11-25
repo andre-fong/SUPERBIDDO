@@ -641,14 +641,11 @@ export default function Navbar({
           <li className={styles.page_link}>
             <button
               className={styles.page_button}
-              onClick={() => redirectToSearchResults("bundles")}
+              onClick={() => setCurPage("results")}
             >
-              Bundles
+              All Listings
             </button>
           </li>
-          {/* <li className={styles.page_link}>
-            <button className={styles.page_button}>Other Cards</button>
-          </li> */}
         </ul>
       </div>
     </motion.nav>

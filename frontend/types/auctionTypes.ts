@@ -80,7 +80,6 @@ export type AuctionCategoryFilters = {
   pokemon: boolean;
   mtg: boolean;
   yugioh: boolean;
-  bundles: boolean;
 };
 
 export type AuctionPriceFilters = {
