@@ -208,9 +208,9 @@ export default function Results({
   const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
 
   // TODO: Change status ended
-  const [status, setStatus] = useState<"Ongoing" | "Scheduled" | "Ended">(
-    "Ongoing"
-  );
+  const [status, setStatus] = useState<
+    "Ongoing" | "Scheduled" | "Not scheduled" | "Ended"
+  >("Ongoing");
 
   function fetchResults(page: number) {
     setResults([]);
@@ -575,7 +575,9 @@ export default function Results({
   }
 
   function handleStatusChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setStatus(event.target.value as "Ongoing" | "Scheduled" | "Ended");
+    setStatus(
+      event.target.value as "Ongoing" | "Scheduled" | "Not scheduled" | "Ended"
+    );
   }
 
   return (
@@ -761,6 +763,11 @@ export default function Results({
                       value="Scheduled"
                       control={<Radio />}
                       label="Scheduled"
+                    />
+                    <FormControlLabel
+                      value="Not scheduled"
+                      control={<Radio />}
+                      label="Not Scheduled"
                     />
                     <FormControlLabel
                       value="Ended"
