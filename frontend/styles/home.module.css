@@ -42,15 +42,21 @@
 }
 
 .section_title {
-  padding: 0 35px;
+  padding: 0 clamp(30px, 10vw, 300px);
   margin-bottom: 25px;
 }
 
+.recommended,
+.trending {
+  padding: 0 clamp(30px, 10vw, 300px);
+  margin-bottom: 30px;
+}
+
 .games {
+  padding: 0 clamp(30px, 10vw, 300px);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 25px;
-  padding: 0 35px;
+  gap: clamp(25px, 5vw, 50px);
 }
 
 .game {
@@ -92,6 +98,7 @@
   color: white;
   font-size: 2.5em;
   font-weight: 700;
+  text-align: center;
 }
 .game_title_small {
   font-size: 1.7em;
@@ -111,5 +118,10 @@
   }
   .game_title {
     font-size: 1.5em;
+  }
+}
+@media (min-width: 1300px) {
+  .game_title {
+    font-size: 3em;
   }
 }
