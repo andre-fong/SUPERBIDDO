@@ -1020,10 +1020,10 @@ export default function Results({
                   <MenuItem value="minNewBidPriceDesc">
                     Price: High to Low
                   </MenuItem>
-                  <MenuItem value="bidsMostToLeast">
+                  <MenuItem value="numBidsDesc">
                     # of Bids: Most to Least
                   </MenuItem>
-                  <MenuItem value="bidsLeastToMost">
+                  <MenuItem value="numBidsAsc">
                     # of Bids: Least to Most
                   </MenuItem>
                   {/* <MenuItem value="location">Location: Nearest You</MenuItem> */}

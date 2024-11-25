@@ -95,8 +95,8 @@ export type AuctionSortByOption =
   | "startTimeDesc"
   | "minNewBidPriceAsc"
   | "minNewBidPriceDesc"
-  | "bidsMostToLeast"
-  | "bidsLeastToMost";
+  | "numBidsDesc"
+  | "numBidsAsc";
 // | "location";
 
 export type AuctionSearchQuery = {
