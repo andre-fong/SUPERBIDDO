@@ -130,8 +130,8 @@ router.get("/", async (req, res) => {
     `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
     savedBy
   );
-  // TODO - search by name similarity
-  // addCondition(`name ILIKE ?`, `%${name}%`);
+  // pg_trgm strict_word_similarity
+  addCondition(`name <<% ?`, name);
   // auction_id in auctions where the max bid is high enough OR the start price is high enough
   addCondition(
     `auction_id IN (
@@ -256,6 +256,11 @@ router.get("/", async (req, res) => {
       case "numBidsDesc":
         return ` ORDER BY num_bids DESC`;
       default:
+        // if no order by and name is included, order by similarity
+        if (name) {
+          values.push(name);
+          return ` ORDER BY name <<<-> $${values.length}`;
+        }
         return "";
     }
   })();
@@ -462,7 +467,10 @@ router.get("/", async (req, res) => {
       // capped at 1001 to prevent large queries
       // if includeBidStatusFor, first value is bidder_id
       // however, it's only included in where clause if bidStatus is present
-      values.slice(includeBidStatusFor && !bidStatus ? 1 : 0, values.length - 2) // exclude page, and pageSize
+      values.slice(
+        includeBidStatusFor && !bidStatus ? 1 : 0,
+        values.length - (name ? 3 : 2)
+      ) // exclude page, and pageSize
     )
   ).rows[0].count;
 
