@@ -1,10 +1,9 @@
 import { PageName } from "@/types/pageTypes";
-import React from "react";
+import React, { useState } from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { fetchLogin } from "@/utils/fetchFunctions";
-import { useRef } from "react";
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -15,7 +14,7 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-const enableCaptcha = false;
+const enableCaptcha = true;
 
 export default function Login({
   setCurPage,
@@ -28,15 +27,18 @@ export default function Login({
   setUser: (user: User) => void;
   setToast: (error: ErrorType) => void;
 }) {
-  const recaptchaRef = useRef<boolean>(false);
+  const [reCAPTCHAPassed, setReCAPTCHAPassed] = useState<boolean>(false);
+  const [reCAPTCHAError, setReCAPTCHAError] = useState<boolean>(false);
 
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (enableCaptcha && !recaptchaRef.current) {
+    if (enableCaptcha && !reCAPTCHAPassed) {
       setToast({
         message: "Please complete the captcha",
         severity: Severity.Warning,
       });
+      setReCAPTCHAError(true);
+
       return;
     }
 
@@ -125,6 +127,20 @@ export default function Login({
             autoComplete="off"
           />
 
+          {enableCaptcha && (
+            <div
+              className={styles.recaptcha}
+              style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}
+            >
+              <ReCAPTCHA
+                sitekey={process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY as string}
+                onChange={() => {
+                  setReCAPTCHAPassed(true);
+                  setReCAPTCHAError(false);
+                }}
+              />
+            </div>
+          )}
           <Button
             variant="contained"
             type="submit"
@@ -132,12 +148,6 @@ export default function Login({
           >
             Log in
           </Button>
-          {enableCaptcha && (
-            <ReCAPTCHA
-              sitekey={""}
-              onChange={() => (recaptchaRef.current = true)}
-            />
-          )}
         </form>
 
         <div className={styles.divider_container}>
