@@ -50,14 +50,13 @@ export default function Home({
               }}
             >
               <Image
-                src="/pokemon-banner-1.jpg"
+                src="/pokemon-banner-3.webp"
                 alt="Pokemon Banner"
                 fill
                 priority
                 style={{
                   objectFit: "cover",
-                  objectPosition: "-20px center",
-                  transform: "scaleX(-1)",
+                  objectPosition: "-20px 35%",
                 }}
               />
               <div className={styles.hero_text}>
@@ -107,7 +106,7 @@ export default function Home({
                 priority
                 style={{
                   objectFit: "cover",
-                  objectPosition: "center",
+                  objectPosition: "15% 35%",
                 }}
               />
               <div className={styles.hero_text}>
@@ -271,7 +270,7 @@ export default function Home({
 
           <div className={`${styles.game} ${styles.game_unclickable}`}>
             <Image
-              src="/pokemon-banner-3.webp"
+              src="/pokemon-banner-1.jpg"
               alt="And more banner"
               fill
               style={{

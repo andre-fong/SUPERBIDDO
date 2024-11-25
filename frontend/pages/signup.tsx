@@ -88,7 +88,10 @@ export default function Signup({
         <div className={styles.back}>
           <IconButton
             onClick={() =>
-              setCurPage((JSON.parse(context)?.next as PageName) || "home")
+              setCurPage(
+                (JSON.parse(context)?.next as PageName) || "home",
+                context
+              )
             }
           >
             <ArrowBackIcon />
@@ -161,7 +164,7 @@ export default function Signup({
           <Button
             variant="contained"
             type="submit"
-            sx={{ marginTop: "10%", marginBottom: "10px" }}
+            sx={{ marginTop: "7%", marginBottom: "10px" }}
           >
             Sign up
           </Button>
