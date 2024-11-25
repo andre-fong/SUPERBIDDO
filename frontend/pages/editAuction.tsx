@@ -133,7 +133,8 @@ export default function EditAuction({
           let minutes = date.getMinutes().toString().padStart(2, "0");
           let formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-          setStartDate(formattedDate);
+          if (auction.startTime) setStartDate(formattedDate);
+          else setStartDate("");
 
           date = new Date(auction.endTime);
           year = date.getFullYear();
@@ -143,7 +144,9 @@ export default function EditAuction({
           minutes = date.getMinutes().toString().padStart(2, "0");
           formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-          setEndDate(formattedDate);
+          if (auction.endTime) setEndDate(formattedDate);
+          else setEndDate("");
+
           setLoading(false);
         }
       });
@@ -233,8 +236,8 @@ export default function EditAuction({
       description: description,
       startPrice: startingPrice,
       spread: spread,
-      startTime: new Date(startDate)?.toISOString(),
-      endTime: new Date(endDate)?.toISOString(),
+      startTime: !startDate ? undefined : new Date(startDate).toISOString(),
+      endTime: !endDate ? undefined : new Date(endDate).toISOString(),
     };
 
     if (type === "Card") {
@@ -492,7 +495,6 @@ export default function EditAuction({
             value={startDate}
             onChange={handleStartDateChange}
             fullWidth
-            required
             disabled={loading}
           />
           <TextField
@@ -502,7 +504,6 @@ export default function EditAuction({
             value={endDate}
             onChange={handleEndDateChange}
             fullWidth
-            required
             disabled={loading}
           />
 

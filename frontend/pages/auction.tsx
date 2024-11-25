@@ -201,6 +201,9 @@ export default function Auction({
   const curAuctionId = useRef<string>("");
 
   const unscheduled = useMemo(() => !startTime, [startTime]);
+  /**
+   * Whether the auction is in the future, true if unscheduled
+   */
   const inFuture = useMemo(() => {
     if (!startTime) {
       return true;
@@ -623,7 +626,7 @@ export default function Auction({
                   fullWidth
                   color="info"
                   size="large"
-                  disabled={(!inFuture && !unscheduled) || auctionEnded}
+                  disabled={!(unscheduled || (inFuture && !auctionEnded))}
                   onClick={() => setCurPage("editAuction", context)}
                 >
                   Edit Auction
