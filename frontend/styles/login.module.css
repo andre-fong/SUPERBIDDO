@@ -19,7 +19,7 @@
   justify-content: safe center;
   overflow-y: auto;
   min-width: 30%;
-  max-width: 50%;
+  max-width: 45%;
   height: 100%;
   padding: 10px 50px;
 }
@@ -67,7 +67,7 @@
 .label {
   font-size: 0.9em;
   font-weight: 600;
-  margin-top: 15px;
+  margin-top: 20px;
   margin-bottom: 7px;
   /* margin-left: 5px; */
 }

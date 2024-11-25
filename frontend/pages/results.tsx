@@ -35,6 +35,8 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
 import Skeleton from "@mui/material/Skeleton";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
@@ -555,6 +557,24 @@ export default function Results({
 
   return (
     <>
+      <div
+        role="presentation"
+        onClick={(e) => e.preventDefault()}
+        style={{ marginLeft: "30px", marginBottom: "-10px" }}
+      >
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: "15px" }}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("home")}
+          >
+            Home
+          </Link>
+          <p style={{ color: "black" }}>Auctions</p>
+        </Breadcrumbs>
+      </div>
+
       <main className={styles.main}>
         <div className={styles.left_filters}>
           <Accordion defaultExpanded>

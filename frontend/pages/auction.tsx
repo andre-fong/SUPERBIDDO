@@ -28,6 +28,8 @@ import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
 import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
@@ -378,6 +380,39 @@ export default function Auction({
 
   return (
     <>
+      <div
+        role="presentation"
+        onClick={(e) => e.preventDefault()}
+        style={{
+          marginLeft: "clamp(30px, 5vw, 300px)",
+          marginBottom: "-15px",
+        }}
+      >
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: "15px" }}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("home")}
+          >
+            Home
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("results", context)}
+          >
+            Auctions
+          </Link>
+          {auctionLoading ? (
+            <Skeleton variant="text" width={100} />
+          ) : (
+            <p style={{ color: "black" }}>{auctionName}</p>
+          )}
+        </Breadcrumbs>
+      </div>
+
       <main className={styles.main}>
         <div className={styles.hero_container}>
           <div className={styles.card_container}>

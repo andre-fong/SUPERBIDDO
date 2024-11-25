@@ -48,7 +48,7 @@ function scheduleBidEndReminder(
   reminderDate: Date
 ) {
   return schedule.scheduleJob(
-    true ? new Date(new Date().getTime() + 40 * 1000) : reminderDate,
+    true ? new Date(new Date().getTime() + 30 * 1000) : reminderDate,
     () => {
       const allBidders = getAllBidders(auctionId);
       const topBidder = getTopBidder(auctionId);
@@ -70,7 +70,6 @@ function scheduleBidEndReminder(
           }
         }
       );
-      console.log(auctioneerId);
       io.to(auctioneerId).emit("auction_owning_ended", auctionName);
       delete reminderJobs[auctionId];
     }
@@ -86,10 +85,9 @@ function scheduleAuctionSoonEndReminder(
   return reminderDate.getTime() - 4 * 60 * 1000 >= 0
     ? schedule.scheduleJob(
         true
-          ? new Date(new Date().getTime() + 30 * 1000)
+          ? new Date(new Date().getTime() + 20 * 1000)
           : new Date(reminderDate.getTime() - 4 * 60 * 1000),
         () => {
-          console.log("auction ending soon");
           getAllBidders(auctionId).then((allBiddersResult) => {
             allBiddersResult.rows.forEach((row) => {
               io.to(row.bidder_id).emit("auction_ending_soon", auctionName);
@@ -122,6 +120,14 @@ export async function postBidNotification(
     )
   ).rows[0];
 
+  if (!bidRecord) {
+    return;
+  }
+
+  if (!bidRecord) {
+    return;
+  }
+
   const outbidBidder: Bid = {
     bidId: bidRecord.bidId,
     auctionId: bidRecord.auctionId,
@@ -146,8 +152,6 @@ export async function postBidNotification(
   ).rows[0];
 
   //Why is there a red line here?
-  console.log("auctioneer id: " + auction.auctioneerId);
-
   io.to(outbidBidder.bidder.accountId).emit("auction_outbidded", auction.name);
   io.to(auction.auctioneerId).emit("auction_recieved_bid", auction.name);
 }

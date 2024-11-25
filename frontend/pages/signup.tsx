@@ -1,5 +1,5 @@
 import { PageName } from "@/types/pageTypes";
-import React from "react";
+import React, { useState } from "react";
 import styles from "@/styles/login.module.css";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -10,7 +10,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBackIosNew";
 import { motion } from "motion/react";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
+import { useRef } from "react";
 import GoogleSessionButton from "@/components/googleSessionButton";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Severity } from "@/types/errorTypes";
+
+const enableCaptcha = false;
 
 export default function Signup({
   setCurPage,
@@ -23,9 +28,20 @@ export default function Signup({
   setToast: (error: ErrorType) => void;
   setUser: (user: User) => void;
 }) {
-  // TODO: Save previous action and redirect to it after signup
+  const recaptchaRef = useRef<boolean>(false);
+
+  const [passwordMatchError, setPasswordMatchError] = useState<boolean>(false);
+
   async function handleSignupSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (enableCaptcha && !recaptchaRef.current) {
+      setToast({
+        message: "Please complete the captcha",
+        severity: Severity.Warning,
+      });
+      return;
+    }
 
     const email = (
       e.currentTarget.elements.namedItem("email") as HTMLInputElement
@@ -33,6 +49,18 @@ export default function Signup({
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
+    const confirmPassword = (
+      e.currentTarget.elements.namedItem("confirmPassword") as HTMLInputElement
+    ).value;
+
+    if (password !== confirmPassword) {
+      setToast({
+        message: "Passwords do not match",
+        severity: Severity.Warning,
+      });
+      setPasswordMatchError(true);
+      return;
+    }
 
     fetchSignup(setToast, email.split("@")[0], password, email).then(
       (loginData) => {
@@ -60,7 +88,10 @@ export default function Signup({
         <div className={styles.back}>
           <IconButton
             onClick={() =>
-              setCurPage((JSON.parse(context)?.next as PageName) || "home")
+              setCurPage(
+                (JSON.parse(context)?.next as PageName) || "home",
+                context
+              )
             }
           >
             <ArrowBackIcon />
@@ -109,11 +140,40 @@ export default function Signup({
             type="password"
             required
             autoComplete="off"
+            helperText="Password must be 8-50 characters long, contain at least 1 uppercase letter, 1 lowercase letter, and 1 number."
           />
 
-          <Button variant="contained" type="submit" sx={{ marginTop: "20px" }}>
+          <label
+            htmlFor="confirmPassword"
+            className={`${styles.label} ${styles.required}`}
+          >
+            Confirm Password
+          </label>
+          <TextField
+            id="confirmPassword"
+            size="small"
+            placeholder="Enter your password again"
+            variant="outlined"
+            type="password"
+            required
+            autoComplete="off"
+            error={passwordMatchError}
+            helperText={passwordMatchError ? "Passwords do not match." : ""}
+          />
+
+          <Button
+            variant="contained"
+            type="submit"
+            sx={{ marginTop: "7%", marginBottom: "10px" }}
+          >
             Sign up
           </Button>
+          {enableCaptcha && (
+            <ReCAPTCHA
+              sitekey={""}
+              onChange={() => (recaptchaRef.current = true)}
+            />
+          )}
         </form>
 
         <div className={styles.divider_container}>

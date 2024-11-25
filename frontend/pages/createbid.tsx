@@ -22,6 +22,8 @@ import styles from "@/styles/CardListing.module.css";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import { PageName } from "@/types/pageTypes";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SampleNextArrow(props: any) {
@@ -172,7 +174,7 @@ const CardListing: React.FC<CardListingProps> = ({
 
   const getCurDate = () => {
     const date = new Date();
-    return date.toLocaleString()
+    return date.toLocaleString();
   };
 
   const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,26 +240,27 @@ const CardListing: React.FC<CardListingProps> = ({
       startDateRef.current &&
       endDateRef.current &&
       new Date(endDateRef.current.value).getTime() -
-      new Date(startDateRef.current.value).getTime() <
-      5 * 60 * 1000
+        new Date(startDateRef.current.value).getTime() <
+        5 * 60 * 1000
     ) {
       setToast({
-      message: "The auction duration must be at least 5 minutes",
-      severity: Severity.Warning,
+        message: "The auction duration must be at least 5 minutes",
+        severity: Severity.Warning,
       });
       return;
     }
-    if (startDateRef.current && new Date(startDateRef.current.value) < new Date()) {
+    if (
+      startDateRef.current &&
+      new Date(startDateRef.current.value) < new Date()
+    ) {
       setToast({
         message: "Start date must be in the future",
         severity: Severity.Warning,
       });
       return;
     }
-    if (startDateRef.current) {
-      console.log(new Date(startDateRef.current.value).toISOString());
-    }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auctionData: any = {
       auctioneerId: user.accountId,
       name: cardNameRef.current?.value || "Unknown Name",
@@ -274,19 +277,22 @@ const CardListing: React.FC<CardListingProps> = ({
           : "",
       type: type,
       cards:
-      type === "Card"
-      ? {
-      game: cardType,
-      name: cardNameRef.current?.value || "Unknown Card Name",
-      description: descriptionRef.current?.value || "No description provided",
-      manufacturer: manufacturerRef.current?.value || "Unknown Manufacturer",
-      qualityUngraded: typeof quality === 'string' ? quality : undefined,
-      qualityPsa: typeof quality === 'number' ? quality : undefined,
-      rarity: rarity,
-      set: setRef.current?.value || "Unknown Set",
-      isFoil: isFoil === "Yes",
-      }
-      : undefined,
+        type === "Card"
+          ? {
+              game: cardType,
+              name: cardNameRef.current?.value || "Unknown Card Name",
+              description:
+                descriptionRef.current?.value || "No description provided",
+              manufacturer:
+                manufacturerRef.current?.value || "Unknown Manufacturer",
+              qualityUngraded:
+                typeof quality === "string" ? quality : undefined,
+              qualityPsa: typeof quality === "number" ? quality : undefined,
+              rarity: rarity,
+              set: setRef.current?.value || "Unknown Set",
+              isFoil: isFoil === "Yes",
+            }
+          : undefined,
     };
 
     if (
@@ -311,14 +317,13 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
-    console.log(auctionData);
-
     createAuction(setToast, auctionData).then((auction) => {
-      if (!auction.auctionId) { return }
-      // setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+      if (!auction.auctionId) {
+        return;
+      }
+      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
       console.log("Auction created with ID: " + auction.auctionId);
     });
-
   };
 
   const settings = {
@@ -333,252 +338,276 @@ const CardListing: React.FC<CardListingProps> = ({
   };
 
   return (
-    <Container maxWidth={false} style={{ padding: 40 }}>
-      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
-        <Box flex={1} maxWidth="50%">
-          {(frontPhotoPreview || backPhotoPreview) && (
-            <Box
-              border={1}
-              borderRadius={2}
-              boxShadow={3}
-              padding={1}
-              paddingBottom={1}
-              borderColor="grey.500"
-            >
-              <Slider {...settings}>
-                {frontPhotoPreview && (
-                  <img src={frontPhotoPreview} alt="Front Preview" />
-                )}
-                {backPhotoPreview && (
-                  <img src={backPhotoPreview} alt="Back Preview" />
-                )}
-              </Slider>
-            </Box>
-          )}
-        </Box>
-        <Box flex={1} maxWidth="50%">
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              flexDirection: "column",
-              height: "100%",
-              gap: "5px",
-            }}
+    <>
+      <div
+        role="presentation"
+        onClick={(e) => e.preventDefault()}
+        style={{ marginLeft: "30px", marginBottom: "10px" }}
+      >
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: "15px" }}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("home")}
           >
-            <Typography
-              variant="h3"
-              component="h1"
-              gutterBottom
-              style={{ fontWeight: "bold", marginTop: "-20px" }}
-            >
-              Card Listing Form
-            </Typography>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Card Type</InputLabel>
-              <Select
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-                required
+            Home
+          </Link>
+          <p style={{ color: "black" }}>Sell</p>
+        </Breadcrumbs>
+      </div>
+
+      <Container maxWidth={false} style={{ padding: 40 }}>
+        <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
+          <Box flex={1} maxWidth="50%">
+            {(frontPhotoPreview || backPhotoPreview) && (
+              <Box
+                border={1}
+                borderRadius={2}
+                boxShadow={3}
+                padding={1}
+                paddingBottom={1}
+                borderColor="grey.500"
               >
-                <MenuItem value="MTG">Magic: The Gathering</MenuItem>
-                <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
-                <MenuItem value="Pokemon">Pokemon</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth sx={{ marginTop: "8px" }}>
-              <InputLabel id="type-label">Type</InputLabel>
-              <Select
-                labelId="type-label"
-                value={type}
-                onChange={(e) => {
-                  setType(e.target.value);
-                }}
-                required
-              >
-                <MenuItem value="Bundle">Bundle</MenuItem>
-                <MenuItem value="Card">Card</MenuItem>
-              </Select>
-            </FormControl>
-
-            {type === "Card" && (
-              <>
-                <FormControl fullWidth sx={{ marginTop: "11px" }}>
-                  <InputLabel>Quality</InputLabel>
-                  <Select
-                    value={quality}
-                    onChange={(e) => setQuality(e.target.value)}
-                    required
-                  >
-                    {[...qualityList, ...PSAList].map((quality: string | number, index: number) => (
-                      <MenuItem value={quality} key={index}>
-                        {typeof quality === 'number' ? `PSA ${quality}` : quality}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth sx={{ marginTop: "14px" }}>
-                  <InputLabel>Foil (y/n)</InputLabel>
-                  <Select
-                    value={isFoil}
-                    onChange={(e) => setIsFoil(e.target.value)}
-                    required
-                  >
-                    <MenuItem value="No">No</MenuItem>
-                    <MenuItem value="Yes">Yes</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth sx={{ marginTop: "14px" }}>
-                  <InputLabel>Rarity</InputLabel>
-                  <Select
-                    value={rarity}
-                    onChange={(e) => setRarity(e.target.value)}
-                    required
-                  >
-                    {cardRarities[cardType]?.rarities.map(
-                      (rarity: string, index: number) => (
-                        <MenuItem value={rarity} key={index}>
-                          {rarity}
-                        </MenuItem>
-                      )
-                    )}
-                  </Select>
-                </FormControl>
-              </>
+                <Slider {...settings}>
+                  {frontPhotoPreview && (
+                    <img src={frontPhotoPreview} alt="Front Preview" />
+                  )}
+                  {backPhotoPreview && (
+                    <img src={backPhotoPreview} alt="Back Preview" />
+                  )}
+                </Slider>
+              </Box>
             )}
-            <TextField
-              label={type === "Bundle" ? "Bundle Name" : "Card Name"}
-              inputRef={cardNameRef}
-              fullWidth
-              sx={{ marginTop: "13px" }}
-              required
-              InputLabelProps={{ shrink: true }}
-            />
-
-            <TextField
-              label="Description"
-              inputRef={descriptionRef}
-              fullWidth
-              margin="normal"
-              multiline
-              rows={4}
-            />
-
-            <Button
-              variant="contained"
-              component="label"
-              fullWidth
-              sx={{ marginBottom: "10px" }}
+          </Box>
+          <Box flex={1} maxWidth="50%">
+            <form
+              onSubmit={handleSubmit}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                flexDirection: "column",
+                height: "100%",
+                gap: "5px",
+              }}
             >
-              Upload Front Photo
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleFileChange}
+              <Typography
+                variant="h3"
+                component="h1"
+                gutterBottom
+                style={{ fontWeight: "bold", marginTop: "-20px" }}
+              >
+                Card Listing Form
+              </Typography>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Card Type</InputLabel>
+                <Select
+                  value={cardType}
+                  onChange={(e) => setCardType(e.target.value)}
+                  required
+                >
+                  <MenuItem value="MTG">Magic: The Gathering</MenuItem>
+                  <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
+                  <MenuItem value="Pokemon">Pokemon</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth sx={{ marginTop: "8px" }}>
+                <InputLabel id="type-label">Type</InputLabel>
+                <Select
+                  labelId="type-label"
+                  value={type}
+                  onChange={(e) => {
+                    setType(e.target.value);
+                  }}
+                  required
+                >
+                  <MenuItem value="Bundle">Bundle</MenuItem>
+                  <MenuItem value="Card">Card</MenuItem>
+                </Select>
+              </FormControl>
+
+              {type === "Card" && (
+                <>
+                  <FormControl fullWidth sx={{ marginTop: "11px" }}>
+                    <InputLabel>Quality</InputLabel>
+                    <Select
+                      value={quality}
+                      onChange={(e) => setQuality(e.target.value)}
+                      required
+                    >
+                      {[...qualityList, ...PSAList].map(
+                        (quality: string | number, index: number) => (
+                          <MenuItem value={quality} key={index}>
+                            {typeof quality === "number"
+                              ? `PSA ${quality}`
+                              : quality}
+                          </MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth sx={{ marginTop: "14px" }}>
+                    <InputLabel>Foil (y/n)</InputLabel>
+                    <Select
+                      value={isFoil}
+                      onChange={(e) => setIsFoil(e.target.value)}
+                      required
+                    >
+                      <MenuItem value="No">No</MenuItem>
+                      <MenuItem value="Yes">Yes</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth sx={{ marginTop: "14px" }}>
+                    <InputLabel>Rarity</InputLabel>
+                    <Select
+                      value={rarity}
+                      onChange={(e) => setRarity(e.target.value)}
+                      required
+                    >
+                      {cardRarities[cardType]?.rarities.map(
+                        (rarity: string, index: number) => (
+                          <MenuItem value={rarity} key={index}>
+                            {rarity}
+                          </MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
+              <TextField
+                label={type === "Bundle" ? "Bundle Name" : "Card Name"}
+                inputRef={cardNameRef}
+                fullWidth
+                sx={{ marginTop: "13px" }}
                 required
+                InputLabelProps={{ shrink: true }}
               />
-            </Button>
 
-            <Button
-              variant="contained"
-              component="label"
-              fullWidth
-              sx={{ margin: "normal" }}
-            >
-              Upload Back Photo
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleBackChange}
+              <TextField
+                label="Description"
+                inputRef={descriptionRef}
+                fullWidth
+                margin="normal"
+                multiline
+                rows={4}
               />
-            </Button>
 
-            <TextField
-              label="Manufacturer"
-              inputRef={manufacturerRef}
-              fullWidth
-              margin="normal"
-              required
-              InputLabelProps={{ shrink: true }}
-            />
+              <Button
+                variant="contained"
+                component="label"
+                fullWidth
+                sx={{ marginBottom: "10px" }}
+              >
+                Upload Front Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleFileChange}
+                  required
+                />
+              </Button>
 
-            <TextField
-              label="Set"
-              inputRef={setRef}
-              fullWidth
-              margin="normal"
-              required
-              InputLabelProps={{ shrink: true }}
-            />
+              <Button
+                variant="contained"
+                component="label"
+                fullWidth
+                sx={{ margin: "normal" }}
+              >
+                Upload Back Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleBackChange}
+                />
+              </Button>
 
-            <TextField
-              label="Starting Price"
-              type="number"
-              inputRef={startingPriceRef}
-              fullWidth
-              margin="normal"
-              required
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                step: "0.01",
-                min: "0",
-              }}
-            />
+              <TextField
+                label="Manufacturer"
+                inputRef={manufacturerRef}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
 
-            <TextField
-              label="Spread"
-              type="number"
-              inputRef={spreadRef}
-              fullWidth
-              margin="normal"
-              required
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                step: "0.1",
-                min: "0",
-              }}
-            />
+              <TextField
+                label="Set"
+                inputRef={setRef}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
 
-            <TextField
-              label="Start Date and Time"
-              type="datetime-local"
-              inputRef={startDateRef}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: getCurDate(),
-              }}
-            />
+              <TextField
+                label="Starting Price"
+                type="number"
+                inputRef={startingPriceRef}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  step: "0.01",
+                  min: "0",
+                }}
+              />
 
-            <TextField
-              label="End Date and Time"
-              type="datetime-local"
-              inputRef={endDateRef}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-            />
+              <TextField
+                label="Spread"
+                type="number"
+                inputRef={spreadRef}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  step: "0.1",
+                  min: "0",
+                }}
+              />
 
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ padding: "15px", fontSize: "20px", marginTop: "20px" }}
-            >
-              Submit Listing
-            </Button>
-          </form>
+              <TextField
+                label="Start Date and Time"
+                type="datetime-local"
+                inputRef={startDateRef}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: getCurDate(),
+                }}
+              />
+
+              <TextField
+                label="End Date and Time"
+                type="datetime-local"
+                inputRef={endDateRef}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+              />
+
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ padding: "15px", fontSize: "20px", marginTop: "20px" }}
+              >
+                Submit Listing
+              </Button>
+            </form>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+    </>
   );
 };
 
