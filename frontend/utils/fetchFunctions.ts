@@ -6,6 +6,7 @@ import {
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import {
+  AuctionPatchBody,
   AuctionSelfType,
   CardRarities,
   QualityPsa,
@@ -527,28 +528,7 @@ export async function fetchSelfAuctions(
 export async function editAuction(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
-  auctionData: {
-    name: string;
-    description?: string;
-    startPrice: number;
-    spread: number;
-    startTime?: string;
-    endTime?: string;
-    cardName?: string;
-    cardDescription?: string;
-    cardManufacturer?: string;
-    cardSet?: string;
-    cardIsFoil?: true;
-    cardGame?: "MTG" | "Yugioh" | "Pokemon";
-    cardQualityUngraded?: QualityUngraded;
-    cardQualityPsa?: QualityPsa;
-    cardRarity?: string;
-    bundleName?: string;
-    bundleDescription?: string;
-    bundleManufacturer?: string;
-    bundleSet?: string;
-    bundleGame?: "MTG" | "Yugioh" | "Pokemon";
-  }
+  auctionData: AuctionPatchBody
 ) {
   try {
     const response = await fetch(`${url}/auctions/${auctionId}`, {
@@ -570,6 +550,11 @@ export async function editAuction(
       });
     } else if (response.status === 404) {
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
+    } else if (response.status === 409) {
+      errorFcn({
+        message: "Auction is no longer editable",
+        severity: Severity.Warning,
+      });
     } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
@@ -598,6 +583,11 @@ export async function deleteAuction(
       return true;
     } else if (response.status === 404) {
       errorFcn({ message: "Auction not found", severity: Severity.Critical });
+    } else if (response.status === 409) {
+      errorFcn({
+        message: "Auction is no longer editable",
+        severity: Severity.Warning,
+      });
     } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }

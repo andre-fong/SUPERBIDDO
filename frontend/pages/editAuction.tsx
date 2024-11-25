@@ -13,8 +13,17 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Skeleton from "@mui/material/Skeleton";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { deleteAuction, fetchAuction } from "@/utils/fetchFunctions";
-import { Auction } from "@/types/backendAuctionTypes";
+import {
+  editAuction,
+  deleteAuction,
+  fetchAuction,
+} from "@/utils/fetchFunctions";
+import {
+  Auction,
+  AuctionPatchBody,
+  QualityPsa,
+  QualityUngraded,
+} from "@/types/backendAuctionTypes";
 import Dialog from "@mui/material/Dialog";
 import cardRarities from "@/types/cardGameInfo";
 
@@ -46,6 +55,7 @@ export default function EditAuction({
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
+  const [editing, setEditing] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
@@ -141,16 +151,8 @@ export default function EditAuction({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context]);
 
-  const handleTypeChange = (event: SelectChangeEvent) => {
-    setType(event.target.value);
-  };
-
   const handleGameChange = (event: SelectChangeEvent) => {
     setGame(event.target.value);
-  };
-
-  const handleQualityTypeChange = (event: SelectChangeEvent) => {
-    setQualityType(event.target.value);
   };
 
   const handlePsaQualityChange = (event: SelectChangeEvent) => {
@@ -215,6 +217,50 @@ export default function EditAuction({
 
   const handleEditSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const auctionId = JSON.parse(context)?.auctionId;
+    if (auctionId === undefined) {
+      setToast({
+        message: "Invalid auction ID, could not edit auction",
+        severity: Severity.Critical,
+      });
+      setCurPage("home");
+      return;
+    }
+    if (editing || deleting) return;
+
+    const auctionData: AuctionPatchBody = {
+      name: cardName,
+      description: description,
+      startPrice: startingPrice,
+      spread: spread,
+      startTime: new Date(startDate)?.toISOString(),
+      endTime: new Date(endDate)?.toISOString(),
+    };
+
+    if (type === "Card") {
+      auctionData.cardName = cardName;
+      auctionData.cardDescription = description;
+      auctionData.cardManufacturer = manufacturer;
+      auctionData.cardSet = set;
+      auctionData.cardIsFoil = foil;
+      auctionData.cardGame = game as "MTG" | "Yugioh" | "Pokemon";
+      if (qualityType === "PSA") {
+        auctionData.cardQualityPsa = psaQuality as QualityPsa;
+      } else {
+        auctionData.cardQualityUngraded = ungradedQuality as QualityUngraded;
+      }
+      auctionData.cardRarity = rarity;
+    } else if (type === "Bundle") {
+      auctionData.bundleName = cardName;
+      auctionData.bundleDescription = description;
+      auctionData.bundleManufacturer = manufacturer;
+      auctionData.bundleSet = set;
+      auctionData.bundleGame = game as "MTG" | "Yugioh" | "Pokemon";
+    }
+
+    setEditing(true);
+    await editAuction(setToast, auctionId, auctionData);
+    setCurPage("auction", context);
   };
 
   const handleDeleteAuction = async (event: React.FormEvent) => {
@@ -227,6 +273,7 @@ export default function EditAuction({
       setDeleteError(true);
       return;
     }
+    if (editing || deleting) return;
 
     setDeleteError(false);
     setDeleting(true);
@@ -296,23 +343,6 @@ export default function EditAuction({
               <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
             </Select>
           </FormControl>
-
-          {type === "Card" && (
-            <FormControl fullWidth>
-              <InputLabel required={type === "Card"}>Quality Type</InputLabel>
-              <Select
-                label="Quality Type"
-                value={qualityType}
-                onChange={handleQualityTypeChange}
-                MenuProps={{ disableScrollLock: true }}
-                required={type === "Card"}
-                disabled={loading}
-              >
-                <MenuItem value="PSA">PSA</MenuItem>
-                <MenuItem value="Ungraded">Ungraded</MenuItem>
-              </Select>
-            </FormControl>
-          )}
 
           {qualityType === "PSA" && type === "Card" && (
             <FormControl fullWidth>
@@ -481,7 +511,7 @@ export default function EditAuction({
             color="primary"
             type="submit"
             fullWidth
-            disabled={loading}
+            disabled={loading || editing || deleting}
           >
             Finish Editing
           </Button>
@@ -491,7 +521,7 @@ export default function EditAuction({
             color="primary"
             fullWidth
             startIcon={<DeleteIcon />}
-            disabled={loading}
+            disabled={loading || editing || deleting}
             onClick={() => setDeleteDialogOpen(true)}
           >
             Delete Auction
@@ -503,7 +533,10 @@ export default function EditAuction({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
-        <form className={styles.delete_container}>
+        <form
+          className={styles.delete_container}
+          onSubmit={handleDeleteAuction}
+        >
           <h2 className={styles.delete_title}>
             Are you sure you want to delete this auction?
           </h2>
@@ -518,6 +551,7 @@ export default function EditAuction({
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
             disabled={deleting}
+            autoComplete="off"
             error={deleteError}
             helperText={
               deleteError ? "Text does not match card name" : undefined
@@ -530,7 +564,6 @@ export default function EditAuction({
               color="primary"
               type="submit"
               disabled={deleting}
-              onClick={handleDeleteAuction}
             >
               Yes
             </Button>

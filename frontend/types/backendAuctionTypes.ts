@@ -186,4 +186,27 @@ export enum Rarity {
   M = "M",
 }
 
+export type AuctionPatchBody = {
+  name: string;
+  description?: string;
+  startPrice: number;
+  spread: number;
+  startTime?: string;
+  endTime?: string;
+  cardName?: string;
+  cardDescription?: string;
+  cardManufacturer?: string;
+  cardSet?: string;
+  cardIsFoil?: boolean;
+  cardGame?: "MTG" | "Yugioh" | "Pokemon";
+  cardQualityUngraded?: QualityUngraded;
+  cardQualityPsa?: QualityPsa;
+  cardRarity?: string;
+  bundleName?: string;
+  bundleDescription?: string;
+  bundleManufacturer?: string;
+  bundleSet?: string;
+  bundleGame?: "MTG" | "Yugioh" | "Pokemon";
+};
+
 export type AuctionSelfType = "biddings" | "listings";
