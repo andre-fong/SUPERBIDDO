@@ -1,5 +1,5 @@
 import { PageName } from "@/types/pageTypes";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "@/styles/editAuction.module.css";
 import { User } from "@/types/userTypes";
 import { ErrorType, Severity } from "@/types/errorTypes";
@@ -13,8 +13,9 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Skeleton from "@mui/material/Skeleton";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { fetchAuction } from "@/utils/fetchFunctions";
+import { deleteAuction, fetchAuction } from "@/utils/fetchFunctions";
 import { Auction } from "@/types/backendAuctionTypes";
+import Dialog from "@mui/material/Dialog";
 
 const gameMap = {
   MTG: "Magic: The Gathering",
@@ -49,6 +50,11 @@ export default function EditAuction({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [deleteConfirmText, setDeleteConfirmText] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<boolean>(false);
 
   useEffect(() => {
     const auctionId = JSON.parse(context)?.auctionId;
@@ -145,6 +151,7 @@ export default function EditAuction({
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context]);
 
   const handleTypeChange = (event: SelectChangeEvent) => {
@@ -223,8 +230,22 @@ export default function EditAuction({
     event.preventDefault();
   };
 
-  const handleDeleteAuction = async () => {
-    // Delete
+  const handleDeleteAuction = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (deleteConfirmText !== cardName) {
+      setToast({
+        message:
+          "Delete confirmation text does not match card name, auction not deleted",
+        severity: Severity.Warning,
+      });
+      setDeleteError(true);
+      return;
+    }
+
+    setDeleteError(false);
+    setDeleting(true);
+    await deleteAuction(setToast, JSON.parse(context)?.auctionId);
+    setCurPage("results");
   };
 
   return (
@@ -479,12 +500,60 @@ export default function EditAuction({
             fullWidth
             startIcon={<DeleteIcon />}
             disabled={loading}
-            onClick={handleDeleteAuction}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             Delete Auction
           </Button>
         </form>
       </main>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <form className={styles.delete_container}>
+          <h2 className={styles.delete_title}>
+            Are you sure you want to delete this auction?
+          </h2>
+          <p className={styles.delete_text}>
+            Warning: This action cannot be undone. Type below to confirm.
+          </p>
+
+          <TextField
+            label={'Type "' + cardName + '" to confirm deletion'}
+            fullWidth
+            required
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            disabled={deleting}
+            error={deleteError}
+            helperText={
+              deleteError ? "Text does not match card name" : undefined
+            }
+          />
+
+          <div className={styles.delete_buttons}>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              disabled={deleting}
+              onClick={handleDeleteAuction}
+            >
+              Yes
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              No
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </>
   );
 }

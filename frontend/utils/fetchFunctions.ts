@@ -5,14 +5,19 @@ import {
 } from "@/types/auctionTypes";
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
-import { AuctionSelfType } from "@/types/backendAuctionTypes";
+import {
+  AuctionSelfType,
+  CardRarities,
+  QualityPsa,
+  QualityUngraded,
+} from "@/types/backendAuctionTypes";
 // const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
 
-/*
-  TODO: DON'T USE AWAIT FOR FRONTEND FETCH FUNCTIONS
-*/
+function customEncodeURIComponent(str: string) {
+  return encodeURIComponent(str.replaceAll(/!/g, "%21"));
+}
 
 export async function fetchSignup(
   errorFcn: (error: ErrorType) => void,
@@ -152,14 +157,16 @@ export async function getAuctionSearchResults(
       }
       if (typeof value === "object") {
         return Object.entries(value)
-          .map(([subKey, subValue]) => `${key}=${subValue.toString()}`)
+          .map(
+            ([subKey, subValue]) =>
+              `${key}=${customEncodeURIComponent(subValue.toString())}`
+          )
           .join("&");
       }
-      return `${key}=${value.toString()}`;
+      return `${key}=${customEncodeURIComponent(value.toString())}`;
     })
     .join("&");
 
-  console.log(params);
   try {
     const response = await fetch(`${url}/auctions?${params}`, {
       method: "GET",
@@ -514,5 +521,90 @@ export async function fetchSelfAuctions(
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return { auctions: [], totalNumAuctions: 0 };
+  }
+}
+
+export async function editAuction(
+  errorFcn: (error: ErrorType) => void,
+  auctionId: string,
+  auctionData: {
+    name: string;
+    description?: string;
+    startPrice: number;
+    spread: number;
+    startTime?: string;
+    endTime?: string;
+    cardName?: string;
+    cardDescription?: string;
+    cardManufacturer?: string;
+    cardSet?: string;
+    cardIsFoil?: true;
+    cardGame?: "MTG" | "Yugioh" | "Pokemon";
+    cardQualityUngraded?: QualityUngraded;
+    cardQualityPsa?: QualityPsa;
+    cardRarity?: string;
+    bundleName?: string;
+    bundleDescription?: string;
+    bundleManufacturer?: string;
+    bundleSet?: string;
+    bundleGame?: "MTG" | "Yugioh" | "Pokemon";
+  }
+) {
+  try {
+    const response = await fetch(`${url}/auctions/${auctionId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(auctionData),
+    });
+
+    if (response.ok) {
+      const auction = await response.json();
+      return auction;
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return null;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+}
+
+export async function deleteAuction(
+  errorFcn: (error: ErrorType) => void,
+  auctionId: string
+) {
+  try {
+    const response = await fetch(`${url}/auctions/${auctionId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      return true;
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return false;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return false;
   }
 }

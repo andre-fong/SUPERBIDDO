@@ -910,8 +910,8 @@ export default function Results({
         <div className={styles.results}>
           {!!searchValue.trim() && !resultsLoading && (
             <h1 className={styles.results_num}>
-              <span className={styles.bold}>{resultCount}</span> results for
-              &quot;
+              <span className={styles.bold}>{resultCount || 0}</span> results
+              for &quot;
               <span className={styles.bold}>{searchValue.trim()}</span>&quot;
             </h1>
           )}
