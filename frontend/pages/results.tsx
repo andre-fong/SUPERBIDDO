@@ -139,6 +139,8 @@ export default function Results({
   const [resultCount, setResultCount] = useState(0);
   const [resultsPageNum, setResultsPageNum] = useState(1);
   const [redirectedCount, setRedirectedCount] = useState(0);
+  // Searching for cards OR bundles
+  const [searchingForCards, setSearchingForCards] = useState(true);
 
   // WHEN CONTEXT (search input) CHANGES, UPDATE SEARCH VALUE
   useEffect(() => {
@@ -218,6 +220,9 @@ export default function Results({
       searchParams.cardName = searchValue.trim();
     }
 
+    // CARDS OR BUNDLES
+    searchParams.isBundle = !searchingForCards;
+
     // GAMES
     const categories = [];
     if (categorySearchFilters.pokemon) {
@@ -229,7 +234,10 @@ export default function Results({
     if (categorySearchFilters.yugioh) {
       categories.push("Yugioh");
     }
-    if (categories.length > 0) searchParams.cardGame = categories;
+    if (categories.length > 0 && searchingForCards)
+      searchParams.cardGame = categories;
+    else if (categories.length > 0 && !searchingForCards)
+      searchParams.bundleGame = categories;
 
     // PRICE
     if (priceSearchFilters.includeMinPrice && priceSearchFilters.minPrice) {
@@ -240,9 +248,9 @@ export default function Results({
     }
 
     // FOIL
-    if (foilSearchFilter === "foil") {
+    if (foilSearchFilter === "foil" && searchingForCards) {
       searchParams.cardIsFoil = true;
-    } else if (foilSearchFilter === "noFoil") {
+    } else if (foilSearchFilter === "noFoil" && searchingForCards) {
       searchParams.cardIsFoil = false;
     }
 
@@ -287,6 +295,7 @@ export default function Results({
     categorySearchFilters,
     priceSearchFilters,
     sortBy,
+    searchingForCards,
   ]);
 
   //////////////////////////////////////////////////
@@ -490,6 +499,31 @@ export default function Results({
   function changeResultsPageNum(value: number) {
     if (resultsPageNum !== value) fetchResults(value);
     setResultsPageNum(value);
+  }
+
+  function handleCardBundleChange(
+    event: React.MouseEvent<HTMLButtonElement>,
+    value: boolean
+  ) {
+    setPokemonRarityFilter("default");
+    setMtgRarityFilter("default");
+    setYugiohRarityFilter("default");
+    setQualitySearchFilters({
+      default: true,
+      graded: false,
+      psaGrade: false,
+      lowGrade: null,
+      highGrade: null,
+      ungraded: false,
+      mint: false,
+      nearMint: false,
+      lightlyPlayed: false,
+      moderatelyPlayed: false,
+      heavilyPlayed: false,
+      damaged: false,
+    });
+    setFoilSearchFilter("default");
+    setSearchingForCards(value);
   }
 
   return (
@@ -810,33 +844,64 @@ export default function Results({
                 </IconButton>
               </div>
 
-              <button
-                className={styles.filter_dropdown}
-                style={{
-                  backgroundColor: qualitySearchFilters.default
-                    ? "#e9e9e9"
-                    : "var(--secondary-light)",
-                }}
-                ref={qualityAnchorEl}
-                onClick={() => setQualityPopperOpen((open) => !open)}
-              >
-                Quality
-                <KeyboardArrowDownIcon />
-              </button>
-              <button
-                className={styles.filter_dropdown}
-                style={{
-                  backgroundColor:
-                    foilSearchFilter === "default"
+              <div className={styles.type_buttons}>
+                <button
+                  className={styles.type_toggle}
+                  style={{
+                    backgroundColor: searchingForCards
+                      ? "rgb(200, 200, 200)"
+                      : "#e9e9e9",
+                    fontWeight: searchingForCards ? 500 : 400,
+                  }}
+                  onClick={(e) => handleCardBundleChange(e, true)}
+                >
+                  Cards
+                </button>
+                <button
+                  className={styles.type_toggle}
+                  style={{
+                    backgroundColor: searchingForCards
                       ? "#e9e9e9"
-                      : "var(--secondary-light)",
-                }}
-                ref={foilAnchorEl}
-                onClick={() => setFoilPopperOpen((open) => !open)}
-              >
-                Foil
-                <KeyboardArrowDownIcon />
-              </button>
+                      : "rgb(200, 200, 200)",
+                    fontWeight: searchingForCards ? 400 : 500,
+                  }}
+                  onClick={(e) => handleCardBundleChange(e, false)}
+                >
+                  Bundles
+                </button>
+              </div>
+
+              {searchingForCards && (
+                <>
+                  <button
+                    className={styles.filter_dropdown}
+                    style={{
+                      backgroundColor: qualitySearchFilters.default
+                        ? "#e9e9e9"
+                        : "var(--secondary-light)",
+                    }}
+                    ref={qualityAnchorEl}
+                    onClick={() => setQualityPopperOpen((open) => !open)}
+                  >
+                    Quality
+                    <KeyboardArrowDownIcon />
+                  </button>
+                  <button
+                    className={styles.filter_dropdown}
+                    style={{
+                      backgroundColor:
+                        foilSearchFilter === "default"
+                          ? "#e9e9e9"
+                          : "var(--secondary-light)",
+                    }}
+                    ref={foilAnchorEl}
+                    onClick={() => setFoilPopperOpen((open) => !open)}
+                  >
+                    Foil
+                    <KeyboardArrowDownIcon />
+                  </button>
+                </>
+              )}
             </div>
             <div className={styles.sort}>
               <FormControl fullWidth>

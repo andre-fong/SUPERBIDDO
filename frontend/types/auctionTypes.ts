@@ -114,6 +114,10 @@ export type AuctionSearchQuery = {
   cardRarity?: string | string[];
   cardSet?: string;
   cardIsFoil?: boolean;
+  bundleGame?: string | string[];
+  bundleName?: string;
+  bundleManufacturer?: string;
+  bundleSet?: string;
   isBundle?: boolean;
   sortBy?: AuctionSortByOption;
   page?: number;
