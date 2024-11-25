@@ -761,7 +761,7 @@ router.patch("/:auctionId", async (req, res) => {
 
   if (auctionRecord.startTime > new Date(Date.now())) {
     throw new BusinessError(
-      400,
+      409,
       "Cannot modify auction",
       "Auction has already started"
     );
@@ -815,7 +815,7 @@ router.patch("/:auctionId", async (req, res) => {
     new Date(newAuctionDetails.startTime).getTime() < Date.now()
   ) {
     throw new BusinessError(
-      400,
+      409,
       "Invalid auction start time",
       "Auction must start in the future"
     );
@@ -1136,7 +1136,7 @@ router.delete("/:auctionId", async (req, res) => {
 
   if (new Date(auctionRecord.startTime).getTime() > Date.now()) {
     throw new BusinessError(
-      400,
+      409,
       "Cannot delete auction",
       "Auction has already started"
     );
@@ -1175,7 +1175,7 @@ router.post(
     // must start in the future
     if (new Date(auctionInput.startTime).getTime() < Date.now()) {
       throw new BusinessError(
-        400,
+        409,
         "Invalid auction start time",
         "Auction must start in the future"
       );
