@@ -415,6 +415,120 @@ paths:
           $ref: "#/components/responses/BadRequest"
         404:
           $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Update an auction by its auctionId. Only the auctioneer can update an auction. The auction must not have started yet. Bundle properties will be ignored if the auction is a card auction and vice versa.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                description:
+                  type: string
+                  nullable: true
+                  maxLength: 500
+                startPrice:
+                  type: number
+                  format: float
+                  minimum: 0
+                spread:
+                  type: number
+                  format: float
+                  minimum: 0
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+                cardName:
+                  type: string
+                  maxLength: 100
+                cardDescription:
+                  type: string
+                  nullable: true
+                  maxLength: 500
+                cardManufacturer:
+                  type: string
+                  maxLength: 100
+                cardSet:
+                  type: string
+                  maxLength: 100
+                cardIsFoil:
+                  type: boolean
+                cardGame:
+                  type: string
+                  maxLength: 100
+                cardQualityUngraded:
+                  $ref: "#/components/schemas/QualityUngraded"
+                cardQualityPsa:
+                  $ref: "#/components/schemas/QualityPsa"
+                cardRarity:
+                  $ref: "#/components/schemas/Rarity"
+                bundleName:
+                  type: string
+                  maxLength: 100
+                bundleDescription:
+                  type: string
+                  nullable: true
+                  maxLength: 500
+                bundleManufacturer:
+                  type: string
+                  maxLength: 100
+                bundleSet:
+                  type: string
+                  maxLength: 100
+                bundleGame:
+                  type: string
+                  maxLength: 100
+      responses:
+        200:
+          description: The updated auction.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auction"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Remove the auction
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Successfully removed auction.
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        409:
+          $ref: "#/components/responses/Conflict"
   /api/v1/auctions/{auctionId}/bids:
     get:
       summary: Get bids for an auction by its auctionId.

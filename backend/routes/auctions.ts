@@ -3,7 +3,10 @@ import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import { unauthorized, ServerError, BusinessError } from "../utils/errors.js";
 import { addLpClient } from "../longPolling/longPolling.js";
-import { postAuctionNotification, notificationMiddleware } from "../middlewares/notifications.js";
+import {
+  postAuctionNotification,
+  notificationMiddleware,
+} from "../middlewares/notifications.js";
 
 export const router = express.Router();
 
@@ -722,19 +725,95 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.post("/",  notificationMiddleware(postAuctionNotification), async (req, res) => {
-  const auctionInput: AuctionInput = req.body;
-  // can only post auctions for self
-  // if (auctionInput.auctioneerId !== req.session.accountId) {
-  //   throw unauthorized();
-  // }
+router.patch("/:auctionId", async (req, res) => {
+  const auctionId = req.params.auctionId;
+  const auctionRecord = camelize(
+    await pool.query<AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }>(
+      ` WITH cards_agg AS (
+          SELECT auction_id, JSON_AGG(card.*) as cards
+          FROM card
+          GROUP BY auction_id
+        ),
+        bundle_agg AS (
+          SELECT auction_id, JSON_AGG(bundle.*) as bundle
+          FROM bundle
+          GROUP BY auction_id
+        )
+        SELECT *
+        FROM auction
+        LEFT JOIN cards_agg USING (auction_id)
+        LEFT JOIN bundle_agg USING (auction_id)
+        WHERE auction_id = $1`,
+      [auctionId]
+    )
+  ).rows[0];
 
-  // validate context dependent fields
-  // (openapi cannot define fields based on other fields)
+  if (!auctionRecord) {
+    throw new BusinessError(404, "Auction not found");
+  }
 
-  // must start in the future
-  console.log(new Date(auctionInput.startTime).getTime(), Date.now());
-  if (new Date(auctionInput.startTime).getTime() < Date.now()) {
+  if (
+    !req.session.accountId ||
+    auctionRecord.auctioneerId !== req.session.accountId
+  ) {
+    throw unauthorized();
+  }
+
+  if (auctionRecord.startTime > new Date(Date.now())) {
+    throw new BusinessError(
+      400,
+      "Cannot modify auction",
+      "Auction has already started"
+    );
+  }
+
+  const newAuctionDetails = {
+    auctionId: auctionId,
+    name: req.body.name || auctionRecord.name,
+    description: req.body.description || auctionRecord.description,
+    startPrice: req.body.startPrice || auctionRecord.startPrice,
+    spread: req.body.spread || auctionRecord.spread,
+    startTime: req.body.startTime || auctionRecord.startTime,
+    endTime: req.body.endTime || auctionRecord.endTime,
+  };
+
+  const newCardDetails = auctionRecord.cards[0]
+    ? {
+        cardId: auctionRecord.cards[0].cardId,
+        cardName: req.body.cardName || auctionRecord.cards[0].name,
+        cardDescription:
+          req.body.cardDescription || auctionRecord.cards[0].description,
+        cardManufacturer:
+          req.body.cardManufacturer || auctionRecord.cards[0].manufacturer,
+        cardQualityUngraded:
+          req.body.cardQualityUngraded ||
+          auctionRecord.cards[0].qualityUngraded,
+        cardQualityPsa:
+          req.body.cardQualityPsa || auctionRecord.cards[0].qualityPsa,
+        cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
+        cardSet: req.body.cardSet || auctionRecord.cards[0].set,
+        cardIsFoil: req.body.cardIsFoil || auctionRecord.cards[0].isFoil,
+        cardGame: req.body.cardGame || auctionRecord.cards[0].game,
+      }
+    : null;
+
+  const newBundleDetails = auctionRecord.bundle
+    ? {
+        bundleId: auctionRecord.bundle[0].bundleId,
+        bundleName: req.body.bundleName || auctionRecord.bundle.name,
+        bundleDescription:
+          req.body.bundleDescription || auctionRecord.bundle.description,
+        bundleManufacturer:
+          req.body.bundleManufacturer || auctionRecord.bundle.manufacturer,
+        bundleSet: req.body.bundleSet || auctionRecord.bundle.set,
+        bundleGame: req.body.bundleGame || auctionRecord.bundle.game,
+      }
+    : null;
+
+  if (
+    newAuctionDetails.startTime &&
+    new Date(newAuctionDetails.startTime).getTime() < Date.now()
+  ) {
     throw new BusinessError(
       400,
       "Invalid auction start time",
@@ -742,87 +821,534 @@ router.post("/",  notificationMiddleware(postAuctionNotification), async (req, r
     );
   }
 
-  // must last at least 5 minutes
   if (
-    new Date(auctionInput.endTime).getTime() -
-      new Date(auctionInput.startTime).getTime() <
-    5 * 60 * 1000
+    (newAuctionDetails.startTime && !newAuctionDetails.endTime) ||
+    (!newAuctionDetails.startTime && newAuctionDetails.endTime)
   ) {
     throw new BusinessError(
       400,
-      "Invalid auction end time",
+      "Invalid auction start/end time",
+      "Start and end time must both be provided or both be null"
+    );
+  }
+
+  if (
+    newAuctionDetails.startTime &&
+    newAuctionDetails.endTime &&
+    new Date(newAuctionDetails.endTime).getTime() -
+      new Date(newAuctionDetails.startTime).getTime() <
+      5 * 60 * 1000
+  ) {
+    throw new BusinessError(
+      400,
+      "Invalid auction start/end time",
       "Auction must last at least 5 minutes"
     );
   }
 
-  // use transaction to rollback if any insert fails
-  await pool.query(`BEGIN`);
-  // insert auction first since cards/bundle reference auction
-  const auctionRecord = camelize(
-    await pool.query<AuctionDb>(
-      ` INSERT INTO auction (auctioneer_id, name, description, start_price, spread, start_time, end_time)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
-      [
-        auctionInput.auctioneerId,
-        auctionInput.name,
-        auctionInput.description,
-        auctionInput.startPrice,
-        auctionInput.spread,
-        auctionInput.startTime,
-        auctionInput.endTime,
-      ]
-    )
-  ).rows[0];
+  if (newCardDetails.cardQualityPsa && newCardDetails.cardQualityUngraded) {
+    throw new BusinessError(
+      400,
+      "Invalid card quality",
+      "Cannot have both ungraded and PSA quality"
+    );
+  }
 
-  // if auction insert fails, rollback
-  if (!auctionRecord) {
-    await pool.query(`ROLLBACK`);
-    console.error("Error inserting auction into database");
-    throw new ServerError(500, "Error creating auction");
+  switch (newCardDetails.cardGame) {
+    case "MTG": {
+      const rarities = [
+        "Common",
+        "Uncommon",
+        "Rare",
+        "Mythic Rare",
+        "Special / Bonus Cards",
+        "Basic Land",
+        "Masterpiece Series",
+        "Promos",
+        "Extended Art",
+        "Borderless",
+      ];
+      if (!rarities.includes(newCardDetails.cardRarity)) {
+        throw new BusinessError(
+          400,
+          "Invalid card rarity",
+          "Invalid rarity for MTG card"
+        );
+      }
+      break;
+    }
+    case "Pokemon": {
+      const rarities = [
+        "Common",
+        "Uncommon",
+        "Rare",
+        "Holo Rare",
+        "Reverse Holo",
+        "Rare Holo V",
+        "Ultra Rare",
+        "Full Art",
+        "Secret Rare",
+        "Amazing Rare",
+        "Rainbow Rare",
+        "Gold Secret Rare",
+        "Promos",
+        "Radiant Collection",
+      ];
+      if (!rarities.includes(newCardDetails.cardRarity)) {
+        throw new BusinessError(
+          400,
+          "Invalid card rarity",
+          "Invalid rarity for Pokemon card"
+        );
+      }
+      break;
+    }
+    case "Yugioh": {
+      const rarities = [
+        "Common",
+        "Rare",
+        "Super Rare",
+        "Ultra Rare",
+        "Secret Rare",
+        "Ultimate Rare",
+        "Ghost Rare",
+        "Starlight Rare",
+        "Collector's Rare",
+        "Prismatic Secret Rare",
+        "Parallel Rare",
+        "Platinum Rare",
+      ];
+      if (!rarities.includes(newCardDetails.cardRarity)) {
+        throw new BusinessError(
+          400,
+          "Invalid card rarity",
+          "Invalid rarity for Yugioh card"
+        );
+      }
+      break;
+    }
+  }
+
+  // if one quality is provided, set the other to null
+  if (newCardDetails.cardQualityPsa) {
+    newCardDetails.cardQualityUngraded = null;
+  }
+
+  if (newCardDetails.cardQualityUngraded) {
+    newCardDetails.cardQualityPsa = null;
   }
 
   const auctioneerRecord = camelize(
     await pool.query<AccountDb>(
-      ` SELECT username, email
+      ` SELECT *
         FROM account
         WHERE account_id = $1`,
-      [auctionInput.auctioneerId]
+      [req.session.accountId]
     )
   ).rows[0];
 
-  if (!auctioneerRecord) {
+  const auctioneer: Account = {
+    accountId: auctioneerRecord.accountId,
+    username: auctioneerRecord.username,
+    email: auctioneerRecord.email,
+  };
+
+  await pool.query(`BEGIN`);
+
+  const updatedAuctionRecord = camelize(
+    await pool.query<AuctionDb>(
+      ` UPDATE auction
+        SET name = $1, description = $2, start_price = $3, spread = $4, start_time = $5, end_time = $6
+        WHERE auction_id = $7
+        RETURNING *`,
+      [
+        newAuctionDetails.name,
+        newAuctionDetails.description,
+        newAuctionDetails.startPrice,
+        newAuctionDetails.spread,
+        newAuctionDetails.startTime,
+        newAuctionDetails.endTime,
+        auctionId,
+      ]
+    )
+  ).rows[0];
+
+  if (!updatedAuctionRecord) {
     await pool.query(`ROLLBACK`);
-    console.error("Error fetching auctioneer");
-    throw new ServerError(500, "Error creating auction");
+    throw new ServerError(500, "Error updating auction");
   }
 
-  // openapi schema ensures exactly one of cards/bundle is present
-  const isBundle = auctionInput.cards ? false : true;
-
-  if (isBundle) {
-    const bundleInput = auctionInput.bundle;
-    const bundleRecord = camelize(
-      await pool.query<BundleDb>(
-        ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
-          VALUES ($1, $2, $3, $4, $5, $6)
+  if (newCardDetails) {
+    const updatedCardRecord = camelize(
+      await pool.query<CardDb<Game>>(
+        ` UPDATE card
+          SET name = $1, description = $2, manufacturer = $3, quality_ungraded = $4, quality_psa = $5, rarity = $6, set = $7, is_foil = $8, game = $9
+          WHERE card_id = $10
           RETURNING *`,
         [
-          auctionRecord.auctionId,
-          bundleInput.game,
-          bundleInput.name,
-          bundleInput.description,
-          bundleInput.manufacturer,
-          bundleInput.set,
+          newCardDetails.cardName,
+          newCardDetails.cardDescription,
+          newCardDetails.cardManufacturer,
+          newCardDetails.cardQualityUngraded,
+          newCardDetails.cardQualityPsa,
+          newCardDetails.cardRarity,
+          newCardDetails.cardSet,
+          newCardDetails.cardIsFoil,
+          newCardDetails.cardGame,
+          newCardDetails.cardId,
         ]
       )
     ).rows[0];
 
-    // if bundle insert fails, rollback
-    if (!bundleRecord) {
+    if (!updatedCardRecord) {
       await pool.query(`ROLLBACK`);
-      console.error("Error inserting bundle into database");
-      throw new ServerError(500, "Error creating auction - bundle");
+      throw new ServerError(500, "Error updating card");
+    }
+
+    await pool.query(`COMMIT`);
+
+    const auction: Auction = {
+      auctionId: updatedAuctionRecord.auctionId,
+      auctioneer: {
+        accountId: auctioneer.accountId,
+        username: auctioneer.username,
+        email: auctioneer.email,
+      },
+      name: updatedAuctionRecord.name,
+      description: updatedAuctionRecord.description,
+      startPrice: parseFloat(updatedAuctionRecord.startPrice),
+      spread: parseFloat(updatedAuctionRecord.spread),
+      minNewBidPrice:
+        parseFloat(updatedAuctionRecord.startPrice) +
+        parseFloat(updatedAuctionRecord.spread),
+      startTime: updatedAuctionRecord.startTime,
+      endTime: updatedAuctionRecord.endTime,
+      topBid: null,
+      numBids: 0,
+      auctionStatus: updatedAuctionRecord.startTime
+        ? "Scheduled"
+        : "Not scheduled",
+      cards: [
+        {
+          cardId: updatedCardRecord.cardId,
+          game: updatedCardRecord.game,
+          name: updatedCardRecord.name,
+          description: updatedCardRecord.description,
+          manufacturer: updatedCardRecord.manufacturer,
+          ...(updatedCardRecord.qualityUngraded
+            ? { qualityUngraded: updatedCardRecord.qualityUngraded }
+            : {
+                qualityPsa: parseInt(
+                  updatedCardRecord.qualityPsa
+                ) as QualityPsa,
+              }),
+          rarity: updatedCardRecord.rarity,
+          set: updatedCardRecord.set,
+          isFoil: updatedCardRecord.isFoil,
+        },
+      ],
+    };
+
+    res.json(auction);
+  }
+
+  if (newBundleDetails) {
+    const updatedBundleRecord = camelize(
+      await pool.query<BundleDb>(
+        ` UPDATE bundle
+          SET name = $1, description = $2, manufacturer = $3, set = $4, game = $5
+          WHERE bundle_id = $6
+          RETURNING *`,
+        [
+          newBundleDetails.bundleName,
+          newBundleDetails.bundleDescription,
+          newBundleDetails.bundleManufacturer,
+          newBundleDetails.bundleSet,
+          newBundleDetails.bundleGame,
+          newBundleDetails.bundleId,
+        ]
+      )
+    ).rows[0];
+
+    if (!updatedBundleRecord) {
+      await pool.query(`ROLLBACK`);
+      throw new ServerError(500, "Error updating bundle");
+    }
+
+    await pool.query(`COMMIT`);
+
+    const auction: Auction = {
+      auctionId: updatedAuctionRecord.auctionId,
+      auctioneer: {
+        accountId: auctioneer.accountId,
+        username: auctioneer.username,
+        email: auctioneer.email,
+      },
+      name: updatedAuctionRecord.name,
+      description: updatedAuctionRecord.description,
+      startPrice: parseFloat(updatedAuctionRecord.startPrice),
+      spread: parseFloat(updatedAuctionRecord.spread),
+      minNewBidPrice:
+        parseFloat(updatedAuctionRecord.startPrice) +
+        parseFloat(updatedAuctionRecord.spread),
+      startTime: updatedAuctionRecord.startTime,
+      endTime: updatedAuctionRecord.endTime,
+      topBid: null,
+      numBids: 0,
+      auctionStatus: updatedAuctionRecord.startTime
+        ? "Scheduled"
+        : "Not scheduled",
+      bundle: {
+        bundleId: updatedBundleRecord.bundleId,
+        game: updatedBundleRecord.game,
+        name: updatedBundleRecord.name,
+        description: updatedBundleRecord.description,
+        manufacturer: updatedBundleRecord.manufacturer,
+        set: updatedBundleRecord.set,
+      },
+    };
+
+    res.json(auction);
+  }
+});
+
+router.delete("/:auctionId", async (req, res) => {
+  const auctionId = req.params.auctionId;
+  const auctionRecord = camelize(
+    await pool.query<AuctionDb>(
+      ` SELECT *
+        FROM auction
+        WHERE auction_id = $1`,
+      [auctionId]
+    )
+  ).rows[0];
+
+  if (!auctionRecord) {
+    throw new BusinessError(404, "Auction not found");
+  }
+
+  if (
+    !req.session.accountId ||
+    auctionRecord.auctioneerId !== req.session.accountId
+  ) {
+    throw unauthorized();
+  }
+
+  if (new Date(auctionRecord.startTime).getTime() > Date.now()) {
+    throw new BusinessError(
+      400,
+      "Cannot delete auction",
+      "Auction has already started"
+    );
+  }
+
+  // only need to delete from auction table - cascade will delete from cards/bundle
+  const deletedAuctionRecord = camelize(
+    await pool.query<AuctionDb>(
+      ` DELETE FROM auction
+        WHERE auction_id = $1
+        RETURNING *`,
+      [auctionId]
+    )
+  ).rows[0];
+
+  if (!deletedAuctionRecord) {
+    throw new ServerError(500, "Error deleting auction");
+  }
+
+  res.sendStatus(204);
+});
+
+router.post(
+  "/",
+  notificationMiddleware(postAuctionNotification),
+  async (req, res) => {
+    const auctionInput: AuctionInput = req.body;
+    // can only post auctions for self
+    if (auctionInput.auctioneerId !== req.session.accountId) {
+      throw unauthorized();
+    }
+
+    // validate context dependent fields
+    // (openapi cannot define fields based on other fields)
+
+    // must start in the future
+    if (new Date(auctionInput.startTime).getTime() < Date.now()) {
+      throw new BusinessError(
+        400,
+        "Invalid auction start time",
+        "Auction must start in the future"
+      );
+    }
+
+    // must last at least 5 minutes
+    if (
+      new Date(auctionInput.endTime).getTime() -
+        new Date(auctionInput.startTime).getTime() <
+      5 * 60 * 1000
+    ) {
+      throw new BusinessError(
+        400,
+        "Invalid auction end time",
+        "Auction must last at least 5 minutes"
+      );
+    }
+
+    // use transaction to rollback if any insert fails
+    await pool.query(`BEGIN`);
+    // insert auction first since cards/bundle reference auction
+    const auctionRecord = camelize(
+      await pool.query<AuctionDb>(
+        ` INSERT INTO auction (auctioneer_id, name, description, start_price, spread, start_time, end_time)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *`,
+        [
+          auctionInput.auctioneerId,
+          auctionInput.name,
+          auctionInput.description,
+          auctionInput.startPrice,
+          auctionInput.spread,
+          auctionInput.startTime,
+          auctionInput.endTime,
+        ]
+      )
+    ).rows[0];
+
+    // if auction insert fails, rollback
+    if (!auctionRecord) {
+      await pool.query(`ROLLBACK`);
+      console.error("Error inserting auction into database");
+      throw new ServerError(500, "Error creating auction");
+    }
+
+    const auctioneerRecord = camelize(
+      await pool.query<AccountDb>(
+        ` SELECT username, email
+        FROM account
+        WHERE account_id = $1`,
+        [auctionInput.auctioneerId]
+      )
+    ).rows[0];
+
+    if (!auctioneerRecord) {
+      await pool.query(`ROLLBACK`);
+      console.error("Error fetching auctioneer");
+      throw new ServerError(500, "Error creating auction");
+    }
+
+    // openapi schema ensures exactly one of cards/bundle is present
+    const isBundle = auctionInput.cards ? false : true;
+
+    if (isBundle) {
+      const bundleInput = auctionInput.bundle;
+      const bundleRecord = camelize(
+        await pool.query<BundleDb>(
+          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING *`,
+          [
+            auctionRecord.auctionId,
+            bundleInput.game,
+            bundleInput.name,
+            bundleInput.description,
+            bundleInput.manufacturer,
+            bundleInput.set,
+          ]
+        )
+      ).rows[0];
+
+      // if bundle insert fails, rollback
+      if (!bundleRecord) {
+        await pool.query(`ROLLBACK`);
+        console.error("Error inserting bundle into database");
+        throw new ServerError(500, "Error creating auction - bundle");
+      }
+
+      await pool.query(`COMMIT`);
+
+      const auction: Auction = {
+        auctionId: auctionRecord.auctionId,
+        auctioneer: {
+          accountId: auctionRecord.auctioneerId,
+          username: auctioneerRecord.username,
+          email: auctioneerRecord.email,
+        },
+        name: auctionRecord.name,
+        description: auctionRecord.description,
+        startPrice: parseFloat(auctionRecord.startPrice),
+        spread: parseFloat(auctionRecord.spread),
+        minNewBidPrice:
+          parseFloat(auctionRecord.startPrice) +
+          parseFloat(auctionRecord.spread),
+        startTime: auctionRecord.startTime,
+        endTime: auctionRecord.endTime,
+        topBid: null,
+        numBids: 0,
+        auctionStatus: auctionInput.startTime ? "Scheduled" : "Not scheduled",
+        bundle: bundleRecord,
+      };
+
+      res.status(201).json(auction);
+      return;
+    }
+
+    // openapi schema ensures exactly one of cards/bundle is present
+    const cardsInput = auctionInput.cards;
+
+    // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
+    const valuesString = cardsInput
+      .map(
+        (_, i) =>
+          `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
+            ", "
+          )})`
+      )
+      .join(", ");
+
+    const cardsRecord = camelize(
+      await pool.query<CardDb<Game>>(
+        ` INSERT INTO card (
+        auction_id, game, name, description, manufacturer, quality_ungraded, 
+        quality_psa, rarity, set, is_foil)
+        VALUES ${valuesString}
+        RETURNING *`,
+        cardsInput.flatMap((card) => [
+          auctionRecord.auctionId,
+          card.game,
+          card.name,
+          card.description,
+          card.manufacturer,
+          card.qualityUngraded,
+          card.qualityPsa,
+          card.rarity,
+          card.set,
+          card.isFoil,
+        ])
+      )
+    ).rows;
+
+    const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
+      const card: Card<Game> = {
+        cardId: cardRecord.cardId,
+        game: cardRecord.game,
+        name: cardRecord.name,
+        description: cardRecord.description,
+        manufacturer: cardRecord.manufacturer,
+        ...(cardRecord.qualityUngraded
+          ? { qualityUngraded: cardRecord.qualityUngraded }
+          : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+        rarity: cardRecord.rarity,
+        set: cardRecord.set,
+        isFoil: cardRecord.isFoil,
+      };
+      return card;
+    });
+
+    // if card insert fails, rollback
+    if (!cardsRecord) {
+      await pool.query(`ROLLBACK`);
+      console.error("Error inserting cards into database");
+      throw new ServerError(500, "Error creating auction - cards");
     }
 
     await pool.query(`COMMIT`);
@@ -845,97 +1371,12 @@ router.post("/",  notificationMiddleware(postAuctionNotification), async (req, r
       topBid: null,
       numBids: 0,
       auctionStatus: auctionInput.startTime ? "Scheduled" : "Not scheduled",
-      bundle: bundleRecord,
+      cards: cards,
     };
 
     res.status(201).json(auction);
-    return;
   }
-
-  // openapi schema ensures exactly one of cards/bundle is present
-  const cardsInput = auctionInput.cards;
-
-  // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
-  const valuesString = cardsInput
-    .map(
-      (_, i) =>
-        `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
-          ", "
-        )})`
-    )
-    .join(", ");
-
-  const cardsRecord = camelize(
-    await pool.query<CardDb<Game>>(
-      ` INSERT INTO card (
-        auction_id, game, name, description, manufacturer, quality_ungraded, 
-        quality_psa, rarity, set, is_foil)
-        VALUES ${valuesString}
-        RETURNING *`,
-      cardsInput.flatMap((card) => [
-        auctionRecord.auctionId,
-        card.game,
-        card.name,
-        card.description,
-        card.manufacturer,
-        card.qualityUngraded,
-        card.qualityPsa,
-        card.rarity,
-        card.set,
-        card.isFoil,
-      ])
-    )
-  ).rows;
-
-  const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
-    const card: Card<Game> = {
-      cardId: cardRecord.cardId,
-      game: cardRecord.game,
-      name: cardRecord.name,
-      description: cardRecord.description,
-      manufacturer: cardRecord.manufacturer,
-      ...(cardRecord.qualityUngraded
-        ? { qualityUngraded: cardRecord.qualityUngraded }
-        : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
-      rarity: cardRecord.rarity,
-      set: cardRecord.set,
-      isFoil: cardRecord.isFoil,
-    };
-    return card;
-  });
-
-  // if card insert fails, rollback
-  if (!cardsRecord) {
-    await pool.query(`ROLLBACK`);
-    console.error("Error inserting cards into database");
-    throw new ServerError(500, "Error creating auction - cards");
-  }
-
-  await pool.query(`COMMIT`);
-
-  const auction: Auction = {
-    auctionId: auctionRecord.auctionId,
-    auctioneer: {
-      accountId: auctionRecord.auctioneerId,
-      username: auctioneerRecord.username,
-      email: auctioneerRecord.email,
-    },
-    name: auctionRecord.name,
-    description: auctionRecord.description,
-    startPrice: parseFloat(auctionRecord.startPrice),
-    spread: parseFloat(auctionRecord.spread),
-    minNewBidPrice:
-      parseFloat(auctionRecord.startPrice) + parseFloat(auctionRecord.spread),
-    startTime: auctionRecord.startTime,
-    endTime: auctionRecord.endTime,
-    topBid: null,
-    numBids: 0,
-    auctionStatus: auctionInput.startTime ? "Scheduled" : "Not scheduled",
-    cards: cards,
-  };
-
-  res.status(201).json(auction);
-});
+);
 
 function getBidStatusCte(bidderId: string, valNum: number) {
   if (!bidderId) {
