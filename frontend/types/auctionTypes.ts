@@ -80,7 +80,6 @@ export type AuctionCategoryFilters = {
   pokemon: boolean;
   mtg: boolean;
   yugioh: boolean;
-  bundles: boolean;
 };
 
 export type AuctionPriceFilters = {
@@ -96,12 +95,13 @@ export type AuctionSortByOption =
   | "startTimeDesc"
   | "minNewBidPriceAsc"
   | "minNewBidPriceDesc"
-  | "bidsMostToLeast"
-  | "bidsLeastToMost";
+  | "numBidsDesc"
+  | "numBidsAsc";
 // | "location";
 
 export type AuctionSearchQuery = {
   name?: string;
+  auctionStatus?: "Not scheduled" | "Scheduled" | "Ongoing" | "Ended";
   minMinNewBidPrice?: number;
   maxMinNewBidPrice?: number;
   minStartTime?: Date;
@@ -111,10 +111,16 @@ export type AuctionSearchQuery = {
   cardGame?: string | string[];
   cardName?: string;
   cardManufacturer?: string;
-  cardQuality?: string | string[];
+  cardQualityUngraded?: string | string[];
+  minCardQualityPsa?: number;
+  maxCardQualityPsa?: number;
   cardRarity?: string | string[];
   cardSet?: string;
   cardIsFoil?: boolean;
+  bundleGame?: string | string[];
+  bundleName?: string;
+  bundleManufacturer?: string;
+  bundleSet?: string;
   isBundle?: boolean;
   sortBy?: AuctionSortByOption;
   page?: number;

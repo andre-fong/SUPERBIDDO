@@ -5,7 +5,7 @@ import IconButton from "@mui/material/IconButton";
 import StarIcon from "@mui/icons-material/Star";
 import { useTimer } from "react-timer-hook";
 import { Auction } from "@/types/backendAuctionTypes";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function Listing({
   auction,
@@ -16,8 +16,20 @@ export default function Listing({
 }) {
   const [ended, setEnded] = useState(false);
 
+  const unscheduled = useMemo(() => !auction.startTime, [auction.startTime]);
+  const inFuture = useMemo(
+    () => new Date(auction.startTime) > new Date(),
+    [auction.startTime]
+  );
+  const inPast = useMemo(
+    () => new Date(auction.endTime) < new Date(),
+    [auction.endTime]
+  );
+
   const { totalSeconds, seconds, minutes, hours, days } = useTimer({
-    expiryTimestamp: new Date(auction.endTime || new Date()),
+    expiryTimestamp: new Date(
+      inFuture ? auction.startTime : auction.endTime || new Date()
+    ),
     onExpire: () => {
       setEnded(true);
     },
@@ -64,7 +76,14 @@ export default function Listing({
       >
         {auction.name}
       </p>
-      <p className={styles.quality}>Ungraded: Near Mint</p>
+
+      <p className={styles.quality}>
+        {auction.cards?.at(0)?.qualityPsa &&
+          `Graded: PSA ${auction.cards?.at(0)?.qualityPsa}`}
+        {auction.cards?.at(0)?.qualityUngraded &&
+          `Ungraded: ${auction.cards?.at(0)?.qualityUngraded}`}
+        {auction.bundle && `Bundle (${auction.bundle.game})`}
+      </p>
 
       <div className={styles.price_row}>
         <p className={styles.price}>
@@ -78,46 +97,62 @@ export default function Listing({
         </p>
       </div>
 
-      <p
-        className={styles.time_remaining}
-        title={new Date(auction.endTime).toLocaleDateString(undefined, {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-        })}
-      >
-        {ended ? (
-          <span className={styles.ended}>Ended</span>
-        ) : (
-          <>
-            <span
-              className={
-                totalSeconds > 10800
-                  ? styles.time
-                  : `${styles.time} ${styles.time_soon}`
-              }
-            >
-              {days > 0 && `${days}d `}
-              {hours > 0 && `${hours}h `}
-              {minutes > 0 && `${minutes}m `}
-              {seconds}s
-            </span>
+      {unscheduled ? (
+        <p className={styles.time_remaining}>
+          <span className={styles.ended}>Not Scheduled</span>
+        </p>
+      ) : (
+        <p
+          className={styles.time_remaining}
+          title={
+            unscheduled
+              ? undefined
+              : new Date(
+                  inFuture ? auction.startTime : auction.endTime
+                ).toLocaleDateString(undefined, {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                })
+          }
+        >
+          {ended || inPast ? (
+            <span className={styles.ended}>Ended</span>
+          ) : (
+            <>
+              <span
+                className={
+                  totalSeconds > 10800 || inFuture
+                    ? styles.time
+                    : `${styles.time} ${styles.time_soon}`
+                }
+              >
+                {inFuture && (
+                  <span className={styles.starting_in}>Starting in</span>
+                )}{" "}
+                {days > 0 && `${days}d `}
+                {hours > 0 && `${hours}h `}
+                {minutes > 0 && `${minutes}m `}
+                {seconds}s
+              </span>
 
-            <span>
-              {" "}
-              &middot;{" "}
-              {new Date(auction.endTime).toLocaleDateString(undefined, {
-                weekday: "long",
-                hour: "numeric",
-                minute: "numeric",
-              })}
-            </span>
-          </>
-        )}
-      </p>
+              <span>
+                {inFuture && <br />} &middot;{" "}
+                {new Date(
+                  inFuture ? auction.startTime : auction.endTime
+                ).toLocaleDateString(undefined, {
+                  weekday: "long",
+                  hour: "numeric",
+                  minute: "numeric",
+                })}
+              </span>
+            </>
+          )}
+        </p>
+      )}
 
       <p className={styles.location}>From Toronto, ON</p>
     </div>

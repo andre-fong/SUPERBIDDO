@@ -167,6 +167,7 @@ export default function Navbar({
   curPage,
   setUser,
   setToast,
+  context,
 }: {
   user: User | null;
   userLoading: boolean;
@@ -174,6 +175,7 @@ export default function Navbar({
   curPage: PageName;
   setUser: (user: User | null) => void;
   setToast: (error: ErrorType) => void;
+  context: string;
 }) {
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
@@ -543,7 +545,10 @@ export default function Navbar({
                                     onClick={() =>
                                       setCurPage(
                                         "login",
-                                        JSON.stringify({ next: curPage })
+                                        JSON.stringify({
+                                          next: curPage,
+                                          ...JSON.parse(context),
+                                        })
                                       )
                                     }
                                   >
@@ -591,7 +596,13 @@ export default function Navbar({
                   <button
                     className={styles.link}
                     onClick={() =>
-                      setCurPage("login", JSON.stringify({ next: curPage }))
+                      setCurPage(
+                        "login",
+                        JSON.stringify({
+                          next: curPage,
+                          ...JSON.parse(context),
+                        })
+                      )
                     }
                   >
                     Login
@@ -600,7 +611,13 @@ export default function Navbar({
                   <button
                     className={styles.link}
                     onClick={() =>
-                      setCurPage("signup", JSON.stringify({ next: curPage }))
+                      setCurPage(
+                        "signup",
+                        JSON.stringify({
+                          next: curPage,
+                          ...JSON.parse(context),
+                        })
+                      )
                     }
                   >
                     signup
@@ -641,14 +658,11 @@ export default function Navbar({
           <li className={styles.page_link}>
             <button
               className={styles.page_button}
-              onClick={() => redirectToSearchResults("bundles")}
+              onClick={() => setCurPage("results")}
             >
-              Bundles
+              All Listings
             </button>
           </li>
-          {/* <li className={styles.page_link}>
-            <button className={styles.page_button}>Other Cards</button>
-          </li> */}
         </ul>
       </div>
     </motion.nav>

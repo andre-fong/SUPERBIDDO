@@ -185,14 +185,28 @@ export default function Auction({
   const [curMinBid, setCurMinBid] = useState<number>(0);
   const [winning, setWinning] = useState<boolean>(false);
   const [watching, setWatching] = useState<boolean>(false);
-  const [endTime, setEndTime] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState<Date>(new Date());
+  const [endTime, setEndTime] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
   /**
    * Current bid for long polling
    */
   const [curBid, setCurBid] = useState<number>(0);
   const [bids, setBids] = useState<AuctionBidHistory[]>([]);
   const curAuctionId = useRef<string>("");
+
+  const unscheduled = useMemo(() => !startTime, [startTime]);
+  const inFuture = useMemo(() => {
+    if (!startTime) {
+      return true;
+    }
+    return new Date(startTime) > new Date();
+  }, [startTime]);
+  const inPast = useMemo(() => {
+    if (!endTime) {
+      return false;
+    }
+    return new Date(endTime) < new Date();
+  }, [endTime]);
 
   useEffect(() => {
     if (!curAuctionId.current) {
@@ -215,7 +229,6 @@ export default function Auction({
   const { totalSeconds, seconds, minutes, hours, days, restart } = useTimer({
     expiryTimestamp: new Date(),
     onExpire: () => setAuctionEnded(true),
-    autoStart: true,
   });
 
   //THIS IS ONLY FOR NEW BIDS
@@ -283,12 +296,19 @@ export default function Auction({
           setFoil(auction.cards?.at(0)?.isFoil || false);
         }
 
+        if (auction.endTime) setEndTime(new Date(auction.endTime));
+        if (auction.startTime) setStartTime(new Date(auction.startTime));
+        if (auction.startTime && auction.endTime)
+          restart(
+            new Date(auction.startTime) > new Date()
+              ? new Date(auction.startTime)
+              : new Date(auction.endTime)
+          );
+
         setSpread(auction.spread);
-        setEndTime(new Date(auction.endTime));
-        setStartTime(new Date(auction.startTime));
         setStartPrice(auction.startPrice);
         setAuctionData(auction);
-        restart(new Date(auction.endTime));
+
         auctionPollingStart(
           auctionContext.auctionId,
           setToast,
@@ -384,7 +404,7 @@ export default function Auction({
         role="presentation"
         onClick={(e) => e.preventDefault()}
         style={{
-          marginLeft: "clamp(30px, 5vw, 300px)",
+          marginLeft: "clamp(30px, 10vw, 300px)",
           marginBottom: "-15px",
         }}
       >
@@ -461,7 +481,31 @@ export default function Auction({
                 />
               </>
             ) : (
-              <h1 className={styles.title}>{auctionName}</h1>
+              <div className={styles.title_row}>
+                <h1 className={styles.title}>
+                  {auctionName}
+
+                  <div
+                    className={styles.auction_status}
+                    style={{
+                      backgroundColor:
+                        unscheduled || inPast
+                          ? "var(--primary)"
+                          : inFuture
+                          ? "var(--accent)"
+                          : "green",
+                    }}
+                  >
+                    {unscheduled
+                      ? "Unscheduled"
+                      : inPast || auctionEnded
+                      ? "Ended"
+                      : inFuture
+                      ? "Scheduled"
+                      : "Ongoing"}
+                  </div>
+                </h1>
+              </div>
             )}
 
             <div className={styles.auction_main_data}>
@@ -495,32 +539,58 @@ export default function Auction({
                   <p className={styles.main_data_label}>STARTING BID</p>
                 )}
               </div>
-              <div className={styles.closing_in}>
-                {bidsLoading ? (
+
+              {bidsLoading && (
+                <div className={styles.closing_in}>
                   <Skeleton
                     variant="text"
                     sx={{ fontSize: "1.7em" }}
                     width={60}
                   />
-                ) : (
+                  <div className={styles.main_data_label_row}>
+                    <p className={styles.main_data_label}>
+                      {inFuture ? "STARTING IN" : "CLOSING IN"}
+                    </p>
+                    <Tooltip
+                      title="Once the auction timer ends, all following bids will be blocked and the highest bidder will win the item."
+                      placement="left"
+                      arrow
+                    >
+                      <HelpIcon
+                        className={styles.help_icon}
+                        fontSize="inherit"
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+              )}
+
+              {!unscheduled && !inPast && (
+                <div className={styles.closing_in}>
                   <p className={styles.closing_in_amt}>
                     {days > 0 && `${days}d `}
                     {hours > 0 && `${hours}h `}
                     {minutes > 0 && `${minutes}m `}
                     {seconds}s
                   </p>
-                )}
-                <div className={styles.main_data_label_row}>
-                  <p className={styles.main_data_label}>CLOSING IN</p>
-                  <Tooltip
-                    title="Once the auction timer ends, all following bids will be blocked and the highest bidder will win the item."
-                    placement="left"
-                    arrow
-                  >
-                    <HelpIcon className={styles.help_icon} fontSize="inherit" />
-                  </Tooltip>
+
+                  <div className={styles.main_data_label_row}>
+                    <p className={styles.main_data_label}>
+                      {inFuture ? "STARTING IN" : "CLOSING IN"}
+                    </p>
+                    <Tooltip
+                      title="Once the auction timer ends, all following bids will be blocked and the highest bidder will win the item."
+                      placement="left"
+                      arrow
+                    >
+                      <HelpIcon
+                        className={styles.help_icon}
+                        fontSize="inherit"
+                      />
+                    </Tooltip>
+                  </div>
                 </div>
-              </div>
+              )}
               <button
                 className={styles.num_bids}
                 onClick={() => setViewingBids(true)}
@@ -547,6 +617,7 @@ export default function Auction({
                   fullWidth
                   color="info"
                   size="large"
+                  disabled={!inFuture && !unscheduled}
                   onClick={() => setCurPage("editAuction", context)}
                 >
                   Edit Auction
@@ -569,49 +640,58 @@ export default function Auction({
                   Log in to bid!
                 </Button>
               ) : (
-                <>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    disabled={bidsLoading || winning || auctionEnded}
-                    onClick={() => setIsBidding(true)}
-                  >
-                    {auctionEnded
-                      ? "Auction Ended"
-                      : winning
-                      ? "Winning Bid!"
-                      : bidsLoading
-                      ? "Bid"
-                      : `Bid $ ${(
-                          (bidCount > 0 ? curBid : curMinBid) + spread
-                        ).toFixed(2)}`}
-                  </Button>
+                !inPast && (
+                  <>
+                    {!inFuture && (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        size="large"
+                        disabled={bidsLoading || winning || auctionEnded}
+                        onClick={() => setIsBidding(true)}
+                      >
+                        {auctionEnded
+                          ? "Auction Ended"
+                          : winning
+                          ? "Winning Bid!"
+                          : bidsLoading
+                          ? "Bid"
+                          : `Bid $ ${(
+                              (bidCount > 0 ? curBid : curMinBid) + spread
+                            ).toFixed(2)}`}
+                      </Button>
+                    )}
 
-                  {bidsLoading ? (
-                    <Button variant="outlined" fullWidth size="large" disabled>
-                      Watch
-                    </Button>
-                  ) : watching ? (
-                    <Button
-                      variant="contained"
-                      startIcon={<StarIcon />}
-                      fullWidth
-                      size="large"
-                    >
-                      Watching
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      startIcon={<StarIcon />}
-                      fullWidth
-                      size="large"
-                    >
-                      Watch
-                    </Button>
-                  )}
-                </>
+                    {bidsLoading ? (
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        size="large"
+                        disabled
+                      >
+                        Watch
+                      </Button>
+                    ) : watching ? (
+                      <Button
+                        variant="contained"
+                        startIcon={<StarIcon />}
+                        fullWidth
+                        size="large"
+                      >
+                        Watching
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        startIcon={<StarIcon />}
+                        fullWidth
+                        size="large"
+                      >
+                        Watch
+                      </Button>
+                    )}
+                  </>
+                )
               )}
             </div>
 
@@ -660,53 +740,63 @@ export default function Auction({
                   </button>
                 </div>
               )}
-              <p className={styles.secondary_data_label}>Start date: </p>
-              {auctionLoading ? (
-                <Skeleton
-                  variant="text"
-                  sx={{ fontSize: "1.2rem", width: "10ch" }}
-                />
+
+              {unscheduled || !startTime || !endTime ? (
+                <>
+                  <p className={styles.secondary_data_label}>Status: </p>
+                  <p className={styles.start_date}>Unscheduled</p>
+                </>
               ) : (
-                <p
-                  className={styles.start_date}
-                  title={startTime.toLocaleDateString(undefined, {
-                    month: "long",
-                    day: "numeric",
-                    weekday: "long",
-                    hour: "numeric",
-                    minute: "numeric",
-                  })}
-                >
-                  {startTime.toLocaleDateString(undefined, {
-                    weekday: "long",
-                    hour: "numeric",
-                    minute: "numeric",
-                  })}
-                </p>
-              )}
-              <p className={styles.secondary_data_label}>End date: </p>
-              {auctionLoading ? (
-                <Skeleton
-                  variant="text"
-                  sx={{ fontSize: "1.2rem", width: "10ch" }}
-                />
-              ) : (
-                <p
-                  className={styles.end_date}
-                  title={endTime.toLocaleDateString(undefined, {
-                    month: "long",
-                    day: "numeric",
-                    weekday: "long",
-                    hour: "numeric",
-                    minute: "numeric",
-                  })}
-                >
-                  {endTime.toLocaleDateString(undefined, {
-                    weekday: "long",
-                    hour: "numeric",
-                    minute: "numeric",
-                  })}
-                </p>
+                <>
+                  <p className={styles.secondary_data_label}>Start date: </p>
+                  {auctionLoading ? (
+                    <Skeleton
+                      variant="text"
+                      sx={{ fontSize: "1.2rem", width: "10ch" }}
+                    />
+                  ) : (
+                    <p
+                      className={styles.start_date}
+                      title={startTime.toLocaleDateString(undefined, {
+                        month: "long",
+                        day: "numeric",
+                        weekday: "long",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    >
+                      {startTime.toLocaleDateString(undefined, {
+                        weekday: "long",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    </p>
+                  )}
+                  <p className={styles.secondary_data_label}>End date: </p>
+                  {auctionLoading ? (
+                    <Skeleton
+                      variant="text"
+                      sx={{ fontSize: "1.2rem", width: "10ch" }}
+                    />
+                  ) : (
+                    <p
+                      className={styles.end_date}
+                      title={endTime.toLocaleDateString(undefined, {
+                        month: "long",
+                        day: "numeric",
+                        weekday: "long",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    >
+                      {endTime.toLocaleDateString(undefined, {
+                        weekday: "long",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    </p>
+                  )}
+                </>
               )}
             </div>
 
@@ -726,7 +816,9 @@ export default function Auction({
               ) : (
                 <p className={styles.username}>
                   {sellerUsername}{" "}
-                  <span className={styles.user_num_listings}></span>
+                  {sellerAccountId === user?.accountId && (
+                    <span className={styles.user_num_listings}>(You)</span>
+                  )}
                 </p>
               )}
             </div>
@@ -888,9 +980,7 @@ export default function Auction({
       >
         <div className={styles.bids_container}>
           <h2 className={styles.bids_title}>Bid History</h2>
-          <h3 className={styles.bids_listing_title}>
-            Charizard FX Rebirth 88/110 Shiny
-          </h3>
+          <h3 className={styles.bids_listing_title}>{auctionName}</h3>
 
           <div className={styles.bids_info}>
             <div className={styles.starting_bid}>
@@ -1036,11 +1126,7 @@ export default function Auction({
           />
 
           <p className={styles.confirm_msg_end}>
-            on{" "}
-            <span className={styles.bold}>
-              &quot;Charizard Birth Japanese Card VM&quot;
-            </span>
-            ?
+            on <span className={styles.bold}>&quot;{auctionName}&quot;</span>?
           </p>
 
           <div className={styles.confirm_button_row}>
