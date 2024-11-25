@@ -125,7 +125,6 @@ CREATE TABLE public.auction (
 	CONSTRAINT auction_check_min_duration CHECK (((end_time - '00:05:00'::interval) >= start_time)),
 	CONSTRAINT auction_check_spread_positive CHECK ((spread >= (0)::numeric)),
 	CONSTRAINT auction_check_start_price_positive CHECK ((start_price >= (0)::numeric)),
-	CONSTRAINT auction_check_start_time_in_future CHECK ((start_time >= now())),
 	CONSTRAINT auction_pk PRIMARY KEY (auction_id),
 	CONSTRAINT auction_fk_auctioneer FOREIGN KEY (auctioneer_id) REFERENCES public.account(account_id)
 );
@@ -160,10 +159,6 @@ CREATE INDEX bid_bidder_id_idx ON public.bid USING btree (bidder_id);
 
 -- Table Triggers
 
-CREATE TRIGGER set_bid_timestamp_now_trigger BEFORE
-INSERT
-    ON
-    public.bid FOR EACH ROW EXECUTE FUNCTION set_column_to_now('timestamp');
 CREATE TRIGGER check_bid_valid_trigger BEFORE
 INSERT
     ON
@@ -172,6 +167,10 @@ CREATE TRIGGER check_bidder_not_auctioneer_trigger BEFORE
 INSERT
     ON
     public.bid FOR EACH ROW EXECUTE FUNCTION check_bidder_not_auctioneer();
+CREATE TRIGGER set_bid_timestamp_now_trigger BEFORE
+INSERT
+    ON
+    public.bid FOR EACH ROW EXECUTE FUNCTION set_column_to_now('timestamp');
 
 
 -- public.bundle definition
@@ -207,10 +206,13 @@ CREATE TABLE public.card (
 	"name" varchar(100) NOT NULL,
 	description varchar(500) NULL,
 	manufacturer varchar(100) NOT NULL,
-	quality varchar(100) NOT NULL,
+	quality_ungraded varchar(100) NULL,
 	rarity varchar(100) NOT NULL,
 	"set" varchar(100) NULL,
 	is_foil bool NOT NULL,
+	quality_psa int4 NULL,
+	CONSTRAINT card_check_exact_one_quality CHECK (((quality_ungraded IS NULL) <> (quality_psa IS NULL))),
+	CONSTRAINT card_check_psa_range CHECK (((quality_psa IS NULL) OR ((1 <= quality_psa) AND (quality_psa <= 10)))),
 	CONSTRAINT card_pk PRIMARY KEY (card_id),
 	CONSTRAINT card_fk_auction FOREIGN KEY (auction_id) REFERENCES public.auction(auction_id) ON DELETE CASCADE
 );
