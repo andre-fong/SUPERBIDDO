@@ -207,6 +207,11 @@ export default function Results({
 
   const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
 
+  // TODO: Change status ended
+  const [status, setStatus] = useState<"Ongoing" | "Scheduled" | "Ended">(
+    "Ongoing"
+  );
+
   function fetchResults(page: number) {
     setResults([]);
     setResultsLoading(true);
@@ -293,6 +298,9 @@ export default function Results({
       searchParams.cardIsFoil = false;
     }
 
+    // STATUS
+    searchParams.auctionStatus = status;
+
     // SORT BY
     searchParams.sortBy = sortBy;
 
@@ -335,6 +343,7 @@ export default function Results({
     priceSearchFilters,
     sortBy,
     searchingForCards,
+    status,
   ]);
 
   //////////////////////////////////////////////////
@@ -565,6 +574,10 @@ export default function Results({
     setSearchingForCards(value);
   }
 
+  function handleStatusChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setStatus(event.target.value as "Ongoing" | "Scheduled" | "Ended");
+  }
+
   return (
     <>
       <div
@@ -717,6 +730,44 @@ export default function Results({
                       }
                     />
                   </FormGroup>
+                </FormControl>
+              </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion defaultExpanded>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowDownIcon />}
+              aria-controls="status-content"
+            >
+              Status
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className={styles.status}>
+                <FormControl component="fieldset">
+                  <RadioGroup
+                    aria-label="status"
+                    name="status"
+                    value={status}
+                    onChange={handleStatusChange}
+                  >
+                    <FormControlLabel
+                      value="Ongoing"
+                      defaultChecked
+                      control={<Radio />}
+                      label="Ongoing"
+                    />
+                    <FormControlLabel
+                      value="Scheduled"
+                      control={<Radio />}
+                      label="Scheduled"
+                    />
+                    <FormControlLabel
+                      value="Ended"
+                      control={<Radio />}
+                      label="Ended"
+                    />
+                  </RadioGroup>
                 </FormControl>
               </div>
             </AccordionDetails>
