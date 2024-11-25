@@ -16,12 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteAuction, fetchAuction } from "@/utils/fetchFunctions";
 import { Auction } from "@/types/backendAuctionTypes";
 import Dialog from "@mui/material/Dialog";
-
-const gameMap = {
-  MTG: "Magic: The Gathering",
-  Yugioh: "Yu-Gi-Oh!",
-  Pokemon: "Pokemon",
-};
+import cardRarities from "@/types/cardGameInfo";
 
 export default function EditAuction({
   setCurPage,
@@ -77,11 +72,7 @@ export default function EditAuction({
           const isBundle = auction.cards === undefined;
 
           setType(isBundle ? "Bundle" : "Card");
-          setGame(
-            isBundle
-              ? gameMap[auction.bundle.game]
-              : gameMap[auction.cards[0].game]
-          );
+          setGame(isBundle ? auction.bundle.game : auction.cards[0].game);
           setQualityType(
             isBundle
               ? ""
@@ -114,11 +105,7 @@ export default function EditAuction({
           setFoil(isBundle ? false : auction.cards[0].isFoil);
           setRarity(isBundle ? "" : auction.cards[0].rarity);
           setCardName(isBundle ? auction.bundle.name : auction.cards[0].name);
-          setDescription(
-            isBundle
-              ? auction.bundle.description || ""
-              : auction.cards[0].description || ""
-          );
+          setDescription(auction.description || "");
           setManufacturer(
             isBundle
               ? auction.bundle.manufacturer
@@ -182,7 +169,7 @@ export default function EditAuction({
     }
   };
 
-  const handleRarityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRarityChange = (event: SelectChangeEvent) => {
     setRarity(event.target.value);
   };
 
@@ -234,8 +221,7 @@ export default function EditAuction({
     event.preventDefault();
     if (deleteConfirmText !== cardName) {
       setToast({
-        message:
-          "Delete confirmation text does not match card name, auction not deleted",
+        message: "Delete confirmation text does not match card name",
         severity: Severity.Warning,
       });
       setDeleteError(true);
@@ -305,11 +291,9 @@ export default function EditAuction({
               required
               disabled={loading}
             >
-              <MenuItem value="Pokemon">Pokemon</MenuItem>
-              <MenuItem value="Magic: The Gathering">
-                Magic: The Gathering
-              </MenuItem>
-              <MenuItem value="Yu-Gi-Oh!">Yu-Gi-Oh!</MenuItem>
+              <MenuItem value="Pokemon">Pokémon</MenuItem>
+              <MenuItem value="MTG">Magic: The Gathering</MenuItem>
+              <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
             </Select>
           </FormControl>
 
@@ -393,15 +377,23 @@ export default function EditAuction({
           )}
 
           {type === "Card" && (
-            <TextField
-              label="Rarity"
-              InputLabelProps={{ shrink: true }}
-              value={rarity}
-              onChange={handleRarityChange}
-              fullWidth
-              required={type === "Card"}
-              disabled={loading}
-            />
+            <FormControl fullWidth>
+              <InputLabel required>Rarity</InputLabel>
+              <Select
+                label="Rarity"
+                value={rarity}
+                onChange={handleRarityChange}
+                MenuProps={{ disableScrollLock: true }}
+                required
+                disabled={loading}
+              >
+                {cardRarities[game]?.rarities.map((rarity, index) => (
+                  <MenuItem key={index} value={rarity}>
+                    {rarity}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
           <TextField
             label={
