@@ -759,7 +759,7 @@ router.patch("/:auctionId", async (req, res) => {
     throw unauthorized();
   }
 
-  if (auctionRecord.startTime > new Date(Date.now())) {
+  if (auctionRecord.startTime < new Date(Date.now())) {
     throw new BusinessError(
       409,
       "Cannot modify auction",
