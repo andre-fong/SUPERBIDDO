@@ -56,7 +56,7 @@ export default function Home({
                 priority
                 style={{
                   objectFit: "cover",
-                  objectPosition: "-20px 35%",
+                  objectPosition: "0 35%",
                 }}
               />
               <div className={styles.hero_text}>
