@@ -64,7 +64,14 @@ export default function Listing({
       >
         {auction.name}
       </p>
-      <p className={styles.quality}>Ungraded: Near Mint</p>
+
+      <p className={styles.quality}>
+        {auction.cards?.at(0)?.qualityPsa &&
+          `Graded: PSA ${auction.cards?.at(0)?.qualityPsa}`}
+        {auction.cards?.at(0)?.qualityUngraded &&
+          `Ungraded: ${auction.cards?.at(0)?.qualityUngraded}`}
+        {auction.bundle && `Bundle (${auction.bundle.game})`}
+      </p>
 
       <div className={styles.price_row}>
         <p className={styles.price}>

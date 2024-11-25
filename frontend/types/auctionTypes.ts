@@ -110,7 +110,9 @@ export type AuctionSearchQuery = {
   cardGame?: string | string[];
   cardName?: string;
   cardManufacturer?: string;
-  cardQuality?: string | string[];
+  cardQualityUngraded?: string | string[];
+  minCardQualityPsa?: number;
+  maxCardQualityPsa?: number;
   cardRarity?: string | string[];
   cardSet?: string;
   cardIsFoil?: boolean;

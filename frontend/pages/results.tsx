@@ -247,6 +247,45 @@ export default function Results({
       searchParams.maxMinNewBidPrice = priceSearchFilters.maxPrice;
     }
 
+    // QUALITY
+    if (searchingForCards) {
+      if (qualitySearchFilters.graded) {
+        if (
+          qualitySearchFilters.psaGrade &&
+          qualitySearchFilters.lowGrade &&
+          qualitySearchFilters.highGrade
+        ) {
+          searchParams.minCardQualityPsa = qualitySearchFilters.lowGrade || 1;
+          searchParams.maxCardQualityPsa = qualitySearchFilters.highGrade || 10;
+        } else {
+          searchParams.minCardQualityPsa = 1;
+          searchParams.maxCardQualityPsa = 10;
+        }
+      }
+
+      if (qualitySearchFilters.ungraded) {
+        searchParams.cardQualityUngraded = [];
+        if (qualitySearchFilters.mint) {
+          searchParams.cardQualityUngraded.push("Mint");
+        }
+        if (qualitySearchFilters.nearMint) {
+          searchParams.cardQualityUngraded.push("Near Mint");
+        }
+        if (qualitySearchFilters.lightlyPlayed) {
+          searchParams.cardQualityUngraded.push("Lightly Played");
+        }
+        if (qualitySearchFilters.moderatelyPlayed) {
+          searchParams.cardQualityUngraded.push("Moderately Played");
+        }
+        if (qualitySearchFilters.heavilyPlayed) {
+          searchParams.cardQualityUngraded.push("Heavily Played");
+        }
+        if (qualitySearchFilters.damaged) {
+          searchParams.cardQualityUngraded.push("Damaged");
+        }
+      }
+    }
+
     // FOIL
     if (foilSearchFilter === "foil" && searchingForCards) {
       searchParams.cardIsFoil = true;
