@@ -224,6 +224,7 @@ export default function PageHandler() {
             curPage={curPage}
             setToast={setToast}
             setUser={setUser}
+            context={pageContext}
           />
         )}
       </AnimatePresence>
