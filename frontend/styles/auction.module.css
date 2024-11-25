@@ -37,17 +37,31 @@
   flex: 1;
 }
 
+.title_row {
+  margin-bottom: 15px;
+}
+
 .title {
   font-size: 1.8em;
   font-weight: bold;
-  margin-bottom: 15px;
-  /* max 2 lines */
-  overflow: hidden;
+  display: -webkit-inline-box;
+  /* overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
   line-clamp: 3;
   -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  -webkit-box-orient: vertical; */
+}
+
+.auction_status {
+  opacity: 0.8;
+  margin-left: 20px;
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  vertical-align: middle;
 }
 
 .account_row {
@@ -94,7 +108,6 @@
 }
 .closing_in {
   border-left: 1px solid lightgray;
-  border-right: 1px solid lightgray;
 }
 .num_bids {
   flex: 1;
@@ -102,6 +115,7 @@
   border: 0;
   cursor: pointer;
   transition: background-color 0.2s;
+  border-left: 1px solid lightgray;
 }
 .num_bids:hover {
   background-color: lightgray;
