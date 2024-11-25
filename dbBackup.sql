@@ -1,3 +1,6 @@
+CREATE EXTENSION IF NOT EXISTS "citext";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
 CREATE OR REPLACE FUNCTION public.check_auction_ongoing()
  RETURNS trigger
  LANGUAGE plpgsql
