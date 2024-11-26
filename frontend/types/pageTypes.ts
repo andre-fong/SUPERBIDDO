@@ -10,7 +10,8 @@ export type PageName =
   | "create"
   | "yourListings"
   | "yourBiddings"
-  | "editAuction";
+  | "editAuction"
+  | "watchList";
 export type PageData = Record<
   PageName,
   { title: string; component: ReactNode }

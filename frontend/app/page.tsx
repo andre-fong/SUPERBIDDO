@@ -21,6 +21,7 @@ import Home from "@/pages/home";
 import { pollNotifications } from "@/utils/fetchFunctions";
 import useNotifications from "@/hooks/useNotfications";
 import EditAuction from "@/pages/editAuction";
+import WatchList from "@/pages/watchlist";
 
 const theme = createTheme({
   palette: {
@@ -198,6 +199,17 @@ export default function PageHandler() {
           user={user}
           setToast={setToast}
           // TODO: Remove hardcoded auctionId and use context when redirecting to this page
+          context={pageContext}
+        />
+      ),
+    },
+    watchList: {
+      title: "Watch List | SuperBiddo",
+      component: (
+        <WatchList
+          setCurPage={setCurPage}
+          user={user}
+          setToast={setToast}
           context={pageContext}
         />
       ),
