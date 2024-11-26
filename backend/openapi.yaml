@@ -621,6 +621,64 @@ paths:
           $ref: "#/components/responses/NotFound"
         409:
           $ref: "#/components/responses/Conflict"
+  /api/v1/oauth/google:
+    get:
+      summary: Get the Google OAuth URL.
+      responses:
+        200:
+          description: The Google OAuth URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+  /api/v1/oauth/callback:
+    get:
+      summary: Handle the Google OAuth callback.
+      parameters:
+        - name: code
+          in: query
+          description: The code provided by Google.
+          allowReserved: true
+          schema:
+            type: string
+        - name: scope
+          in: query
+          description: The scope provided by Google.
+          allowReserved: true
+          schema:
+            type: string
+        - name: authuser
+          in: query
+          description: The authuser provided by Google.
+          allowReserved: true
+          schema:
+            type: string
+        - name: prompt
+          in: query
+          description: The prompt provided by Google.
+          allowReserved: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The session details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        409:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
 components:
   schemas:
     Account:
