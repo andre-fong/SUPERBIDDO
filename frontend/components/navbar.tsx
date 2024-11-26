@@ -7,9 +7,9 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import { PageName } from "@/types/pageTypes";
 import { motion } from "motion/react";
 import { useInView, useScroll, useMotionValueEvent } from "motion/react";
-import { fetchLogout } from "@/utils/fetchFunctions";
+import { fetchLogout, getAuctionSearchResults } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
-import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import Popper from "@mui/material/Popper";
@@ -20,6 +20,8 @@ import { Fade } from "@mui/material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Skeleton from "@mui/material/Skeleton";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import { Auction } from "@/types/backendAuctionTypes";
 
 const navVariants = {
   hidden: {
@@ -36,128 +38,11 @@ const navVariants = {
   },
 };
 
-// TODO: Use real search options
 type Option = {
-  game:
-    | "Pokémon"
-    | "Magic: The Gathering"
-    | "Yu-Gi-Oh!"
-    | "Bundles"
-    | "Other Cards"
-    | null;
+  game: "Pokemon" | "MTG" | "Yugioh" | null;
   name: string;
-};
-
-const options: Option[] = [
-  {
-    game: "Pokémon",
-    name: "Charizard",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Black Lotus",
-  },
-  {
-    game: "Yu-Gi-Oh!",
-    name: "Blue-Eyes White Dragon",
-  },
-  {
-    game: "Bundles",
-    name: "Booster Box",
-  },
-  {
-    game: "Other Cards",
-    name: "Base Set",
-  },
-  {
-    game: "Pokémon",
-    name: "Pikachu",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Sol Ring",
-  },
-  {
-    game: "Bundles",
-    name: "Starter Deck",
-  },
-  {
-    game: "Other Cards",
-    name: "Promo Card",
-  },
-  {
-    game: "Pokémon",
-    name: "Blastoise",
-  },
-  {
-    game: "Pokémon",
-    name: "Venusaur",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Mox Pearl",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Mox Sapphire",
-  },
-  {
-    game: "Yu-Gi-Oh!",
-    name: "Exodia",
-  },
-  {
-    game: "Yu-Gi-Oh!",
-    name: "Dark Magician",
-  },
-  {
-    game: "Bundles",
-    name: "Booster Pack",
-  },
-  {
-    game: "Bundles",
-    name: "Deck Box",
-  },
-  {
-    game: "Other Cards",
-    name: "Secret Rare",
-  },
-  {
-    game: "Pokémon",
-    name: "Mewtwo",
-  },
-  {
-    game: "Pokémon",
-    name: "Mew",
-  },
-  {
-    game: "Pokémon",
-    name: "Gengar",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Mox Jet",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Mox Ruby",
-  },
-  {
-    game: "Magic: The Gathering",
-    name: "Mox Emerald",
-  },
-  {
-    game: "Yu-Gi-Oh!",
-    name: "Blue-Eyes Ultimate Dragon",
-  },
-];
-
-const filter = createFilterOptions<Option>();
-
-const iconPaths = {
-  Pokémon: "/pokemon-logo.png",
-  "Magic: The Gathering": "/mtg-logo.png",
-  "Yu-Gi-Oh!": "/yugioh-logo.png",
-  Bundles: "/bundle-icon.png",
+  auctionId: string;
+  category?: string;
 };
 
 export default function Navbar({
@@ -239,10 +124,48 @@ export default function Navbar({
     setCurPage("results", JSON.stringify({ category, search: inputValue }));
   }
 
-  // TODO: Remove log
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [options, setOptions] = useState<Option[]>([]);
+
   useEffect(() => {
-    console.log(user);
-  }, [user]);
+    const timeout = setTimeout(() => {
+      if (inputValue === "") {
+        setOptions([]);
+        return;
+      }
+
+      setOptionsLoading(true);
+      getAuctionSearchResults(setToast, { name: inputValue }).then(
+        (results) => {
+          const auctions = results.auctions as Auction[];
+          const options = auctions?.map((auction) => {
+            if (auction.bundle) {
+              return {
+                game: auction.bundle.game,
+                name: auction.name,
+                auctionId: auction.auctionId,
+              };
+            } else {
+              return {
+                game: auction.cards[0].game,
+                name: auction.name,
+                auctionId: auction.auctionId,
+              };
+            }
+          });
+
+          setOptions(options || []);
+          setOptionsLoading(false);
+        },
+        (err) => {
+          setToast(err);
+          setOptionsLoading(false);
+        }
+      );
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [inputValue, setToast]);
 
   return (
     <motion.nav
@@ -262,8 +185,6 @@ export default function Navbar({
           />
         </button>
         <form className={styles.search} onSubmit={handleSearch}>
-          {/* TODO: Extract autocomplete value from below component */}
-          {/* TODO: Figure out loading autocomplete */}
           <Autocomplete
             freeSolo
             value={inputValue}
@@ -272,36 +193,44 @@ export default function Navbar({
             }}
             disableClearable
             handleHomeEndKeys
+            loading={optionsLoading}
+            loadingText="Loading..."
             options={options}
             getOptionLabel={(option) =>
               typeof option === "string" ? option : option.name
             }
             filterOptions={(options, params) => {
-              // TODO: Stop using filter() once we have real search options
-              const filtered = filter(options, params);
+              // Max 10 option results
+              const filteredOptions = options.slice(0, 10);
+
               if (params.inputValue !== "") {
-                filtered.push({
+                filteredOptions.push({
                   game: null,
                   name: `Search for "${params.inputValue}" in Pokémon`,
+                  auctionId: "",
+                  category: "pokemon",
                 });
-                filtered.push({
+                filteredOptions.push({
                   game: null,
                   name: `Search for "${params.inputValue}" in Magic: The Gathering`,
+                  auctionId: "",
+                  category: "mtg",
                 });
-                filtered.push({
+                filteredOptions.push({
                   game: null,
                   name: `Search for "${params.inputValue}" in Yu-Gi-Oh!`,
+                  auctionId: "",
+                  category: "yugioh",
                 });
               }
-              return filtered;
+              return filteredOptions;
             }}
             renderOption={(props, option) => {
               const { key, ...optionProps } = props;
-              // TODO: Clicking option should redirect to appropriate auction page
               return (
                 <Box
                   component="li"
-                  key={key}
+                  key={key + option.auctionId}
                   {...optionProps}
                   title={
                     !option.game ? undefined : `${option.name} (${option.game})`
@@ -310,25 +239,33 @@ export default function Navbar({
                     if (!!optionProps.onClick) {
                       optionProps.onClick(e);
                     }
-                    // TODO: Fix bug where clicking "Search for <x> in <y>" literally searches for that string
-                    setCurPage(
-                      "results",
-                      JSON.stringify({ search: option.name })
-                    );
+                    if (!option.game) {
+                      setCurPage(
+                        "results",
+                        JSON.stringify({
+                          search: option.name.split('"').at(1) || "",
+                          category: option.category,
+                        })
+                      );
+                      setTimeout(() => {
+                        setInputValue(option.name.split('"').at(1) || "");
+                      }, 500);
+                    } else {
+                      setCurPage(
+                        "auction",
+                        JSON.stringify({ auctionId: option.auctionId })
+                      );
+                    }
                   }}
                 >
-                  {!option.game || option.game === "Other Cards" ? (
-                    <SearchIcon />
-                  ) : (
-                    <Image
-                      src={iconPaths[option.game]}
-                      alt={option.name}
-                      width={25}
-                      height={25}
-                      style={{ objectFit: "cover" }}
-                    />
-                  )}
+                  <SearchIcon />
                   <div className={styles.search_option}>{option.name}</div>
+                  {option.game && (
+                    <p className={styles.search_option_game}>
+                      {" "}
+                      — {option.game}
+                    </p>
+                  )}
                 </Box>
               );
             }}
@@ -341,20 +278,28 @@ export default function Navbar({
                   input: {
                     ...params.InputProps, // NOT inputProps
                     endAdornment: (
-                      <IconButton
-                        sx={{
-                          // Filled IconButton: https://github.com/mui/material-ui/issues/37443
-                          backgroundColor: "primary.main",
-                          color: "white",
-                          "&:hover": { backgroundColor: "primary.dark" },
-                          "&:focus": { backgroundColor: "primary.dark" },
-                        }}
-                        title="Search SuperBiddo"
-                        type="submit"
-                        // TODO: Implement search functionality
-                      >
-                        <SearchIcon />
-                      </IconButton>
+                      <>
+                        {optionsLoading && (
+                          <CircularProgress
+                            color="info"
+                            size={20}
+                            sx={{ marginRight: "10px" }}
+                          />
+                        )}
+                        <IconButton
+                          sx={{
+                            // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                            backgroundColor: "primary.main",
+                            color: "white",
+                            "&:hover": { backgroundColor: "primary.dark" },
+                            "&:focus": { backgroundColor: "primary.dark" },
+                          }}
+                          title="Search SuperBiddo"
+                          type="submit"
+                        >
+                          <SearchIcon />
+                        </IconButton>
+                      </>
                     ),
                   },
                 }}
@@ -374,7 +319,7 @@ export default function Navbar({
           </div>
         ) : (
           <div className={styles.right}>
-            {user && (
+            {/* {user && (
               <div className={styles.notifications}>
                 <IconButton title="My Notifications">
                   <NotificationsIcon fontSize="large" />
@@ -386,7 +331,7 @@ export default function Navbar({
                   </div>
                 )}
               </div>
-            )}
+            )} */}
             <div className={styles.user}>
               {user ? (
                 <>
@@ -628,7 +573,6 @@ export default function Navbar({
           </div>
         )}
       </motion.div>
-      {/* TODO: Make links redirect to search results with appropriate filter */}
       <div className={styles.links_container} ref={linksRef}>
         <ul className={styles.links}>
           <li className={styles.page_link}>
