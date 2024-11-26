@@ -119,6 +119,22 @@ router.post(
 
     closeLpRequest(auctionId);
 
+    // add user action for bidding on auction
+    if (req.session.accountId) {
+      await pool.query<UserActionDb>(
+        ` WITH auction_game AS (
+            SELECT game FROM bundle WHERE auction_id = $1
+            UNION
+            SELECT game FROM card WHERE auction_id = $1
+            LIMIT 1
+          )
+          INSERT INTO recommendation (account_id, game, price, action)
+          VALUES ($2, (SELECT game FROM auction_game), $3, 'bid')
+          RETURNING *`,
+        [auctionId, req.session.accountId, parseFloat(bidRecord.amount)]
+      );
+    }
+
     res.status(201).json(bid);
   }
 );
