@@ -2,7 +2,11 @@ import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import bcrypt from "bcrypt";
 import camelize from "camelize";
-import { sessionNotFound, invalidLogin } from "../utils/errors.js";
+import {
+  sessionNotFound,
+  invalidLogin,
+  BusinessError,
+} from "../utils/errors.js";
 export const router = express.Router();
 import { sendEmail } from "../utils/emailInfo/email.js";
 
@@ -20,12 +24,6 @@ export async function findEmail(email: string) {
 }
 
 router.get("/", async (req, res, next) => {
-  //OAuth user
-  if (req.user) {
-    res.json(req.user);
-    return;
-  }
-
   if (!req.session.accountId) {
     throw sessionNotFound();
   }
@@ -52,6 +50,15 @@ router.post("/", async (req, res, next) => {
   // no account with email
   if (!accountRecord) {
     throw invalidLogin();
+  }
+
+  // account created with OAuth - cannot login with password
+  if (!accountRecord.passhash) {
+    throw new BusinessError(
+      409,
+      "OAuth account",
+      "Account created with OAuth - cannot login with password"
+    );
   }
 
   //await sendEmail(email, 'Welcome to Our Service', 'Thank you for signing up!', '<h1>Welcome to Our Service</h1><p>Thank you for signing up!</p>');

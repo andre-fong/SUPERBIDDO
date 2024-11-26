@@ -18,10 +18,9 @@ passport.use(
       const accountRecord = await findEmail(profile.emails[0].value);
       if (!accountRecord) {
         //TODO: remove and add column
-        const passhash = await bcrypt.hash("Password1234", 10);
         const createAccountRecord = await createAccount(
           profile.emails[0].value,
-          passhash,
+          null,
           profile.displayName
         );
         const account: Account = {
@@ -36,13 +35,12 @@ passport.use(
         accountId: accountRecord.accountId,
         email: accountRecord.email,
         username: accountRecord.username,
-
       };
 
-    return done(null, account);
-}));
-
-
+      return done(null, account);
+    }
+  )
+);
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -54,8 +52,11 @@ passport.deserializeUser((user, done) => {
 
 router.get(
   "/callback",
-  passport.authenticate("google", { failureRedirect: "http://localhost:3000/" }),
+  passport.authenticate("google", {
+    failureRedirect: "http://localhost:3000/",
+  }),
   (req, res) => {
+    req.session.accountId = req.user.accountId;
     //TODO: redirect to deployed frontend
     res.redirect("http://localhost:3000/");
   }
