@@ -129,7 +129,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("join", (accountId: string) => {
-    console.log("joining notifications for account", accountId); 
+    console.log("joining notifications for account", accountId);
     socket.join(accountId);
   });
 });

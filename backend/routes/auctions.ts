@@ -256,7 +256,7 @@ router.get("/", async (req, res) => {
       case "numBidsDesc":
         return ` ORDER BY num_bids DESC`;
       default:
-        // if no order by and name is included, order by similarity
+        // if no sortBy and name is included, order by similarity
         if (name) {
           values.push(name);
           return ` ORDER BY name <<<-> $${values.length}`;
@@ -461,16 +461,19 @@ router.get("/", async (req, res) => {
 
   const totalNumAuctions = camelize(
     await pool.query<{ count: string }>(
-      ` SELECT COUNT(*) FROM
+      ` ${
+        includeBidStatusFor ? `WITH bid_status AS (${bidStatusCte})` : ""
+      } SELECT COUNT(*) FROM
       (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
       as count`,
       // capped at 1001 to prevent large queries
       // if includeBidStatusFor, first value is bidder_id
       // however, it's only included in where clause if bidStatus is present
       values.slice(
-        includeBidStatusFor && !bidStatus ? 1 : 0,
-        values.length - (name ? 3 : 2)
-      ) // exclude page, and pageSize
+        0,
+        values.length - 2 - (name && !sortBy ? 1 : 0) // subtract 1 for sortBy unless
+      )
+      // exclude page, and pageSize
     )
   ).rows[0].count;
 
@@ -1400,6 +1403,8 @@ router.post(
   }
 );
 
+// generate CTE for bid status based on bidder_id.
+// valNum is the parameter number which will supply the bidder_id
 function getBidStatusCte(bidderId: string, valNum: number) {
   if (!bidderId) {
     return null;
