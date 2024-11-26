@@ -16,9 +16,8 @@ import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
 import { router as bidRouter } from "./routes/bids.js";
 import { router as oauthRouter } from "./routes/oauth.js";
+import { router as watchingRouter } from "./routes/watching.js";
 import { Server } from "socket.io";
-import camelize from "camelize";
-import { pool } from "./configServices/dbConfig.js";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -40,6 +39,7 @@ app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// watching does not work with this right now
 app.use(
   OpenApiValidator.middleware({
     apiSpec: "./openapi.yaml",
@@ -57,6 +57,7 @@ app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/oauth", oauthRouter);
+app.use("/api/v1/watching", watchingRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.

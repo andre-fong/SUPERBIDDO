@@ -14,7 +14,7 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-const enableCaptcha = true;
+const enableCaptcha = false;
 
 export default function Login({
   setCurPage,
