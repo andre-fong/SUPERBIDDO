@@ -74,6 +74,8 @@ paths:
                 $ref: "#/components/schemas/Session"
         401:
           $ref: "#/components/responses/Unauthorized"
+        409:
+          $ref: "#/components/responses/Conflict"
     delete:
       summary: End the current session.
       responses:
