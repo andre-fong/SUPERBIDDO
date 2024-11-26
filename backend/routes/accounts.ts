@@ -6,7 +6,11 @@ import { BusinessError, sessionNotFound } from "../utils/errors.js";
 
 export const router = express.Router();
 
-export async function createAccount(email: string, passhash: string, username: string) {
+export async function createAccount(
+  email: string,
+  passhash: string,
+  username: string
+) {
   const accountRecord = camelize(
     await pool
       .query<AccountDb>(
@@ -41,15 +45,14 @@ export async function createAccount(email: string, passhash: string, username: s
     username: accountRecord.username,
   };
 
-  return account
+  return account;
 }
-
 
 router.post("/", async (req, res) => {
   const accountInput: AccountInput = req.body;
   const { email, password, username } = accountInput;
   const passhash = await bcrypt.hash(password, 10);
   const account = await createAccount(email, passhash, username);
-  
+
   res.status(201).json(account);
 });
