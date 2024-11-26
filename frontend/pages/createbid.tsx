@@ -79,6 +79,7 @@ const CardListing: React.FC<CardListingProps> = ({
   const spreadRef = useRef<HTMLInputElement>(null);
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
+  const auctionNameRef = useRef<HTMLInputElement>(null);
 
   const formatCardUploadData = async (uploadFormData: FormData) => {
     try {
@@ -189,6 +190,8 @@ const CardListing: React.FC<CardListingProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
+    console.log(file);
     if (!file) {
       return;
     }
@@ -263,7 +266,7 @@ const CardListing: React.FC<CardListingProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auctionData: any = {
       auctioneerId: user.accountId,
-      name: cardNameRef.current?.value || "Unknown Name",
+      name: auctionNameRef.current?.value,
       description: descriptionRef.current?.value,
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
       spread: parseFloat(spreadRef.current?.value || "0"),
@@ -508,7 +511,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   accept="image/*"
                   hidden
                   onChange={handleFileChange}
-                  required
+                  name="imageUploadFront"
                 />
               </Button>
 
@@ -524,8 +527,19 @@ const CardListing: React.FC<CardListingProps> = ({
                   accept="image/*"
                   hidden
                   onChange={handleBackChange}
+                  name="imageUploadBack"
                 />
               </Button>
+
+              
+              <TextField
+                label="Auction Name"
+                inputRef={auctionNameRef}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
 
               <TextField
                 label="Manufacturer"

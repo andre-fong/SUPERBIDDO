@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { User } from '@/types/userTypes';
 import { ErrorType, Severity } from '@/types/errorTypes';
 import io from "socket.io-client";
+import { NotificationEvents } from '@/types/notificationTypes';
 
 function useNotifications(user: User | null, setToast: (error: ErrorType) => void) {
     const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -25,37 +26,37 @@ function useNotifications(user: User | null, setToast: (error: ErrorType) => voi
 
             socketRef.current?.emit('join', user.accountId);
 
-            socketRef.current?.on('auction_outbidded', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionOutbidded, (auctionName: string) => {
                 new Notification("Outbidded!", {
                     body: `You have been outbid on the auction: ${auctionName}`,
                 });
             }); 
 
-            socketRef.current?.on('auction_recieved_bid', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionReceivedBid, (auctionName: string) => {
                 new Notification("New Bid!", {
                     body: `A new bid has been placed on your auction: ${auctionName}`,
                 });
             });
 
-            socketRef.current?.on('auction_bid_won', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionBidWon, (auctionName: string) => {
                 new Notification("Auction Won!", {
                     body: `You have won the auction: ${auctionName}`,
                 });
             });
 
-            socketRef.current?.on('auction_bid_lost', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionBidLost, (auctionName: string) => {
                 new Notification("Auction Lost!", {
                     body: `You have lost the auction: ${auctionName}`,
                 });
             })
 
-            socketRef.current?.on('auction_ending_soon', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionEndingSoon, (auctionName: string) => {
                 new Notification("Auction Ending Soon!", {
                     body: `The auction: ${auctionName} you bid on is ending soon`,
                 });
             });
 
-            socketRef.current?.on('auction_owning_ended', (auctionName: string) => {
+            socketRef.current?.on(NotificationEvents.AuctionOwningEnded, (auctionName: string) => {
                 new Notification("Auction Ended!", {
                     body: `Your auction: ${auctionName} has ended`,
                 });
