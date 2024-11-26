@@ -4,6 +4,9 @@ import camelize from "camelize";
 import { pool } from "../configServices/dbConfig.js";
 import schedule from "node-schedule";
 import moment from "moment";
+import { sendEmail } from "../utils/emailInfo/email.js";
+import { NotificationEvents } from "../types/notifcation.js";
+
 // override res.json to call handlerFn then call original json
 export function notificationMiddleware(
   handlerFn: (req: Request, res: Response, body: any) => void
@@ -27,70 +30,93 @@ type ReminderJobs = {
 
 let reminderJobs = {} as ReminderJobs;
 
-async function getAllBidders(auctionId: string) {
+async function getAllBiddersWithEmail(auctionId: string) {
   return await pool.query(
-    `SELECT DISTINCT bidder_id FROM bid WHERE auction_id = $1`,
+    `SELECT DISTINCT bid.bidder_id, account.email, account.username
+     FROM bid 
+     JOIN account ON bid.bidder_id = account.account_id 
+     WHERE auction_id = $1`,
     [auctionId]
   );
 }
 
 async function getTopBidder(auctionId: string) {
   return await pool.query(
-    `SELECT bidder_id FROM bid WHERE auction_id = $1 ORDER BY amount DESC LIMIT 1`,
+    `SELECT bid.bidder_id, account.email, account.username 
+     FROM bid 
+     JOIN account ON bid.bidder_id = account.account_id 
+     WHERE auction_id = $1 
+     ORDER BY amount DESC 
+     LIMIT 1`,
     [auctionId]
   );
+}
+
+function sendNotification(event: NotificationEvents, accountId: string, email: string, auctionName: string, username: string) {
+  if (io.sockets.adapter.rooms.has(accountId)) {
+    io.to(accountId).emit(event, auctionName);
+  } else {
+    sendEmail(email, event, auctionName, username);
+  }
 }
 
 function scheduleBidEndReminder(
   auctionId: string,
   auctionName: string,
   auctioneerId: string,
+  auctioneerEmail: string,
+  auctioneerUsername: string,
   reminderDate: Date
 ) {
   return schedule.scheduleJob(
     true ? new Date(new Date().getTime() + 30 * 1000) : reminderDate,
     () => {
-      const allBidders = getAllBidders(auctionId);
+      const allBidders = getAllBiddersWithEmail(auctionId);
       const topBidder = getTopBidder(auctionId);
       Promise.all([allBidders, topBidder]).then(
         ([allBiddersResult, topBidderResult]) => {
-          const topBidderId =
+          const topBidder =
             topBidderResult.rows.length > 0
-              ? topBidderResult.rows[0].bidder_id
+              ? topBidderResult.rows[0]
               : null;
 
           allBiddersResult.rows.forEach((row) => {
-            if (row.bidder_id !== topBidderId) {
-              io.to(row.bidder_id).emit("auction_bid_lost", auctionName);
+            if (row.bidder_id !== topBidder.bidder_id) {
+              sendNotification(NotificationEvents.AuctionBidLost, row.bidder_id, row.email, auctionName, row.username);
             }
           });
 
-          if (topBidderId) {
-            io.to(topBidderId).emit("auction_bid_won", auctionName);
+          if (topBidder) {
+            sendNotification(NotificationEvents.AuctionBidWon, topBidder.bidder_id, topBidder.email, auctionName, topBidder.username);
           }
         }
       );
-      io.to(auctioneerId).emit("auction_owning_ended", auctionName);
+      console.log(auctioneerEmail)
+      sendNotification(NotificationEvents.AuctionOwningEnded, auctioneerId, auctioneerEmail, auctionName, auctioneerUsername);
       delete reminderJobs[auctionId];
     }
   );
 }
 
 // 4 minutes
+const disableSkip = false;
+
 function scheduleAuctionSoonEndReminder(
   auctionId: string,
   auctionName: string,
   reminderDate: Date
 ) {
-  return reminderDate.getTime() - 4 * 60 * 1000 >= 0
+  return disableSkip || reminderDate.getTime() - 4 * 60 * 1000 >= 0
     ? schedule.scheduleJob(
         true
           ? new Date(new Date().getTime() + 20 * 1000)
           : new Date(reminderDate.getTime() - 4 * 60 * 1000),
         () => {
-          getAllBidders(auctionId).then((allBiddersResult) => {
+          getAllBiddersWithEmail(auctionId).then((allBiddersResult) => {
+            console.log(allBiddersResult.rows);
             allBiddersResult.rows.forEach((row) => {
-              io.to(row.bidder_id).emit("auction_ending_soon", auctionName);
+              console.log("Sending email to", row.email);
+              sendNotification(NotificationEvents.AuctionEndingSoon, row.bidder_id, row.email, auctionName, row.username);
             });
           });
           delete reminderJobs[auctionId].auctionSoonEnd;
@@ -124,10 +150,6 @@ export async function postBidNotification(
     return;
   }
 
-  if (!bidRecord) {
-    return;
-  }
-
   const outbidBidder: Bid = {
     bidId: bidRecord.bidId,
     auctionId: bidRecord.auctionId,
@@ -141,19 +163,21 @@ export async function postBidNotification(
   };
   const auction = camelize(
     await pool.query<{
-      auctioneer_id: number;
+      auctioneerid: string;
       name: string;
+      auctioneeremail: string;
+      auctioneerusername: string;
     }>(
-      `SELECT auctioneer_id, name
+      `SELECT auction.auctioneer_id, auction.name, account.email, account.username
        FROM auction
+       JOIN account ON auction.auctioneer_id = account.account_id
        WHERE auction_id = $1`,
       [body.auctionId]
     )
   ).rows[0];
 
-  //Why is there a red line here?
-  io.to(outbidBidder.bidder.accountId).emit("auction_outbidded", auction.name);
-  io.to(auction.auctioneerId).emit("auction_recieved_bid", auction.name);
+  sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
+  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.auctioneeremail, auction.name, auction.auctioneerusername);
 }
 
 export async function postAuctionNotification(
@@ -172,6 +196,8 @@ export async function postAuctionNotification(
     body.auctionId,
     body.name,
     body.auctioneer.accountId,
+    body.auctioneer.email,
+    body.auctioneer.username,
     reminderDate
   );
   const auctionSoonEndJob = scheduleAuctionSoonEndReminder(
