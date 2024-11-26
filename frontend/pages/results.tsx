@@ -222,7 +222,7 @@ export default function Results({
 
     // NAME
     if (searchValue.trim()) {
-      searchParams.cardName = searchValue.trim();
+      searchParams.name = searchValue.trim();
     }
 
     // CARDS OR BUNDLES
