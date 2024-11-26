@@ -791,7 +791,7 @@ router.patch("/:auctionId", async (req, res) => {
     endTime: req.body.endTime || auctionRecord.endTime,
   };
 
-  const newCardDetails = auctionRecord.cards[0]
+  const newCardDetails = auctionRecord.cards
     ? {
         cardId: auctionRecord.cards[0].cardId,
         cardName: req.body.cardName || auctionRecord.cards[0].name,
@@ -817,13 +817,13 @@ router.patch("/:auctionId", async (req, res) => {
   const newBundleDetails = auctionRecord.bundle
     ? {
         bundleId: auctionRecord.bundle[0].bundleId,
-        bundleName: req.body.bundleName || auctionRecord.bundle.name,
+        bundleName: req.body.bundleName || auctionRecord.bundle[0].name,
         bundleDescription:
-          req.body.bundleDescription || auctionRecord.bundle.description,
+          req.body.bundleDescription || auctionRecord.bundle[0].description,
         bundleManufacturer:
-          req.body.bundleManufacturer || auctionRecord.bundle.manufacturer,
-        bundleSet: req.body.bundleSet || auctionRecord.bundle.set,
-        bundleGame: req.body.bundleGame || auctionRecord.bundle.game,
+          req.body.bundleManufacturer || auctionRecord.bundle[0].manufacturer,
+        bundleSet: req.body.bundleSet || auctionRecord.bundle[0].set,
+        bundleGame: req.body.bundleGame || auctionRecord.bundle[0].game,
       }
     : null;
 
@@ -863,7 +863,11 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
-  if (newCardDetails.cardQualityPsa && newCardDetails.cardQualityUngraded) {
+  if (
+    newCardDetails &&
+    newCardDetails.cardQualityPsa &&
+    newCardDetails.cardQualityUngraded
+  ) {
     throw new BusinessError(
       400,
       "Invalid card quality",
@@ -871,7 +875,7 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
-  switch (newCardDetails.cardGame) {
+  switch (newCardDetails && newCardDetails.cardGame) {
     case "MTG": {
       const rarities = [
         "Common",
@@ -947,11 +951,11 @@ router.patch("/:auctionId", async (req, res) => {
   }
 
   // if one quality is provided, set the other to null
-  if (newCardDetails.cardQualityPsa) {
+  if (newCardDetails && newCardDetails.cardQualityPsa) {
     newCardDetails.cardQualityUngraded = null;
   }
 
-  if (newCardDetails.cardQualityUngraded) {
+  if (newCardDetails && newCardDetails.cardQualityUngraded) {
     newCardDetails.cardQualityPsa = null;
   }
 
