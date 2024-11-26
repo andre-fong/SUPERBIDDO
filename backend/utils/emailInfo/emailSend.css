@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+* {
+    font-family: 'Inter', 'Inter Fallback';
+}
+
+.email-header {
+    background-color: #e0e0e0; /* Darker background color */
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.email-content {
+    background-color: #fbfbfb; /* Slightly lighter background color */
+    font-weight: 600;
+    font-size: large;
+}
+
+#username-text {
+    margin-top: 5px;
+}
+
+.email-footer {
+    background-color: #fbfbfb;
+}

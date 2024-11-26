@@ -1,5 +1,7 @@
 // email.ts
 import nodemailer from 'nodemailer';
+import { NotificationEvents, NotificationMessages } from '../../types/notifcation';
+import generateEmailTemplate from './emailSend';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail', 
@@ -9,15 +11,15 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-export async function sendEmail(to: string, subject: string, text: string, html?: string) {
-    const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender address
-        to: to, // List of recipients
-        subject: subject, // Subject line
-        text: text, // Plain text body
-        html: html, // HTML body (optional)
-    };
 
+
+export async function sendEmail(to: string, event: NotificationEvents, auctionName: string, username: string) {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: to, 
+        subject: NotificationMessages[event].eventHeader, 
+        html: generateEmailTemplate(username, NotificationMessages[event].eventBody(auctionName)),
+    };
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log('Email sent: ' + info.response);
