@@ -1,0 +1,47 @@
+.main {
+  padding: 30px clamp(30px, 10vw, 300px);
+}
+
+.title_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.results_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  column-gap: 5px;
+  row-gap: 40px;
+}
+
+.skeleton {
+  width: 300px;
+  padding: 5px;
+}
+
+.skeleton_price_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-top: 5px;
+}
+
+@media (max-width: 960px) {
+  .results_grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .skeleton {
+    width: 260px;
+  }
+}

@@ -501,7 +501,7 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
-                                    // TODO: Implement watch list
+                                    onClick={() => setCurPage("watchList")}
                                   >
                                     Watch List
                                   </button>
