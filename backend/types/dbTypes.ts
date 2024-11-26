@@ -49,3 +49,13 @@ type BidDb = {
 };
 
 type QualityPsaDb = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10";
+
+type UserActionDb = {
+  account_id: string;
+  game: string;
+  price: number;
+  action: UserAction;
+  timestamp: Date;
+};
+
+type UserAction = "view" | "bid";

@@ -663,6 +663,17 @@ router.get("/:auctionId", async (req, res) => {
       ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
       bundle: bundleRecord,
     };
+
+    // if not long polling, add user action for viewing auction
+    if (!longPollMaxBidId && req.session.accountId) {
+      await pool.query<UserActionDb>(
+        ` INSERT INTO recommendation (account_id, game, price, action)
+          VALUES ($1, $2, $3, 'view')
+          RETURNING *`,
+        [req.session.accountId, auction.bundle.game, auction.minNewBidPrice]
+      );
+    }
+
     res.json(auction);
     return;
   }
@@ -732,6 +743,16 @@ router.get("/:auctionId", async (req, res) => {
     ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
     cards: cards,
   };
+
+  // if not long polling, add user action for viewing auction
+  if (!longPollMaxBidId && req.session.accountId) {
+    await pool.query<UserActionDb>(
+      ` INSERT INTO recommendation (account_id, game, price, action)
+        VALUES ($1, $2, $3, 'view')
+        RETURNING *`,
+      [req.session.accountId, auction.cards[0].game, auction.minNewBidPrice]
+    );
+  }
 
   res.json(auction);
 });
