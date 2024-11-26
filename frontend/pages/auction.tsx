@@ -35,6 +35,7 @@ import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
 import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
+import { removeWatching, addWatching, getWatching } from "@/utils/fetchFunctions";
 
 function auctionPollingStart(
   auctionId: string,
@@ -59,6 +60,18 @@ function auctionPollingStart(
       );
     }
   );
+}
+
+function handleWatching(isWatching: boolean, auctionId: string, userId: string, toggleWatching: (isWatching: boolean) => void, setToast: (err: ErrorType) => void) {  
+  if (isWatching) {
+    removeWatching(setToast, userId, auctionId).then((newValue: boolean) => {
+      toggleWatching(newValue);
+    })
+  } else {
+    addWatching(setToast, userId, auctionId).then((newValue: boolean) => {
+      toggleWatching(newValue);
+    })
+  }
 }
 
 /**
@@ -252,8 +265,13 @@ export default function Auction({
     setBidsLoading(false);
   }
 
+
   // This useEffect should only run once, since it initiates the long polling
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     const auctionContext = JSON.parse(context);
     const abortController = new AbortController();
     const signal = abortController.signal;
@@ -263,7 +281,6 @@ export default function Auction({
         if (!auction) {
           return;
         }
-        console.log(auction);
         const auctionIsBundle = auction.bundle !== undefined;
 
         curAuctionId.current = auction.auctionId;
@@ -327,6 +344,10 @@ export default function Auction({
             setAuctionData(newAuction);
           }
         );
+
+        getWatching(setToast, user.accountId, curAuctionId.current).then((isWatching: boolean) => {
+          setWatching(isWatching);
+        })
         setAuctionLoading(false);
       }
     );
@@ -336,7 +357,7 @@ export default function Auction({
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   // /**
   //  * Handles submitting a new bid
@@ -677,6 +698,7 @@ export default function Auction({
                         fullWidth
                         size="large"
                         disabled
+                       
                       >
                         Watch
                       </Button>
@@ -686,6 +708,7 @@ export default function Auction({
                         startIcon={<StarIcon />}
                         fullWidth
                         size="large"
+                        onClick={() => handleWatching(watching, curAuctionId.current, user.accountId, setWatching, setToast)}
                       >
                         Watching
                       </Button>
@@ -695,6 +718,7 @@ export default function Auction({
                         startIcon={<StarIcon />}
                         fullWidth
                         size="large"
+                        onClick={() => handleWatching(watching, curAuctionId.current, user.accountId, setWatching, setToast)}
                       >
                         Watch
                       </Button>

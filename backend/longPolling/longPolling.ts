@@ -11,10 +11,6 @@ export function addLpClient(reqId: string, client: Response) {
     pendingLpRequests[reqId] = { clients: [], type: LpTypes.AUCTION };
   }
   pendingLpRequests[reqId].clients.push(client);
-  console.log(
-    "added client to pendingLpRequests[reqId].clients: ",
-    pendingLpRequests[reqId].clients
-  );
 }
 
 export function removeLpClient(reqId: string, client: Response) {
