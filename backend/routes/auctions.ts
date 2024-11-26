@@ -785,10 +785,17 @@ router.patch("/:auctionId", async (req, res) => {
     auctionId: auctionId,
     name: req.body.name || auctionRecord.name,
     description: req.body.description || auctionRecord.description,
-    startPrice: req.body.startPrice || auctionRecord.startPrice,
+    startPrice:
+      req.body.startPrice !== undefined
+        ? req.body.startPrice
+        : auctionRecord.startPrice,
     spread: req.body.spread || auctionRecord.spread,
-    startTime: req.body.startTime || auctionRecord.startTime,
-    endTime: req.body.endTime || auctionRecord.endTime,
+    startTime:
+      req.body.startTime !== undefined
+        ? req.body.startTime
+        : auctionRecord.startTime,
+    endTime:
+      req.body.endTime !== undefined ? req.body.endTime : auctionRecord.endTime,
   };
 
   const newCardDetails = auctionRecord.cards
@@ -800,10 +807,13 @@ router.patch("/:auctionId", async (req, res) => {
         cardManufacturer:
           req.body.cardManufacturer || auctionRecord.cards[0].manufacturer,
         cardQualityUngraded:
-          req.body.cardQualityUngraded ||
-          auctionRecord.cards[0].qualityUngraded,
+          req.body.cardQualityUngraded || req.body.cardQualityPsa
+            ? req.body.cardQualityUngraded
+            : auctionRecord.cards[0].qualityUngraded,
         cardQualityPsa:
-          req.body.cardQualityPsa || auctionRecord.cards[0].qualityPsa,
+          req.body.cardQualityPsa || req.body.cardQualityUngraded
+            ? req.body.cardQualityPsa
+            : auctionRecord.cards[0].qualityPsa,
         cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
         cardSet: req.body.cardSet || auctionRecord.cards[0].set,
         cardIsFoil:
