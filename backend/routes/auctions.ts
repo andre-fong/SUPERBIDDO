@@ -7,7 +7,7 @@ import {
   postAuctionNotification,
   notificationMiddleware,
 } from "../middlewares/notifications.js";
-import { deleteImage, generateImageName } from "./images.js";
+import { deleteImage, preserveImage } from "./images.js";
 
 export const router = express.Router();
 
@@ -1189,8 +1189,6 @@ router.delete("/:auctionId", async (req, res) => {
     throw new ServerError(500, "Error deleting auction");
   }
 
-  const imageName = generateImageName(imageUrl);
-
   // only need to delete from auction table - cascade will delete from cards/bundle
   const deletedAuctionRecord = camelize(
     await pool.query<AuctionDb>(
@@ -1207,9 +1205,11 @@ router.delete("/:auctionId", async (req, res) => {
 
   // will throw error if gcs error
   try {
-    await deleteImage(imageName);
+    await deleteImage(imageUrl, req.session.accountId);
   } catch (err) {
-    throw new ServerError(500, "Error deleting auction");
+    console.log(err);
+    // auction was deleted, but there may be an orphaned image in gcs
+    // throw new ServerError(500, "Error deleting auction");
   }
 
   res.sendStatus(204);
@@ -1326,6 +1326,17 @@ router.post(
         throw new ServerError(500, "Error creating auction - bundle");
       }
 
+      try {
+        await preserveImage(bundleInput.imageUrl, req.session.accountId);
+      } catch (err) {
+        await pool.query(`ROLLBACK`);
+        throw new BusinessError(
+          404,
+          "Image not found",
+          `Could not find referenced image at ${bundleInput.imageUrl}. Upload an image by posting to api/v_/images first.`
+        );
+      }
+
       await pool.query(`COMMIT`);
 
       const auction: Auction = {
@@ -1390,23 +1401,38 @@ router.post(
       )
     ).rows;
 
-    const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
-      const card: Card<Game> = {
-        cardId: cardRecord.cardId,
-        game: cardRecord.game,
-        name: cardRecord.name,
-        description: cardRecord.description,
-        manufacturer: cardRecord.manufacturer,
-        ...(cardRecord.qualityUngraded
-          ? { qualityUngraded: cardRecord.qualityUngraded }
-          : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
-        rarity: cardRecord.rarity,
-        set: cardRecord.set,
-        isFoil: cardRecord.isFoil,
-        imageUrl: cardRecord.imageUrl,
-      };
-      return card;
-    });
+    const cards: Card<Game>[] = await Promise.all(
+      cardsRecord.map(async (cardRecord) => {
+        const card: Card<Game> = {
+          cardId: cardRecord.cardId,
+          game: cardRecord.game,
+          name: cardRecord.name,
+          description: cardRecord.description,
+          manufacturer: cardRecord.manufacturer,
+          ...(cardRecord.qualityUngraded
+            ? { qualityUngraded: cardRecord.qualityUngraded }
+            : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+          rarity: cardRecord.rarity,
+          set: cardRecord.set,
+          isFoil: cardRecord.isFoil,
+          imageUrl: cardRecord.imageUrl,
+        };
+
+        try {
+          await preserveImage(cardRecord.imageUrl, req.session.accountId);
+        } catch (err) {
+          console.log(err);
+          await pool.query(`ROLLBACK`);
+          throw new BusinessError(
+            404,
+            "Image not found",
+            `Could not find referenced image at ${cardRecord.imageUrl}. Upload an image by posting to api/v_/images first.`
+          );
+        }
+
+        return card;
+      })
+    );
 
     // if card insert fails, rollback
     if (!cardsRecord) {

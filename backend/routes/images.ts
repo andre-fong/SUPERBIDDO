@@ -1,11 +1,14 @@
 import multer from "multer";
 import { bucket } from "../configServices/gcsConfig";
 import express from "express";
-import { BusinessError } from "../utils/errors";
+import { BusinessError, forbidden } from "../utils/errors";
 
 export const router = express.Router();
 
 router.post("/", async (req, res) => {
+  if (!req.session.accountId) {
+    throw new BusinessError(401, "unauthorized", "must be logged in");
+  }
   uploadHandler.single("image")(req, res, (err) => {
     if (err) {
       switch (err.code) {
@@ -32,9 +35,12 @@ router.post("/", async (req, res) => {
           throw err;
       }
     }
+
     // upload successful
     const fileExtension = req.file.mimetype.split("/")[1];
-    const blob = bucket.file(`${crypto.randomUUID()}.${fileExtension}`);
+    const blob = bucket.file(
+      `${req.session.accountId}_${crypto.randomUUID()}.${fileExtension}`
+    );
     // add current time to metadata - image will be deleted after 1 day unless auction is created
     const blobStream = blob.createWriteStream({
       metadata: {
@@ -79,13 +85,26 @@ export function generateImageName(link: string) {
   return name ? name : null;
 }
 
-export function preserveImage(name: string) {
+export async function preserveImage(imageUrl: string, accountId: string) {
+  const imageOwnerId = imageUrl.split("_")[0];
+  if (imageOwnerId !== accountId) {
+    throw forbidden();
+  }
+  const name = generateImageName(imageUrl);
   const blob = bucket.file(name);
-  const metadata = blob.metadata;
-  delete metadata.customTime;
-  return blob.setMetadata(metadata);
+  const [metadata] = await blob.getMetadata();
+  // google won't accept dates past around here
+  // remember to update this in 200 years
+  const neverDate = new Date("2250-01-02T03:04:05.006Z").toISOString();
+  metadata.customTime = neverDate;
+  await blob.setMetadata(metadata);
 }
 
-export function deleteImage(name: string) {
-  return bucket.file(name).delete();
+export async function deleteImage(imageUrl: string, accountId: string) {
+  const imageOwnerId = imageUrl.split("_")[0];
+  if (imageOwnerId !== accountId) {
+    throw forbidden();
+  }
+  const name = generateImageName(imageUrl);
+  await bucket.file(name).delete();
 }

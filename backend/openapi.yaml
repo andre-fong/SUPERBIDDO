@@ -1198,7 +1198,7 @@ components:
       type: string
       format: uri
       # gcs prefix, uuid, dot, file extension
-      pattern: ^https://storage\.googleapis\.com/superbiddo-bucket-0/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\..{1,17}$
+      pattern: ^https://storage\.googleapis\.com/superbiddo-bucket-0/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\..{1,13}$
     Errors:
       type: array
       items:
