@@ -54,14 +54,20 @@ services:
       # backend environment variables
       - FRONTEND_URL=${FRONTEND_URL}
       # secrets
-      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET
+      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GEMINI_API_KEY
       - DB_USER_FILE=/run/secrets/db_user
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - SESSION_SECRET_FILE=/run/secrets/session_secret
+      - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
+      - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
+      - GEMINI_API_KEY_FILE=/run/secrets/gemini_api_key
     secrets:
       - db_user
       - db_password
       - session_secret
+      - google_client_id
+      - google_client_secret
+      - gemini_api_key
 
   # postgres database
   database:
@@ -91,3 +97,9 @@ secrets:
     environment: "DB_PASSWORD"
   session_secret:
     environment: "SESSION_SECRET"
+  google_client_id:
+    environment: "GOOGLE_CLIENT_ID"
+  google_client_secret:
+    environment: "GOOGLE_CLIENT_SECRET"
+  gemini_api_key:
+    environment: "GEMINI_API_KEY"
