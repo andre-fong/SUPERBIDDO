@@ -12,6 +12,7 @@ export const router = express.Router();
 
 router.get("/", async (req, res) => {
   const {
+    recommended,
     includeBidStatusFor,
     auctioneerId,
     savedBy,
@@ -42,6 +43,7 @@ router.get("/", async (req, res) => {
     page = "1",
     pageSize = "20",
   } = req.query as {
+    recommended: string;
     includeBidStatusFor: string;
     auctioneerId: string;
     bidderId: string;
@@ -118,6 +120,15 @@ router.get("/", async (req, res) => {
     );
     conditions.push(`(${orConditions.join(" OR ")})`);
     values.push(...value);
+  }
+
+  // return auctions based on user's viewing and bidding history using a
+  // content-based recommendation system
+  if (recommended) {
+    if (!req.session.accountId) {
+      res.json({ auctions: [], totalNumAuctions: 0 });
+      return;
+    }
   }
 
   const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);
