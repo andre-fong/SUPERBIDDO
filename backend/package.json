@@ -44,6 +44,7 @@
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.0",
     "@types/node": "^22.8.7",
+    "@types/node-schedule": "^2.1.7",
     "@types/pg-pool": "^2.0.6",
     "cross-env": "^7.0.3",
     "tsx": "^4.19.2"

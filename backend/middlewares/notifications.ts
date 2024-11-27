@@ -7,6 +7,8 @@ import moment from "moment";
 import { sendEmail } from "../utils/emailInfo/email.js";
 import { NotificationEvents } from "../types/notifcation.js";
 
+const neverDate = new Date('9999-12-31T23:59:59');
+
 // override res.json to call handlerFn then call original json
 export function notificationMiddleware(
   handlerFn: (req: Request, res: Response, body: any) => void
@@ -16,6 +18,11 @@ export function notificationMiddleware(
     res.json = function (body) {
       handlerFn(req, res, body);
       return originalJson.call(this, body);
+    };
+    const originalSendStatus = res.sendStatus;
+    res.sendStatus = function (status) {
+      handlerFn(req, res, status);
+      return originalSendStatus.call(this, status);
     };
     next();
   };
@@ -52,6 +59,16 @@ async function getTopBidder(auctionId: string) {
   );
 }
 
+async function getAuctionName(auctionId: string) {
+  const result = await pool.query(
+    `SELECT name 
+     FROM auction 
+     WHERE auction_id = $1`,
+    [auctionId]
+  );
+  return result.rows.length > 0 ? result.rows[0].name : null;
+}
+
 function sendNotification(event: NotificationEvents, accountId: string, email: string, auctionName: string, username: string) {
   if (io.sockets.adapter.rooms.has(accountId)) {
     io.to(accountId).emit(event, auctionName);
@@ -60,21 +77,35 @@ function sendNotification(event: NotificationEvents, accountId: string, email: s
   }
 }
 
+async function getAllWatchersWithEmail(auctionId: string) {
+  return await pool.query(
+    `SELECT DISTINCT watch.account_id, account.email, account.username
+     FROM watch 
+     JOIN account ON watch.account_id = account.account_id 
+     WHERE auction_id = $1`,
+    [auctionId]
+  );
+}
+
 function scheduleBidEndReminder(
   auctionId: string,
-  auctionName: string,
   auctioneerId: string,
   auctioneerEmail: string,
   auctioneerUsername: string,
-  reminderDate: Date
+  reminderDate: Date | null
 ) {
+  //false ? new Date(new Date().getTime() + 30 * 1000) 
   return schedule.scheduleJob(
-    true ? new Date(new Date().getTime() + 30 * 1000) : reminderDate,
-    () => {
+    reminderDate ? reminderDate : neverDate,
+    async () => {
       const allBidders = getAllBiddersWithEmail(auctionId);
       const topBidder = getTopBidder(auctionId);
-      Promise.all([allBidders, topBidder]).then(
-        ([allBiddersResult, topBidderResult]) => {
+      const watchers = getAllWatchersWithEmail(auctionId);
+
+      //im getting the auction name since the user might change the auctionname
+      const auctionName = await getAuctionName(auctionId);
+      Promise.all([allBidders, topBidder, watchers]).then(
+        ([allBiddersResult, topBidderResult, watchersResults]) => {
           const topBidder =
             topBidderResult.rows.length > 0
               ? topBidderResult.rows[0]
@@ -86,40 +117,45 @@ function scheduleBidEndReminder(
             }
           });
 
+          watchersResults.rows.forEach((row) => {
+            sendNotification(NotificationEvents.AuctionWatchingEnded, row.account_id, row.email, auctionName, row.username);
+          });
+
           if (topBidder) {
             sendNotification(NotificationEvents.AuctionBidWon, topBidder.bidder_id, topBidder.email, auctionName, topBidder.username);
           }
         }
       );
-      console.log(auctioneerEmail)
       sendNotification(NotificationEvents.AuctionOwningEnded, auctioneerId, auctioneerEmail, auctionName, auctioneerUsername);
       delete reminderJobs[auctionId];
     }
   );
 }
 
-// 4 minutes
-const disableSkip = false;
-
 function scheduleAuctionSoonEndReminder(
   auctionId: string,
-  auctionName: string,
-  reminderDate: Date
+  reminderDate: Date | null
 ) {
-  return disableSkip || reminderDate.getTime() - 4 * 60 * 1000 >= 0
+  //        false
+  //? new Date(new Date().getTime() + 20 * 1000)
+  return !reminderDate || reminderDate.getTime() - 4 * 60 * 1000 >= 0
     ? schedule.scheduleJob(
-        true
-          ? new Date(new Date().getTime() + 20 * 1000)
-          : new Date(reminderDate.getTime() - 4 * 60 * 1000),
+        reminderDate ? new Date(reminderDate.getTime() - 4 * 60 * 1000)
+          : neverDate,
         () => {
-          getAllBiddersWithEmail(auctionId).then((allBiddersResult) => {
-            console.log(allBiddersResult.rows);
-            allBiddersResult.rows.forEach((row) => {
-              console.log("Sending email to", row.email);
-              sendNotification(NotificationEvents.AuctionEndingSoon, row.bidder_id, row.email, auctionName, row.username);
-            });
-          });
-          delete reminderJobs[auctionId].auctionSoonEnd;
+          Promise.all([getAllBiddersWithEmail(auctionId), getAuctionName(auctionId), getAllWatchersWithEmail(auctionId)]).then(
+            ([allBiddersResult, auctionName, watching]) => {
+              console.log(allBiddersResult.rows);
+              allBiddersResult.rows.forEach((row) => {
+                console.log("Sending email to", row.email);
+                sendNotification(NotificationEvents.AuctionEndingSoon, row.bidder_id, row.email, auctionName, row.username);
+              });
+              watching.rows.forEach((row) => {
+                sendNotification(NotificationEvents.AuctionWatchingEndingSoon, row.account_id, row.email, auctionName, row.username);
+              });
+              delete reminderJobs[auctionId].auctionSoonEnd;
+            }
+            );
         }
       )
     : null;
@@ -146,11 +182,7 @@ export async function postBidNotification(
     )
   ).rows[0];
 
-  if (!bidRecord) {
-    return;
-  }
-
-  const outbidBidder: Bid = {
+  const outbidBidder: Bid = bidRecord && {
     bidId: bidRecord.bidId,
     auctionId: bidRecord.auctionId,
     bidder: {
@@ -163,10 +195,10 @@ export async function postBidNotification(
   };
   const auction = camelize(
     await pool.query<{
-      auctioneerid: string;
+      auctioneer_id: string;
       name: string;
-      auctioneeremail: string;
-      auctioneerusername: string;
+      email: string;
+      username: string;
     }>(
       `SELECT auction.auctioneer_id, auction.name, account.email, account.username
        FROM auction
@@ -176,8 +208,17 @@ export async function postBidNotification(
     )
   ).rows[0];
 
-  sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
-  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.auctioneeremail, auction.name, auction.auctioneerusername);
+  const allWatchers = await getAllWatchersWithEmail(body.auctionId);
+
+  allWatchers.rows.forEach((row) => {
+    sendNotification(NotificationEvents.AuctionWatchingReceivedBid, row.account_id, row.email, auction.name, row.username);
+  });
+
+  if (outbidBidder) {
+    sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
+  }
+  //IDk why there is a red line here
+  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneer_id, auction.email, auction.name, auction.username);
 }
 
 export async function postAuctionNotification(
@@ -189,12 +230,11 @@ export async function postAuctionNotification(
   if (!body.auctionId) {
     return;
   }
-  const endDate = new Date(body.endTime);
-  const reminderDate = moment(endDate).toDate();
+
+  const reminderDate = body.endTime ? moment(new Date(body.endTime)).toDate(): null;
 
   const auctionEndJob = scheduleBidEndReminder(
     body.auctionId,
-    body.name,
     body.auctioneer.accountId,
     body.auctioneer.email,
     body.auctioneer.username,
@@ -202,12 +242,54 @@ export async function postAuctionNotification(
   );
   const auctionSoonEndJob = scheduleAuctionSoonEndReminder(
     body.auctionId,
-    body.name,
     reminderDate
   );
-
+  
   reminderJobs[body.auctionId] = {
     auctionEnd: auctionEndJob,
     auctionSoonEnd: auctionSoonEndJob,
   };
+
+  console.log(reminderJobs[body.auctionId]);
 }
+
+export async function patchAuctionNotification(
+  req: Request,
+  res: Response,
+  body: any
+) {
+  if (!reminderJobs[req.params.auctionId]) {
+    return;
+  }
+
+
+  if (!body.endTime) {
+    reminderJobs[req.params.auctionId].auctionEnd.reschedule(neverDate);
+    reminderJobs[req.params.auctionId].auctionSoonEnd.reschedule(neverDate);
+    console.log("Rescheduled to never");
+    return;
+  }
+
+  const reminderDate = moment(new Date(body.endTime)).toDate();
+
+  reminderJobs[req.params.auctionId].auctionEnd.reschedule(reminderDate);
+  reminderJobs[req.params.auctionId].auctionSoonEnd.reschedule(
+    new Date(reminderDate.getTime() - 4 * 60 * 1000)
+  );
+  console.log("Rescheduled to", reminderDate);
+}
+
+export async function deleteAuctionNotification(
+  req: Request,
+  res: Response,
+  body: any
+) {
+  console.log(reminderJobs[req.params.auctionId])
+  if (reminderJobs[req.params.auctionId]) {
+    reminderJobs[req.params.auctionId].auctionEnd.cancel();
+    reminderJobs[req.params.auctionId].auctionSoonEnd.cancel();
+    delete reminderJobs[req.params.auctionId];
+    console.log(reminderJobs)
+  }
+}
+

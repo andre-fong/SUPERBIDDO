@@ -6,6 +6,8 @@ import { addLpClient } from "../longPolling/longPolling.js";
 import {
   postAuctionNotification,
   notificationMiddleware,
+  deleteAuctionNotification,
+  patchAuctionNotification
 } from "../middlewares/notifications.js";
 
 export const router = express.Router();
@@ -736,8 +738,9 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.patch("/:auctionId", async (req, res) => {
+router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,async (req, res) => {
   const auctionId = req.params.auctionId;
+
   const auctionRecord = camelize(
     await pool.query<AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }>(
       ` WITH cards_agg AS (
@@ -763,6 +766,7 @@ router.patch("/:auctionId", async (req, res) => {
     throw new BusinessError(404, "Auction not found");
   }
 
+
   if (
     !req.session.accountId ||
     auctionRecord.auctioneerId !== req.session.accountId
@@ -781,6 +785,7 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
+  console.log(auctionRecord)
   const newAuctionDetails = {
     auctionId: auctionId,
     name: req.body.name || auctionRecord.name,
@@ -1143,7 +1148,7 @@ router.patch("/:auctionId", async (req, res) => {
   }
 });
 
-router.delete("/:auctionId", async (req, res) => {
+router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), async (req, res) => {
   const auctionId = req.params.auctionId;
   const auctionRecord = camelize(
     await pool.query<AuctionDb>(
