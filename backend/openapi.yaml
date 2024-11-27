@@ -403,6 +403,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
   /api/v1/auctions/{auctionId}:
     get:
       summary: Get an auction by its auctionId. Long polling is supported by providing the id of the current leading bid.
