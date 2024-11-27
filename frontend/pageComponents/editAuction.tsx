@@ -236,8 +236,8 @@ export default function EditAuction({
       description: description,
       startPrice: startingPrice,
       spread: spread,
-      startTime: !startDate ? undefined : new Date(startDate).toISOString(),
-      endTime: !endDate ? undefined : new Date(endDate).toISOString(),
+      startTime: !startDate ? null : new Date(startDate).toISOString(),
+      endTime: !endDate ? null : new Date(endDate).toISOString(),
     };
 
     if (type === "Card") {
