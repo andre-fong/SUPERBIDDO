@@ -100,8 +100,8 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: savedBy
-          description: The uuid of a user. If provided, only auctions that this user has saved will be returned. Must match signed in user id.
+          name: watchedBy
+          description: The uuid of a user. If provided, only auctions that this user is watching will be returned. Must match signed in user id.
           required: false
           schema:
             type: string

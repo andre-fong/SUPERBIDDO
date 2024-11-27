@@ -35,8 +35,8 @@ import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
 import type { Auction, BidDetails } from "@/types/backendAuctionTypes";
-import { removeWatching, addWatching, getWatching } from "@/utils/fetchFunctions";
-
+import { getWatching } from "@/utils/fetchFunctions";
+import { handleWatching } from "@/utils/watchingFunctions";
 function auctionPollingStart(
   auctionId: string,
   setToast: (err: ErrorType) => void,
@@ -60,18 +60,6 @@ function auctionPollingStart(
       );
     }
   );
-}
-
-function handleWatching(isWatching: boolean, auctionId: string, userId: string, toggleWatching: (isWatching: boolean) => void, setToast: (err: ErrorType) => void) {  
-  if (isWatching) {
-    removeWatching(setToast, userId, auctionId).then((newValue: boolean) => {
-      toggleWatching(newValue);
-    })
-  } else {
-    addWatching(setToast, userId, auctionId).then((newValue: boolean) => {
-      toggleWatching(newValue);
-    })
-  }
 }
 
 /**

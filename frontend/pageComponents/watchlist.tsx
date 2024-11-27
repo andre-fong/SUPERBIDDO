@@ -8,6 +8,10 @@ import { Auction } from "@/types/backendAuctionTypes";
 import Button from "@mui/material/Button";
 import Skeleton from "@mui/material/Skeleton";
 import Listing from "@/components/listing";
+import { Box, Pagination } from "@mui/material";
+
+
+const resultsPerPage = 20
 
 export default function WatchList({
   setCurPage,
@@ -25,33 +29,44 @@ export default function WatchList({
   ///////////////////////////////////
   const [resultsLoading, setResultsLoading] = useState(true);
   const [results, setResults] = useState<Auction[]>([]);
+  const [resultsPage, setResultsPage] = useState(1);
+  const [resultsTotalPages, setResultsTotalPages] = useState(0);
+  
 
   ///////////////////////////////////
   //      Watchlist Functions      //
   ///////////////////////////////////
-  function getWatchList() {
+  function getWatchList(accountId: string) {
     // TODO: Replace this function with a fetchFunctions func that returns watch list
-    getAuctionSearchResults(setToast, {}).then(
-      (results) => {
-        setResults(results.auctions);
-        setResultsLoading(false);
-      },
-      (err) => {
-        setToast(err);
-        setResultsLoading(false);
-      }
-    );
+    setResultsLoading(true);
+    getAuctionSearchResults((err) => {
+      setToast(err)
+      setResultsLoading(false)
+    }
+      , {watchedBy: accountId, page: resultsPage, pageSize: resultsPerPage}).then((results) => {
+      setResults(results.auctions);
+      setResultsTotalPages(Math.ceil(results.totalNumAuctions / resultsPerPage));
+      setResultsLoading(false);
+    })
   }
+
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    page: number
+  ): void => {
+    setResultsPage(page);
+  };
 
   useEffect(() => {
     if (!user) {
       setCurPage("login", JSON.stringify({ next: "watchlist" }));
+      return
     }
 
-    getWatchList();
+    getWatchList(user.accountId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resultsPage, user]);
 
   return (
     <>
@@ -104,14 +119,36 @@ export default function WatchList({
               </div>
             ))}
 
-          {results?.map((auction) => (
+            {!resultsLoading && results.length === 0 && (
+            <div style={{ fontStyle: "italic" }}>No auctions watching</div>
+            )}
+            {results?.map((auction) => (
             <Listing
               key={auction.auctionId}
               auction={auction}
               setCurPage={setCurPage}
+              accountId={user?.accountId}
+              setToast={setToast}
             />
-          ))}
+            ))}
+            
+
         </div>
+        <Box
+            display="flex"
+            justifyContent="center"
+            marginTop={4}
+            marginBottom={2}
+            >
+            {resultsTotalPages > 0 && (
+              <Pagination
+              count={resultsTotalPages}
+              page={resultsPage}
+              onChange={handlePageChange}
+              color="primary"
+              />
+            )}
+            </Box>
       </main>
     </>
   );

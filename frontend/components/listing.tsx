@@ -4,17 +4,33 @@ import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import StarIcon from "@mui/icons-material/Star";
 import { useTimer } from "react-timer-hook";
+import CheckIcon from "@mui/icons-material/Check";
 import { Auction } from "@/types/backendAuctionTypes";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { addWatching, removeWatching, getWatching } from "@/utils/fetchFunctions";
+import { ErrorType } from "@/types/errorTypes";
 
 export default function Listing({
   auction,
   setCurPage,
+  accountId,
+  setToast,
 }: {
   auction: Auction;
   setCurPage: (page: PageName, context?: string) => void;
+  accountId: string | undefined;
+  setToast: (err: ErrorType) => void;
 }) {
   const [ended, setEnded] = useState(false);
+  const [isWatching, setIsWatching] = useState(false);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    getWatching(setToast, accountId, auction.auctionId).then((watching) => {
+      setIsWatching(watching);
+    });
+  }, [accountId]);
 
   const unscheduled = useMemo(() => !auction.startTime, [auction.startTime]);
   const inFuture = useMemo(
@@ -63,9 +79,10 @@ export default function Listing({
               "&:hover": { backgroundColor: "primary.main" },
               "&:focus-visible": { backgroundColor: "primary.main" },
             }}
-            title="Add this listing to your Watch List"
+            title={isWatching ? "Remove from your watch list" : "Add this listing to your Watch List"}
+            onClick={() => {isWatching ? removeWatching(setToast, accountId || "0", auction.auctionId).then((newValue: boolean) => {setIsWatching(newValue);}) : addWatching(setToast, accountId || "0", auction.auctionId).then((newValue: boolean) => {setIsWatching(newValue);});}}
           >
-            <StarIcon />
+            {isWatching ? <CheckIcon /> : <StarIcon /> }
           </IconButton>
         </div>
       </div>

@@ -716,3 +716,40 @@ export async function getWatching(
     return false;
   }
 }
+
+// GRAVEYARD OF VICTORS CODE -> MOVE TO CHADTHEW'S CODE
+// export async function fetchWatchList(
+//   errorFcn: (error: ErrorType) => void,
+//   accountId: string,
+//   page: number,
+//   pageSize: number
+// ) {
+//   try {
+//     const response = await fetch(`${url}/watching/${accountId}?page=${page}&pageSize=${pageSize}`, {
+//       method: "GET",
+//       headers: {
+//       "Content-Type": "application/json",
+//       },
+//       credentials: "include",
+//     });
+
+//     if (response.ok) {
+//       const watchList = await response.json();
+//       return watchList;
+//     } else if (response.status === 401) {
+//       errorFcn({
+//         message: "Action requires authentication",
+//         severity: Severity.Warning,
+//       });
+//     } else if (response.status === 400) {
+//       errorFcn({
+//         message: "Request format is invalid",
+//         severity: Severity.Warning,
+//       });
+//     }
+//     return {totalWatching: 0, auctions: []};
+//   } catch (error) {
+//     errorFcn({ message: unkownError, severity: Severity.Critical });
+//     return {totalWatching: 0, auctions: []};
+//   }
+// }
