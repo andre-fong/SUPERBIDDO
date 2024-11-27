@@ -1613,6 +1613,8 @@ export default function Results({
                 key={auction.auctionId}
                 auction={auction}
                 setCurPage={setCurPage}
+                accountId={user?.accountId}
+                setToast={setToast}
               />
             ))}
           </div>

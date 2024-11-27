@@ -127,6 +127,8 @@ export default function WatchList({
               key={auction.auctionId}
               auction={auction}
               setCurPage={setCurPage}
+              accountId={user?.accountId}
+              setToast={setToast}
             />
             ))}
             
