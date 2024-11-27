@@ -129,6 +129,52 @@ router.get("/", async (req, res) => {
       res.json({ auctions: [], totalNumAuctions: 0 });
       return;
     }
+
+    const approxNumAuctionsToReturn = 10;
+
+    // Use fetch to get
+    let mockData: UserActionsData = {
+      games: {
+        MTG: 5,
+        Pokemon: 10,
+        Yugioh: 1,
+      },
+      prices: {
+        zero_to_ten: 14,
+        ten_to_twenty_five: 5,
+        twenty_five_to_fifty: 1,
+        fifty_to_hundred: 0,
+        hundred_to_three_hundred: 0,
+        three_hundred_to_thousand: 20,
+      },
+    };
+
+    // Of 10 auctions, divide up auctions based on price range frequency
+    const totalPriceRangeHits = Object.values(mockData.prices).reduce(
+      (acc, val) => acc + val,
+      0
+    );
+    mockData.prices = Object.fromEntries(
+      Object.entries(mockData.prices).map(([key, val]) => [
+        key,
+        Math.ceil((val / totalPriceRangeHits) * approxNumAuctionsToReturn),
+      ])
+    );
+
+    addCondition(
+      `auction_id IN (SELECT auction_id FROM card WHERE game = ?)`,
+      Object.keys(mockData.games)
+    );
+    addCondition(
+      `auction_id IN (SELECT auction_id FROM bundle WHERE game = ?)`,
+      Object.keys(mockData.games)
+    );
+
+    // TODO: Figure out how to limit auctions based on game and price range
+
+    // TODO: Remove
+    res.json({ auctions: [], totalNumAuctions: 0 });
+    return;
   }
 
   const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);

@@ -170,3 +170,25 @@ type YugiohRarity =
   | "Prismatic Secret Rare"
   | "Parallel Rare"
   | "Platinum Rare";
+
+type UserActionsData = {
+  // GAME COUNTS
+  games: {
+    MTG?: number;
+    Pokemon?: number;
+    Yugioh?: number;
+  };
+
+  // PRICE RANGES
+  prices: {
+    zero_to_ten?: number;
+    ten_to_twenty_five?: number;
+    twenty_five_to_fifty?: number;
+    fifty_to_hundred?: number;
+    hundred_to_three_hundred?: number;
+    three_hundred_to_thousand?: number;
+    thousand_to_five_thousand?: number;
+    five_thousand_to_ten_thousand?: number;
+    ten_thousand_plus?: number;
+  };
+};
