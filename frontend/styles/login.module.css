@@ -134,6 +134,13 @@
   margin-top: 20px;
 }
 
+.session_error_text {
+  text-align: center;
+  color: red;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+
 @media (max-width: 800px) {
   .container {
     max-width: 100%;
