@@ -13,8 +13,8 @@ import {
   QualityUngraded,
 } from "@/types/backendAuctionTypes";
 import exp from "constants";
-// const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
-const url = `http://localhost:3001/api/v1`;
+const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+// const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
@@ -657,7 +657,10 @@ export async function removeWatching(
     if (response.ok) {
       return false;
     } else if (response.status === 404) {
-      errorFcn({ message: "Not watching auction", severity: Severity.Critical });
+      errorFcn({
+        message: "Not watching auction",
+        severity: Severity.Critical,
+      });
     } else if (response.status === 401) {
       errorFcn({
         message: "Action requires authentication",

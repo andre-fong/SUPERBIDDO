@@ -7,7 +7,9 @@ export function handleCloseAuctionRequest(
   auctionId: string,
   clients: Response[]
 ) {
-  fetch("http://localhost:3001/api/v1/auctions/" + auctionId).then((res) => {
+  fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}api/v1/auctions/${auctionId}`
+  ).then((res) => {
     if (res.status === 200) {
       res.json().then((auction) => {
         for (let client of clients) {
