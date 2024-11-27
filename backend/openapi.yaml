@@ -83,6 +83,32 @@ paths:
           description: Successfully ended session.
         404:
           $ref: "#/components/responses/NotFound"
+  /api/v1/images:
+    post:
+      summary: Upload a new image. Send multipart/form-data with image field.
+      # commented: including causes errors with express-openapi-validator
+      # requestBody:
+      #   required: true
+      #   content:
+      #     multipart/form-data:
+      #       schema:
+      #         type: object
+      #         properties:
+      #           image:
+      #             type: string
+      #             format: binary
+      responses:
+        201:
+          description: The newly uploaded image.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    $ref: "#/components/schemas/ImageUrl"
+        400:
+          $ref: "#/components/responses/BadRequest"
   /api/v1/auctions:
     get:
       summary: Get auctions. Query params can be used to filter and order results.
