@@ -48,6 +48,7 @@ import { styled } from "@mui/material/styles";
 import cardRarities from "@/types/cardGameInfo";
 import Listing from "@/components/listing";
 import { getAuctionSearchResults } from "@/utils/fetchFunctions";
+import { AuctionStatus, AuctionStatusEnum } from "@/types/auctionTypes";
 
 // TODO: Remove this when we have a backend
 enum Game {
@@ -209,8 +210,8 @@ export default function Results({
 
   // TODO: Change status ended
   const [status, setStatus] = useState<
-    "Ongoing" | "Scheduled" | "Not scheduled" | "Ended"
-  >("Ongoing");
+    AuctionStatus
+  >(AuctionStatusEnum.Ongoing);
 
   function fetchResults(page: number) {
     setResults([]);
@@ -576,7 +577,7 @@ export default function Results({
 
   function handleStatusChange(event: React.ChangeEvent<HTMLInputElement>) {
     setStatus(
-      event.target.value as "Ongoing" | "Scheduled" | "Not scheduled" | "Ended"
+      event.target.value as AuctionStatus
     );
   }
 

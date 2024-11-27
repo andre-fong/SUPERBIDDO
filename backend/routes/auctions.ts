@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
   const {
     includeBidStatusFor,
     auctioneerId,
-    savedBy,
+    watchedBy,
     name,
     minMinNewBidPrice,
     maxMinNewBidPrice,
@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
     includeBidStatusFor: string;
     auctioneerId: string;
     bidderId: string;
-    savedBy: string;
+    watchedBy: string;
     name: string;
     minMinNewBidPrice: string;
     maxMinNewBidPrice: string;
@@ -80,7 +80,7 @@ router.get("/", async (req, res) => {
     throw unauthorized();
   }
 
-  if (savedBy && req.session.accountId !== savedBy) {
+  if (watchedBy && req.session.accountId !== watchedBy) {
     throw unauthorized();
   }
 
@@ -129,8 +129,8 @@ router.get("/", async (req, res) => {
 
   addCondition(`auctioneer_id = ?`, auctioneerId);
   addCondition(
-    `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
-    savedBy
+    `auction_id IN (SELECT auction_id FROM watch WHERE account_id = ?)`,
+    watchedBy
   );
   // pg_trgm strict_word_similarity
   addCondition(`name <<% ?`, name);
