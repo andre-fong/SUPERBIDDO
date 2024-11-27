@@ -6,6 +6,8 @@ import { addLpClient } from "../longPolling/longPolling.js";
 import {
   postAuctionNotification,
   notificationMiddleware,
+  deleteAuctionNotification,
+  patchAuctionNotification
 } from "../middlewares/notifications.js";
 
 export const router = express.Router();
@@ -736,8 +738,9 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.patch("/:auctionId", async (req, res) => {
+router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,async (req, res) => {
   const auctionId = req.params.auctionId;
+
   const auctionRecord = camelize(
     await pool.query<AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }>(
       ` WITH cards_agg AS (
@@ -763,6 +766,7 @@ router.patch("/:auctionId", async (req, res) => {
     throw new BusinessError(404, "Auction not found");
   }
 
+
   if (
     !req.session.accountId ||
     auctionRecord.auctioneerId !== req.session.accountId
@@ -781,6 +785,7 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
+  console.log(auctionRecord)
   const newAuctionDetails = {
     auctionId: auctionId,
     name: req.body.name || auctionRecord.name,
@@ -791,7 +796,7 @@ router.patch("/:auctionId", async (req, res) => {
     endTime: req.body.endTime || auctionRecord.endTime,
   };
 
-  const newCardDetails = auctionRecord.cards[0]
+  const newCardDetails = auctionRecord.cards
     ? {
         cardId: auctionRecord.cards[0].cardId,
         cardName: req.body.cardName || auctionRecord.cards[0].name,
@@ -817,13 +822,13 @@ router.patch("/:auctionId", async (req, res) => {
   const newBundleDetails = auctionRecord.bundle
     ? {
         bundleId: auctionRecord.bundle[0].bundleId,
-        bundleName: req.body.bundleName || auctionRecord.bundle.name,
+        bundleName: req.body.bundleName || auctionRecord.bundle[0].name,
         bundleDescription:
-          req.body.bundleDescription || auctionRecord.bundle.description,
+          req.body.bundleDescription || auctionRecord.bundle[0].description,
         bundleManufacturer:
-          req.body.bundleManufacturer || auctionRecord.bundle.manufacturer,
-        bundleSet: req.body.bundleSet || auctionRecord.bundle.set,
-        bundleGame: req.body.bundleGame || auctionRecord.bundle.game,
+          req.body.bundleManufacturer || auctionRecord.bundle[0].manufacturer,
+        bundleSet: req.body.bundleSet || auctionRecord.bundle[0].set,
+        bundleGame: req.body.bundleGame || auctionRecord.bundle[0].game,
       }
     : null;
 
@@ -1129,7 +1134,7 @@ router.patch("/:auctionId", async (req, res) => {
   }
 });
 
-router.delete("/:auctionId", async (req, res) => {
+router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), async (req, res) => {
   const auctionId = req.params.auctionId;
   const auctionRecord = camelize(
     await pool.query<AuctionDb>(
