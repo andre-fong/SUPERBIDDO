@@ -191,8 +191,8 @@ export type AuctionPatchBody = {
   description?: string;
   startPrice: number;
   spread: number;
-  startTime?: string;
-  endTime?: string;
+  startTime?: string | null;
+  endTime?: string | null;
   cardName?: string;
   cardDescription?: string;
   cardManufacturer?: string;

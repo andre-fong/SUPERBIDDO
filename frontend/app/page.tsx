@@ -4,24 +4,24 @@ import { changePageTitle } from "@/utils/pageManagement";
 import { useState, useEffect, use } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Login from "@/pages/login";
-import Signup from "@/pages/signup";
-import Auction from "@/pages/auction";
-import CreateBid from "@/pages/createbid";
-import YourListings from "@/pages/yourlistings";
-import YourBiddings from "@/pages/yourbiddings";
+import Login from "@/pageComponents/login";
+import Signup from "@/pageComponents/signup";
+import Auction from "@/pageComponents/auction";
+import CreateBid from "@/pageComponents/createbid";
+import YourListings from "@/pageComponents/yourlistings";
+import YourBiddings from "@/pageComponents/yourbiddings";
 import useUser from "@/hooks/useUser";
 import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
 import { AnimatePresence, motion } from "motion/react";
-import Results from "@/pages/results";
-import Home from "@/pages/home";
+import Results from "@/pageComponents/results";
+import Home from "@/pageComponents/home";
 import { pollNotifications } from "@/utils/fetchFunctions";
 import useNotifications from "@/hooks/useNotfications";
-import EditAuction from "@/pages/editAuction";
-import WatchList from "@/pages/watchlist";
+import EditAuction from "@/pageComponents/editAuction";
+import WatchList from "@/pageComponents/watchlist";
 
 const theme = createTheme({
   palette: {
