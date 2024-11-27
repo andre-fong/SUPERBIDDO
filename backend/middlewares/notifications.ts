@@ -249,8 +249,6 @@ export async function postAuctionNotification(
     auctionEnd: auctionEndJob,
     auctionSoonEnd: auctionSoonEndJob,
   };
-
-  console.log(reminderJobs[body.auctionId]);
 }
 
 export async function patchAuctionNotification(
@@ -266,7 +264,6 @@ export async function patchAuctionNotification(
   if (!body.endTime) {
     reminderJobs[req.params.auctionId].auctionEnd.reschedule(neverDate);
     reminderJobs[req.params.auctionId].auctionSoonEnd.reschedule(neverDate);
-    console.log("Rescheduled to never");
     return;
   }
 
@@ -276,7 +273,6 @@ export async function patchAuctionNotification(
   reminderJobs[req.params.auctionId].auctionSoonEnd.reschedule(
     new Date(reminderDate.getTime() - 4 * 60 * 1000)
   );
-  console.log("Rescheduled to", reminderDate);
 }
 
 export async function deleteAuctionNotification(
@@ -284,12 +280,10 @@ export async function deleteAuctionNotification(
   res: Response,
   body: any
 ) {
-  console.log(reminderJobs[req.params.auctionId])
   if (reminderJobs[req.params.auctionId]) {
     reminderJobs[req.params.auctionId].auctionEnd.cancel();
     reminderJobs[req.params.auctionId].auctionSoonEnd.cancel();
     delete reminderJobs[req.params.auctionId];
-    console.log(reminderJobs)
   }
 }
 
