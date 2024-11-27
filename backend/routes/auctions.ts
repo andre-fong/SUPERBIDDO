@@ -1421,8 +1421,13 @@ router.post(
         try {
           await preserveImage(cardRecord.imageUrl, req.session.accountId);
         } catch (err) {
-          console.log(err);
           await pool.query(`ROLLBACK`);
+          // can be auth error
+          if (err instanceof BusinessError) {
+            throw err;
+          }
+          console.error(err);
+          // or image not found
           throw new BusinessError(
             404,
             "Image not found",

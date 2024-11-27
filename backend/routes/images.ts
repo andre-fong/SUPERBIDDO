@@ -1,11 +1,11 @@
 import multer from "multer";
 import { bucket } from "../configServices/gcsConfig";
 import express from "express";
-import { BusinessError, forbidden } from "../utils/errors";
+import { BusinessError, unauthorized } from "../utils/errors";
 
 export const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   if (!req.session.accountId) {
     throw new BusinessError(401, "unauthorized", "must be logged in");
   }
@@ -13,27 +13,37 @@ router.post("/", async (req, res) => {
     if (err) {
       switch (err.code) {
         case "LIMIT_FILE_SIZE":
-          throw new BusinessError(
-            400,
-            "file too large",
-            "image must be less than 5mb"
+          next(
+            new BusinessError(
+              400,
+              "file too large",
+              "image must be less than 5mb"
+            )
           );
+          break;
         case "LIMIT_FILE_COUNT":
-          throw new BusinessError(
-            400,
-            "too many files",
-            "only 1 image allowed"
+          next(
+            new BusinessError(400, "too many files", "only 1 image allowed")
           );
+          break;
         case "LIMIT_UNEXPECTED_FILE":
-          throw new BusinessError(
-            400,
-            "invalid field name",
-            `image field name must be "image" and must contain 1 image`
+          next(
+            new BusinessError(
+              400,
+              "invalid field name",
+              `image field name must be "image" and must contain 1 image`
+            )
           );
+          break;
         default:
           // some other multer error
-          throw err;
+          next(err);
       }
+      return;
+    }
+    if (!req.file.mimetype.startsWith("image/")) {
+      next(new BusinessError(400, "invalid file type", "only images allowed"));
+      return;
     }
 
     // upload successful
@@ -50,7 +60,7 @@ router.post("/", async (req, res) => {
     });
     blobStream.on("error", (err) => {
       // some GCS error
-      throw err;
+      next(err);
     });
     blobStream.on("finish", async () => {
       res.status(201).json({ imageUrl: generateImageLink(blob.name) });
@@ -63,13 +73,6 @@ const uploadHandler = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // max 5mb
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new BusinessError(400, "invalid file type", "only images allowed"));
-    }
   },
 });
 
@@ -86,11 +89,11 @@ export function generateImageName(link: string) {
 }
 
 export async function preserveImage(imageUrl: string, accountId: string) {
-  const imageOwnerId = imageUrl.split("_")[0];
-  if (imageOwnerId !== accountId) {
-    throw forbidden();
-  }
   const name = generateImageName(imageUrl);
+  const imageOwnerId = name.split("_")[0];
+  if (imageOwnerId !== accountId) {
+    throw unauthorized();
+  }
   const blob = bucket.file(name);
   const [metadata] = await blob.getMetadata();
   // google won't accept dates past around here
@@ -103,7 +106,7 @@ export async function preserveImage(imageUrl: string, accountId: string) {
 export async function deleteImage(imageUrl: string, accountId: string) {
   const imageOwnerId = imageUrl.split("_")[0];
   if (imageOwnerId !== accountId) {
-    throw forbidden();
+    throw unauthorized();
   }
   const name = generateImageName(imageUrl);
   await bucket.file(name).delete();
