@@ -60,6 +60,7 @@ type CardInput<T extends Game> = {
   rarity: CardRarity<T>;
   set: string;
   isFoil: boolean;
+  imageUrl: string;
 } & (
   | { qualityPsa: QualityPsa; qualityUngraded?: never }
   | { qualityPsa?: never; qualityUngraded: QualityUngraded }
@@ -74,6 +75,7 @@ type Card<T extends Game> = {
   rarity: CardRarity<T>;
   set: string;
   isFoil: boolean;
+  imageUrl: string;
 } & (
   | { qualityPsa: QualityPsa; qualityUngraded?: never }
   | { qualityPsa?: never; qualityUngraded: QualityUngraded }
@@ -93,6 +95,7 @@ type BundleInput = {
   description?: string;
   manufacturer: string;
   set: string;
+  imageUrl: string;
 };
 
 type Bundle = {
@@ -102,6 +105,7 @@ type Bundle = {
   description?: string;
   manufacturer: string;
   set: string;
+  imageUrl: string;
 };
 
 type BidInput = {

@@ -9,6 +9,7 @@ import {
   deleteAuctionNotification,
   patchAuctionNotification
 } from "../middlewares/notifications.js";
+import { deleteImage, preserveImage } from "./images.js";
 
 export const router = express.Router();
 
@@ -365,6 +366,7 @@ router.get("/", async (req, res) => {
         description: bundleRecord.description,
         manufacturer: bundleRecord.manufacturer,
         set: bundleRecord.set,
+        imageUrl: bundleRecord.imageUrl,
       };
 
       const auction: Auction = {
@@ -419,6 +421,7 @@ router.get("/", async (req, res) => {
         rarity: cardRecord.rarity,
         set: cardRecord.set,
         isFoil: cardRecord.isFoil,
+        imageUrl: cardRecord.imageUrl,
       };
       return card;
     });
@@ -696,6 +699,7 @@ router.get("/:auctionId", async (req, res) => {
       rarity: cardRecord.rarity,
       set: cardRecord.set,
       isFoil: cardRecord.isFoil,
+      imageUrl: cardRecord.imageUrl,
     };
     return card;
   });
@@ -1081,6 +1085,7 @@ router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,as
           rarity: updatedCardRecord.rarity,
           set: updatedCardRecord.set,
           isFoil: updatedCardRecord.isFoil,
+          imageUrl: updatedCardRecord.imageUrl,
         },
       ],
     };
@@ -1141,6 +1146,7 @@ router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,as
         description: updatedBundleRecord.description,
         manufacturer: updatedBundleRecord.manufacturer,
         set: updatedBundleRecord.set,
+        imageUrl: updatedBundleRecord.imageUrl,
       },
     };
 
@@ -1181,6 +1187,23 @@ router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), 
     );
   }
 
+  const imageUrl = camelize(
+    await pool.query<{ image_url: string }>(
+      ` SELECT image_url
+        FROM bundle
+        WHERE auction_id = $1
+        UNION
+        SELECT image_url
+        FROM card
+        WHERE auction_id = $1`,
+      [auctionId]
+    )
+  ).rows[0].imageUrl;
+
+  if (!imageUrl) {
+    throw new ServerError(500, "Error deleting auction");
+  }
+
   // only need to delete from auction table - cascade will delete from cards/bundle
   const deletedAuctionRecord = camelize(
     await pool.query<AuctionDb>(
@@ -1193,6 +1216,15 @@ router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), 
 
   if (!deletedAuctionRecord) {
     throw new ServerError(500, "Error deleting auction");
+  }
+
+  // will throw error if gcs error
+  try {
+    await deleteImage(imageUrl, req.session.accountId);
+  } catch (err) {
+    console.log(err);
+    // auction was deleted, but there may be an orphaned image in gcs
+    // throw new ServerError(500, "Error deleting auction");
   }
 
   res.sendStatus(204);
@@ -1287,8 +1319,8 @@ router.post(
       const bundleInput = auctionInput.bundle;
       const bundleRecord = camelize(
         await pool.query<BundleDb>(
-          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set, image_url)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING *`,
           [
             auctionRecord.auctionId,
@@ -1297,6 +1329,7 @@ router.post(
             bundleInput.description,
             bundleInput.manufacturer,
             bundleInput.set,
+            bundleInput.imageUrl,
           ]
         )
       ).rows[0];
@@ -1306,6 +1339,17 @@ router.post(
         await pool.query(`ROLLBACK`);
         console.error("Error inserting bundle into database");
         throw new ServerError(500, "Error creating auction - bundle");
+      }
+
+      try {
+        await preserveImage(bundleInput.imageUrl, req.session.accountId);
+      } catch (err) {
+        await pool.query(`ROLLBACK`);
+        throw new BusinessError(
+          404,
+          "Image not found",
+          `Could not find referenced image at ${bundleInput.imageUrl}. Upload an image by posting to api/v_/images first.`
+        );
       }
 
       await pool.query(`COMMIT`);
@@ -1339,11 +1383,11 @@ router.post(
     // openapi schema ensures exactly one of cards/bundle is present
     const cardsInput = auctionInput.cards;
 
-    // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
+    // generate string of variables ($1, $2, ... $11), ($12, $11, ... $22) ... for query
     const valuesString = cardsInput
       .map(
         (_, i) =>
-          `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
+          `(${Array.from({ length: 11 }, (_, j) => `$${i * 11 + j + 1}`).join(
             ", "
           )})`
       )
@@ -1353,7 +1397,7 @@ router.post(
       await pool.query<CardDb<Game>>(
         ` INSERT INTO card (
         auction_id, game, name, description, manufacturer, quality_ungraded, 
-        quality_psa, rarity, set, is_foil)
+        quality_psa, rarity, set, is_foil, image_url)
         VALUES ${valuesString}
         RETURNING *`,
         cardsInput.flatMap((card) => [
@@ -1367,26 +1411,48 @@ router.post(
           card.rarity,
           card.set,
           card.isFoil,
+          card.imageUrl,
         ])
       )
     ).rows;
 
-    const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
-      const card: Card<Game> = {
-        cardId: cardRecord.cardId,
-        game: cardRecord.game,
-        name: cardRecord.name,
-        description: cardRecord.description,
-        manufacturer: cardRecord.manufacturer,
-        ...(cardRecord.qualityUngraded
-          ? { qualityUngraded: cardRecord.qualityUngraded }
-          : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
-        rarity: cardRecord.rarity,
-        set: cardRecord.set,
-        isFoil: cardRecord.isFoil,
-      };
-      return card;
-    });
+    const cards: Card<Game>[] = await Promise.all(
+      cardsRecord.map(async (cardRecord) => {
+        const card: Card<Game> = {
+          cardId: cardRecord.cardId,
+          game: cardRecord.game,
+          name: cardRecord.name,
+          description: cardRecord.description,
+          manufacturer: cardRecord.manufacturer,
+          ...(cardRecord.qualityUngraded
+            ? { qualityUngraded: cardRecord.qualityUngraded }
+            : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+          rarity: cardRecord.rarity,
+          set: cardRecord.set,
+          isFoil: cardRecord.isFoil,
+          imageUrl: cardRecord.imageUrl,
+        };
+
+        try {
+          await preserveImage(cardRecord.imageUrl, req.session.accountId);
+        } catch (err) {
+          await pool.query(`ROLLBACK`);
+          // can be auth error
+          if (err instanceof BusinessError) {
+            throw err;
+          }
+          console.error(err);
+          // or image not found
+          throw new BusinessError(
+            404,
+            "Image not found",
+            `Could not find referenced image at ${cardRecord.imageUrl}. Upload an image by posting to api/v_/images first.`
+          );
+        }
+
+        return card;
+      })
+    );
 
     // if card insert fails, rollback
     if (!cardsRecord) {
