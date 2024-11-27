@@ -28,6 +28,7 @@ type CardDb<T extends Game> = {
   rarity: CardRarity<T>;
   set: string;
   is_foil: boolean;
+  image_url: string;
 };
 
 type BundleDb = {
@@ -38,6 +39,7 @@ type BundleDb = {
   description: string;
   manufacturer: string;
   set: string;
+  image_url: string;
 };
 
 type BidDb = {

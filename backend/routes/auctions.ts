@@ -7,6 +7,7 @@ import {
   postAuctionNotification,
   notificationMiddleware,
 } from "../middlewares/notifications.js";
+import { deleteImage, generateImageName } from "./images.js";
 
 export const router = express.Router();
 
@@ -363,6 +364,7 @@ router.get("/", async (req, res) => {
         description: bundleRecord.description,
         manufacturer: bundleRecord.manufacturer,
         set: bundleRecord.set,
+        imageUrl: bundleRecord.imageUrl,
       };
 
       const auction: Auction = {
@@ -417,6 +419,7 @@ router.get("/", async (req, res) => {
         rarity: cardRecord.rarity,
         set: cardRecord.set,
         isFoil: cardRecord.isFoil,
+        imageUrl: cardRecord.imageUrl,
       };
       return card;
     });
@@ -694,6 +697,7 @@ router.get("/:auctionId", async (req, res) => {
       rarity: cardRecord.rarity,
       set: cardRecord.set,
       isFoil: cardRecord.isFoil,
+      imageUrl: cardRecord.imageUrl,
     };
     return card;
   });
@@ -1066,6 +1070,7 @@ router.patch("/:auctionId", async (req, res) => {
           rarity: updatedCardRecord.rarity,
           set: updatedCardRecord.set,
           isFoil: updatedCardRecord.isFoil,
+          imageUrl: updatedCardRecord.imageUrl,
         },
       ],
     };
@@ -1126,6 +1131,7 @@ router.patch("/:auctionId", async (req, res) => {
         description: updatedBundleRecord.description,
         manufacturer: updatedBundleRecord.manufacturer,
         set: updatedBundleRecord.set,
+        imageUrl: updatedBundleRecord.imageUrl,
       },
     };
 
@@ -1166,6 +1172,25 @@ router.delete("/:auctionId", async (req, res) => {
     );
   }
 
+  const imageUrl = camelize(
+    await pool.query<{ image_url: string }>(
+      ` SELECT image_url
+        FROM bundle
+        WHERE auction_id = $1
+        UNION
+        SELECT image_url
+        FROM card
+        WHERE auction_id = $1`,
+      [auctionId]
+    )
+  ).rows[0].imageUrl;
+
+  if (!imageUrl) {
+    throw new ServerError(500, "Error deleting auction");
+  }
+
+  const imageName = generateImageName(imageUrl);
+
   // only need to delete from auction table - cascade will delete from cards/bundle
   const deletedAuctionRecord = camelize(
     await pool.query<AuctionDb>(
@@ -1177,6 +1202,13 @@ router.delete("/:auctionId", async (req, res) => {
   ).rows[0];
 
   if (!deletedAuctionRecord) {
+    throw new ServerError(500, "Error deleting auction");
+  }
+
+  // will throw error if gcs error
+  try {
+    await deleteImage(imageName);
+  } catch (err) {
     throw new ServerError(500, "Error deleting auction");
   }
 
@@ -1272,8 +1304,8 @@ router.post(
       const bundleInput = auctionInput.bundle;
       const bundleRecord = camelize(
         await pool.query<BundleDb>(
-          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set, image_url)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING *`,
           [
             auctionRecord.auctionId,
@@ -1282,6 +1314,7 @@ router.post(
             bundleInput.description,
             bundleInput.manufacturer,
             bundleInput.set,
+            bundleInput.imageUrl,
           ]
         )
       ).rows[0];
@@ -1324,11 +1357,11 @@ router.post(
     // openapi schema ensures exactly one of cards/bundle is present
     const cardsInput = auctionInput.cards;
 
-    // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
+    // generate string of variables ($1, $2, ... $11), ($12, $11, ... $22) ... for query
     const valuesString = cardsInput
       .map(
         (_, i) =>
-          `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
+          `(${Array.from({ length: 11 }, (_, j) => `$${i * 11 + j + 1}`).join(
             ", "
           )})`
       )
@@ -1338,7 +1371,7 @@ router.post(
       await pool.query<CardDb<Game>>(
         ` INSERT INTO card (
         auction_id, game, name, description, manufacturer, quality_ungraded, 
-        quality_psa, rarity, set, is_foil)
+        quality_psa, rarity, set, is_foil, image_url)
         VALUES ${valuesString}
         RETURNING *`,
         cardsInput.flatMap((card) => [
@@ -1352,6 +1385,7 @@ router.post(
           card.rarity,
           card.set,
           card.isFoil,
+          card.imageUrl,
         ])
       )
     ).rows;
@@ -1369,6 +1403,7 @@ router.post(
         rarity: cardRecord.rarity,
         set: cardRecord.set,
         isFoil: cardRecord.isFoil,
+        imageUrl: cardRecord.imageUrl,
       };
       return card;
     });

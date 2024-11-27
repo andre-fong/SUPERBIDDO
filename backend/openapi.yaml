@@ -978,6 +978,7 @@ components:
             - manufacturer
             - set
             - isFoil
+            - imageUrl
           properties:
             cardId:
               readOnly: true
@@ -998,6 +999,8 @@ components:
               maxLength: 100
             isFoil:
               type: boolean
+            imageUrl:
+              $ref: "#/components/schemas/ImageUrl"
         - $ref: "#/components/schemas/CardQuality"
     CardQuality:
       not:
@@ -1041,6 +1044,7 @@ components:
         - name
         - manufacturer
         - set
+        - imageUrl
       properties:
         bundleId:
           readOnly: true
@@ -1062,6 +1066,8 @@ components:
         set:
           type: string
           maxLength: 100
+        imageUrl:
+          $ref: "#/components/schemas/ImageUrl"
     Bid:
       type: object
       required:
@@ -1158,6 +1164,11 @@ components:
         - Prismatic Secret Rare
         - Parallel Rare
         - Platinum Rare
+    ImageUrl:
+      type: string
+      format: uri
+      # gcs prefix, uuid, dot, file extension
+      pattern: ^https://storage\.googleapis\.com/superbiddo-bucket-0/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\..{1,17}$
     Errors:
       type: array
       items:
