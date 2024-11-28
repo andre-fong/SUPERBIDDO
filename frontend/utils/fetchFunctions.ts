@@ -6,6 +6,7 @@ import {
 import { Severity, ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import {
+  Auction,
   AuctionPatchBody,
   AuctionSelfType,
   CardRarities,
@@ -151,7 +152,7 @@ export async function fetchLogout(
 export async function getAuctionSearchResults(
   errorFcn: (error: ErrorType) => void,
   searchQuery?: AuctionSearchQuery
-) {
+): Promise<{ auctions: Auction[]; totalNumAuctions: number }> {
   const params = Object.entries(searchQuery || {})
     .map(([key, value]) => {
       if (value === undefined || value === null) {
@@ -183,11 +184,17 @@ export async function getAuctionSearchResults(
       return auctions;
     } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
-      return [];
+      return {
+        auctions: [],
+        totalNumAuctions: 0,
+      };
     }
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
-    return [];
+    return {
+      auctions: [],
+      totalNumAuctions: 0,
+    };
   }
 }
 

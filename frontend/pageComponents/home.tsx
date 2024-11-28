@@ -3,9 +3,13 @@ import { PageName } from "@/types/pageTypes";
 import { User } from "@/types/userTypes";
 import { useState, useEffect } from "react";
 import styles from "@/styles/home.module.css";
+import { getAuctionSearchResults } from "@/utils/fetchFunctions";
 import Image from "next/image";
 import Button from "@mui/material/Button";
 import { AnimatePresence, motion } from "motion/react";
+import { Auction } from "@/types/backendAuctionTypes";
+import ListingSkeleton from "@/components/listingSkeleton";
+import Listing from "@/components/listing";
 
 export default function Home({
   setCurPage,
@@ -18,6 +22,67 @@ export default function Home({
   setToast: (err: ErrorType) => void;
   context: string;
 }) {
+  const [recommended, setRecommended] = useState<Auction[]>([]);
+  const [recommendedLoading, setRecommendedLoading] = useState(false);
+
+  // Load recommendations if user is signed in
+  useEffect(() => {
+    if (user) {
+      setRecommendedLoading(true);
+      getAuctionSearchResults(setToast, {
+        recommended: true,
+      })
+        .then((res) => {
+          setRecommended(res.auctions);
+          setRecommendedLoading(false);
+        })
+        .catch((err) => {
+          setToast(err);
+          setRecommendedLoading(false);
+        });
+    }
+  }, [setToast, user]);
+
+  const [trending, setTrending] = useState<Auction[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(false);
+
+  useEffect(() => {
+    setTrendingLoading(true);
+    getAuctionSearchResults(setToast, {
+      auctionStatus: "Ongoing",
+      sortBy: "numBidsDesc",
+      pageSize: 10,
+    })
+      .then((res) => {
+        setTrending(res.auctions);
+        setTrendingLoading(false);
+      })
+      .catch((err) => {
+        setToast(err);
+        setTrendingLoading(false);
+      });
+  }, [setToast]);
+
+  const [endingSoon, setEndingSoon] = useState<Auction[]>([]);
+  const [endingSoonLoading, setEndingSoonLoading] = useState(false);
+
+  useEffect(() => {
+    setEndingSoonLoading(true);
+    getAuctionSearchResults(setToast, {
+      auctionStatus: "Ongoing",
+      sortBy: "endTimeAsc",
+      pageSize: 10,
+    })
+      .then((res) => {
+        setEndingSoon(res.auctions);
+        setEndingSoonLoading(false);
+      })
+      .catch((err) => {
+        setToast(err);
+        setEndingSoonLoading(false);
+      });
+  }, [setToast]);
+
   const [heroIndex, setHeroIndex] = useState(0);
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -192,21 +257,72 @@ export default function Home({
         </AnimatePresence>
       </div>
 
-      <div className={styles.section_container}>
-        <h2 className={styles.section_title}>Recommended For You</h2>
+      {user && (
+        <>
+          <h2
+            className={styles.section_title}
+            title="Recommended auctions for you based on your viewing and bidding history."
+          >
+            Recommended For You
+          </h2>
+          <div
+            className={`${styles.section_container} ${styles.list_container}`}
+          >
+            <div className={styles.recommended}>
+              {recommendedLoading
+                ? [...Array(10).keys()].map((i) => <ListingSkeleton key={i} />)
+                : recommended?.map((auction) => (
+                    <Listing
+                      key={auction.auctionId}
+                      auction={auction}
+                      setCurPage={setCurPage}
+                      accountId={user?.accountId}
+                      setToast={setToast}
+                    />
+                  ))}
+            </div>
+          </div>
+        </>
+      )}
 
-        <div className={styles.recommended}></div>
+      <h2 className={styles.section_title}>Trending Auctions</h2>
+      <div className={`${styles.section_container} ${styles.list_container}`}>
+        <div className={styles.trending}>
+          {trendingLoading
+            ? [...Array(10).keys()].map((i) => <ListingSkeleton key={i} />)
+            : trending?.map((auction) => (
+                <Listing
+                  key={auction.auctionId}
+                  auction={auction}
+                  setCurPage={setCurPage}
+                  accountId={user?.accountId}
+                  setToast={setToast}
+                />
+              ))}
+        </div>
       </div>
 
-      <div className={styles.section_container}>
-        <h2 className={styles.section_title}>Trending Now</h2>
-
-        <div className={styles.trending}></div>
+      <h2 className={styles.section_title}>Ending Soon</h2>
+      <div className={`${styles.section_container} ${styles.list_container}`}>
+        <div className={styles.ending_soon}>
+          {endingSoonLoading
+            ? [...Array(10).keys()].map((i) => <ListingSkeleton key={i} />)
+            : endingSoon?.map((auction) => (
+                <Listing
+                  key={auction.auctionId}
+                  auction={auction}
+                  setCurPage={setCurPage}
+                  accountId={user?.accountId}
+                  setToast={setToast}
+                />
+              ))}
+        </div>
       </div>
 
-      <div className={styles.section_container}>
-        <h2 className={styles.section_title}>Games</h2>
+      <div className={styles.sell_container}></div>
 
+      <h2 className={styles.section_title}>Games</h2>
+      <div className={styles.section_container}>
         <div className={styles.games}>
           <button
             className={styles.game}
