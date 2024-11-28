@@ -14,6 +14,7 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
+// GET THIS WORKING AND STOP DISABLING :))))))))
 const enableCaptcha = true;
 
 export default function Login({
@@ -29,6 +30,8 @@ export default function Login({
 }) {
   const [reCAPTCHAPassed, setReCAPTCHAPassed] = useState<boolean>(false);
   const [reCAPTCHAError, setReCAPTCHAError] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<boolean>(false);
 
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,8 +52,17 @@ export default function Login({
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
 
+    const emailRegex = new RegExp(
+      /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+    );
+    if (!emailRegex.test(email)) {
+      setEmailError(true);
+      return;
+    }
+
     fetchLogin(setToast, email, password).then((loginData) => {
       if (!loginData) {
+        setSubmitError(true);
         return;
       }
 
@@ -109,6 +121,14 @@ export default function Login({
             variant="outlined"
             required
             autoComplete="off"
+            error={emailError}
+            onChange={() => {
+              setEmailError(false);
+              setSubmitError(false);
+            }}
+            helperText={
+              emailError ? "Email must have a valid email format." : undefined
+            }
           />
 
           <label
@@ -125,6 +145,7 @@ export default function Login({
             type="password"
             required
             autoComplete="off"
+            onChange={() => setSubmitError(false)}
           />
 
           {enableCaptcha && (
@@ -144,10 +165,16 @@ export default function Login({
           <Button
             variant="contained"
             type="submit"
-            sx={{ marginTop: "7%", marginBottom: "10px" }}
+            sx={{ marginTop: "7%", marginBottom: "15px" }}
           >
             Log in
           </Button>
+
+          {submitError && (
+            <p className={styles.session_error_text}>
+              Email or password is incorrect.
+            </p>
+          )}
         </form>
 
         <div className={styles.divider_container}>

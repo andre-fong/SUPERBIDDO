@@ -12,7 +12,7 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       //TODO: change to deployed URL
-      callbackURL: "http://localhost:3001/api/v1/oauth/callback",
+      callbackURL: `${process.env.BACKEND_URL}/api/v1/oauth/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       const accountRecord = await findEmail(profile.emails[0].value);
@@ -53,12 +53,12 @@ passport.deserializeUser((user, done) => {
 router.get(
   "/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/",
+    failureRedirect: process.env.FRONTEND_URL,
   }),
   (req, res) => {
     req.session.accountId = req.user.accountId;
     //TODO: redirect to deployed frontend
-    res.redirect("http://localhost:3000/");
+    res.redirect(process.env.FRONTEND_URL);
   }
 );
 

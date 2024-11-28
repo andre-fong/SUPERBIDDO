@@ -12,8 +12,9 @@ import {
   QualityPsa,
   QualityUngraded,
 } from "@/types/backendAuctionTypes";
-// const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
-const url = `http://localhost:3001/api/v1`;
+import exp from "constants";
+const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
+// const url = `http://localhost:3001/api/v1`;
 const unkownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
@@ -383,12 +384,6 @@ export async function createAuction(
     };
   }
 ) {
-  console.log(
-    JSON.stringify({
-      ...auctionData,
-      cards: auctionData.cards ? [auctionData.cards] : undefined,
-    })
-  );
   try {
     const response = await fetch(`${url}/auctions`, {
       method: "POST",
@@ -598,3 +593,163 @@ export async function deleteAuction(
     return false;
   }
 }
+
+export async function addWatching(
+  errorFcn: (error: ErrorType) => void,
+  accountId: string,
+  auctionId: string
+) {
+  try {
+    const response = await fetch(`${url}/watching`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ accountId, auctionId }),
+    });
+
+    if (response.ok) {
+      return true;
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 404) {
+      errorFcn({ message: "Auction not found", severity: Severity.Critical });
+    } else if (response.status === 409) {
+      errorFcn({
+        message: "Cannot watch own auction",
+        severity: Severity.Warning,
+      });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return false;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return false;
+  }
+}
+
+export async function removeWatching(
+  errorFcn: (error: ErrorType) => void,
+  accountId: string,
+  auctionId: string
+) {
+  try {
+    const response = await fetch(`${url}/watching/${auctionId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ accountId }),
+    });
+
+    if (response.ok) {
+      return false;
+    } else if (response.status === 404) {
+      errorFcn({
+        message: "Not watching auction",
+        severity: Severity.Critical,
+      });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return true;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return true;
+  }
+}
+
+export async function getWatching(
+  errorFcn: (error: ErrorType) => void,
+  accountId: string,
+  auctionId: string
+) {
+  try {
+    const response = await fetch(`${url}/watching/${auctionId}/${accountId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const watching = await response.json();
+      return watching.length > 0;
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    }
+    return false;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return false;
+  }
+}
+
+// GRAVEYARD OF VICTORS CODE -> MOVE TO CHADTHEW'S CODE
+// export async function fetchWatchList(
+//   errorFcn: (error: ErrorType) => void,
+//   accountId: string,
+//   page: number,
+//   pageSize: number
+// ) {
+//   try {
+//     const response = await fetch(`${url}/watching/${accountId}?page=${page}&pageSize=${pageSize}`, {
+//       method: "GET",
+//       headers: {
+//       "Content-Type": "application/json",
+//       },
+//       credentials: "include",
+//     });
+
+//     if (response.ok) {
+//       const watchList = await response.json();
+//       return watchList;
+//     } else if (response.status === 401) {
+//       errorFcn({
+//         message: "Action requires authentication",
+//         severity: Severity.Warning,
+//       });
+//     } else if (response.status === 400) {
+//       errorFcn({
+//         message: "Request format is invalid",
+//         severity: Severity.Warning,
+//       });
+//     }
+//     return {totalWatching: 0, auctions: []};
+//   } catch (error) {
+//     errorFcn({ message: unkownError, severity: Severity.Critical });
+//     return {totalWatching: 0, auctions: []};
+//   }
+// }

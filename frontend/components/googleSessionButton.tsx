@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function GoogleSessionButton() {
-  const googleOAuthUrl = "http://localhost:3001/api/v1/oauth/google";
+  const googleOAuthUrl = `${process.env.BACKEND_URL}/api/v1/oauth/google`;
 
   function handleGoogleOAuthClick() {
     window.location.href = googleOAuthUrl;

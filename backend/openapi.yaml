@@ -37,6 +37,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         409:
           $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/session:
     get:
       summary: Get the current session details.
@@ -49,6 +51,8 @@ paths:
                 $ref: "#/components/schemas/Session"
         404:
           $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     post:
       summary: Create a new session.
       requestBody:
@@ -74,6 +78,10 @@ paths:
                 $ref: "#/components/schemas/Session"
         401:
           $ref: "#/components/responses/Unauthorized"
+        409:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     delete:
       summary: End the current session.
       responses:
@@ -81,6 +89,36 @@ paths:
           description: Successfully ended session.
         404:
           $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/images:
+    post:
+      summary: Upload a new image. Send multipart/form-data with image field.
+      # commented: including causes errors with express-openapi-validator
+      # requestBody:
+      #   required: true
+      #   content:
+      #     multipart/form-data:
+      #       schema:
+      #         type: object
+      #         properties:
+      #           image:
+      #             type: string
+      #             format: binary
+      responses:
+        201:
+          description: The newly uploaded image.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    $ref: "#/components/schemas/ImageUrl"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions:
     get:
       summary: Get auctions. Query params can be used to filter and order results.
@@ -106,8 +144,8 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: savedBy
-          description: The uuid of a user. If provided, only auctions that this user has saved will be returned. Must match signed in user id.
+          name: watchedBy
+          description: The uuid of a user. If provided, only auctions that this user is watching will be returned. Must match signed in user id.
           required: false
           schema:
             type: string
@@ -362,6 +400,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         404:
           $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     post:
       summary: Create a new auction.
       requestBody:
@@ -381,6 +421,10 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions/{auctionId}:
     get:
       summary: Get an auction by its auctionId. Long polling is supported by providing the id of the current leading bid.
@@ -419,8 +463,12 @@ paths:
                 $ref: "#/components/schemas/Auction"
         400:
           $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         404:
           $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     patch:
       summary: Update an auction by its auctionId. Only the auctioneer can update an auction. The auction must not have started yet. Bundle properties will be ignored if the auction is a card auction and vice versa.
       parameters:
@@ -516,6 +564,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         409:
           $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     delete:
       summary: Remove the auction
       parameters:
@@ -537,6 +587,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         409:
           $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions/{auctionId}/bids:
     get:
       summary: Get bids for an auction by its auctionId.
@@ -583,8 +635,12 @@ paths:
                     minimum: 0
         400:
           $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         404:
           $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
     post:
       summary: Create a new bid.
       parameters:
@@ -627,6 +683,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         409:
           $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/oauth/google:
     get:
       summary: Get the Google OAuth URL.
@@ -956,6 +1014,7 @@ components:
             - manufacturer
             - set
             - isFoil
+            - imageUrl
           properties:
             cardId:
               readOnly: true
@@ -976,6 +1035,8 @@ components:
               maxLength: 100
             isFoil:
               type: boolean
+            imageUrl:
+              $ref: "#/components/schemas/ImageUrl"
         - $ref: "#/components/schemas/CardQuality"
     CardQuality:
       not:
@@ -1019,6 +1080,7 @@ components:
         - name
         - manufacturer
         - set
+        - imageUrl
       properties:
         bundleId:
           readOnly: true
@@ -1040,6 +1102,8 @@ components:
         set:
           type: string
           maxLength: 100
+        imageUrl:
+          $ref: "#/components/schemas/ImageUrl"
     Bid:
       type: object
       required:
@@ -1136,6 +1200,11 @@ components:
         - Prismatic Secret Rare
         - Parallel Rare
         - Platinum Rare
+    ImageUrl:
+      type: string
+      format: uri
+      # gcs prefix, uuid, dot, file extension
+      pattern: ^https://storage\.googleapis\.com/superbiddo-bucket-0/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\..{1,13}$
     Errors:
       type: array
       items:

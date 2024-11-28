@@ -408,6 +408,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   value={cardType}
                   onChange={(e) => setCardType(e.target.value)}
                   required
+                  label="card-type-label"
                 >
                   <MenuItem value="MTG">Magic: The Gathering</MenuItem>
                   <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
@@ -418,7 +419,7 @@ const CardListing: React.FC<CardListingProps> = ({
               <FormControl fullWidth sx={{ marginTop: "8px" }}>
                 <InputLabel id="type-label">Type</InputLabel>
                 <Select
-                  labelId="type-label"
+                  label="type-label"
                   value={type}
                   onChange={(e) => {
                     setType(e.target.value);
@@ -435,6 +436,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   <FormControl fullWidth sx={{ marginTop: "11px" }}>
                     <InputLabel>Quality</InputLabel>
                     <Select
+                      label="quality-label"
                       value={quality}
                       onChange={(e) => setQuality(e.target.value)}
                       required
@@ -454,6 +456,7 @@ const CardListing: React.FC<CardListingProps> = ({
                   <FormControl fullWidth sx={{ marginTop: "14px" }}>
                     <InputLabel>Foil (y/n)</InputLabel>
                     <Select
+                      label="foil-label"
                       value={isFoil}
                       onChange={(e) => setIsFoil(e.target.value)}
                       required
@@ -469,6 +472,7 @@ const CardListing: React.FC<CardListingProps> = ({
                       value={rarity}
                       onChange={(e) => setRarity(e.target.value)}
                       required
+                      label="rarity-label"
                     >
                       {cardRarities[cardType]?.rarities.map(
                         (rarity: string, index: number) => (

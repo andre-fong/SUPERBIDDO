@@ -6,8 +6,11 @@ import { addLpClient } from "../longPolling/longPolling.js";
 import {
   postAuctionNotification,
   notificationMiddleware,
+  deleteAuctionNotification,
+  patchAuctionNotification
 } from "../middlewares/notifications.js";
 import { getPriceRangeBounds } from "../utils/recommendations/userActions.js";
+import { deleteImage, preserveImage } from "./images.js";
 
 export const router = express.Router();
 
@@ -16,7 +19,7 @@ router.get("/", async (req, res) => {
     recommended,
     includeBidStatusFor,
     auctioneerId,
-    savedBy,
+    watchedBy,
     name,
     minMinNewBidPrice,
     maxMinNewBidPrice,
@@ -48,7 +51,7 @@ router.get("/", async (req, res) => {
     includeBidStatusFor: string;
     auctioneerId: string;
     bidderId: string;
-    savedBy: string;
+    watchedBy: string;
     name: string;
     minMinNewBidPrice: string;
     maxMinNewBidPrice: string;
@@ -81,7 +84,7 @@ router.get("/", async (req, res) => {
     throw unauthorized();
   }
 
-  if (savedBy && req.session.accountId !== savedBy) {
+  if (watchedBy && req.session.accountId !== watchedBy) {
     throw unauthorized();
   }
 
@@ -526,8 +529,8 @@ router.get("/", async (req, res) => {
 
   addCondition(`auctioneer_id = ?`, auctioneerId);
   addCondition(
-    `auction_id IN (SELECT auction_id FROM saved_auction WHERE account_id = ?)`,
-    savedBy
+    `auction_id IN (SELECT auction_id FROM watch WHERE account_id = ?)`,
+    watchedBy
   );
   // pg_trgm strict_word_similarity
   addCondition(`name <<% ?`, name);
@@ -762,6 +765,7 @@ router.get("/", async (req, res) => {
         description: bundleRecord.description,
         manufacturer: bundleRecord.manufacturer,
         set: bundleRecord.set,
+        imageUrl: bundleRecord.imageUrl,
       };
 
       const auction: Auction = {
@@ -816,6 +820,7 @@ router.get("/", async (req, res) => {
         rarity: cardRecord.rarity,
         set: cardRecord.set,
         isFoil: cardRecord.isFoil,
+        imageUrl: cardRecord.imageUrl,
       };
       return card;
     });
@@ -1104,6 +1109,7 @@ router.get("/:auctionId", async (req, res) => {
       rarity: cardRecord.rarity,
       set: cardRecord.set,
       isFoil: cardRecord.isFoil,
+      imageUrl: cardRecord.imageUrl,
     };
     return card;
   });
@@ -1156,8 +1162,9 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.patch("/:auctionId", async (req, res) => {
+router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,async (req, res) => {
   const auctionId = req.params.auctionId;
+
   const auctionRecord = camelize(
     await pool.query<AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }>(
       ` WITH cards_agg AS (
@@ -1183,6 +1190,7 @@ router.patch("/:auctionId", async (req, res) => {
     throw new BusinessError(404, "Auction not found");
   }
 
+
   if (
     !req.session.accountId ||
     auctionRecord.auctioneerId !== req.session.accountId
@@ -1201,17 +1209,25 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
+  console.log(auctionRecord)
   const newAuctionDetails = {
     auctionId: auctionId,
     name: req.body.name || auctionRecord.name,
     description: req.body.description || auctionRecord.description,
-    startPrice: req.body.startPrice || auctionRecord.startPrice,
+    startPrice:
+      req.body.startPrice !== undefined
+        ? req.body.startPrice
+        : auctionRecord.startPrice,
     spread: req.body.spread || auctionRecord.spread,
-    startTime: req.body.startTime || auctionRecord.startTime,
-    endTime: req.body.endTime || auctionRecord.endTime,
+    startTime:
+      req.body.startTime !== undefined
+        ? req.body.startTime
+        : auctionRecord.startTime,
+    endTime:
+      req.body.endTime !== undefined ? req.body.endTime : auctionRecord.endTime,
   };
 
-  const newCardDetails = auctionRecord.cards[0]
+  const newCardDetails = auctionRecord.cards
     ? {
         cardId: auctionRecord.cards[0].cardId,
         cardName: req.body.cardName || auctionRecord.cards[0].name,
@@ -1220,10 +1236,13 @@ router.patch("/:auctionId", async (req, res) => {
         cardManufacturer:
           req.body.cardManufacturer || auctionRecord.cards[0].manufacturer,
         cardQualityUngraded:
-          req.body.cardQualityUngraded ||
-          auctionRecord.cards[0].qualityUngraded,
+          req.body.cardQualityUngraded || req.body.cardQualityPsa
+            ? req.body.cardQualityUngraded
+            : auctionRecord.cards[0].qualityUngraded,
         cardQualityPsa:
-          req.body.cardQualityPsa || auctionRecord.cards[0].qualityPsa,
+          req.body.cardQualityPsa || req.body.cardQualityUngraded
+            ? req.body.cardQualityPsa
+            : auctionRecord.cards[0].qualityPsa,
         cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
         cardSet: req.body.cardSet || auctionRecord.cards[0].set,
         cardIsFoil:
@@ -1237,13 +1256,13 @@ router.patch("/:auctionId", async (req, res) => {
   const newBundleDetails = auctionRecord.bundle
     ? {
         bundleId: auctionRecord.bundle[0].bundleId,
-        bundleName: req.body.bundleName || auctionRecord.bundle.name,
+        bundleName: req.body.bundleName || auctionRecord.bundle[0].name,
         bundleDescription:
-          req.body.bundleDescription || auctionRecord.bundle.description,
+          req.body.bundleDescription || auctionRecord.bundle[0].description,
         bundleManufacturer:
-          req.body.bundleManufacturer || auctionRecord.bundle.manufacturer,
-        bundleSet: req.body.bundleSet || auctionRecord.bundle.set,
-        bundleGame: req.body.bundleGame || auctionRecord.bundle.game,
+          req.body.bundleManufacturer || auctionRecord.bundle[0].manufacturer,
+        bundleSet: req.body.bundleSet || auctionRecord.bundle[0].set,
+        bundleGame: req.body.bundleGame || auctionRecord.bundle[0].game,
       }
     : null;
 
@@ -1283,7 +1302,11 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
-  if (newCardDetails.cardQualityPsa && newCardDetails.cardQualityUngraded) {
+  if (
+    newCardDetails &&
+    newCardDetails.cardQualityPsa &&
+    newCardDetails.cardQualityUngraded
+  ) {
     throw new BusinessError(
       400,
       "Invalid card quality",
@@ -1291,7 +1314,7 @@ router.patch("/:auctionId", async (req, res) => {
     );
   }
 
-  switch (newCardDetails.cardGame) {
+  switch (newCardDetails && newCardDetails.cardGame) {
     case "MTG": {
       const rarities = [
         "Common",
@@ -1367,11 +1390,11 @@ router.patch("/:auctionId", async (req, res) => {
   }
 
   // if one quality is provided, set the other to null
-  if (newCardDetails.cardQualityPsa) {
+  if (newCardDetails && newCardDetails.cardQualityPsa) {
     newCardDetails.cardQualityUngraded = null;
   }
 
-  if (newCardDetails.cardQualityUngraded) {
+  if (newCardDetails && newCardDetails.cardQualityUngraded) {
     newCardDetails.cardQualityPsa = null;
   }
 
@@ -1482,6 +1505,7 @@ router.patch("/:auctionId", async (req, res) => {
           rarity: updatedCardRecord.rarity,
           set: updatedCardRecord.set,
           isFoil: updatedCardRecord.isFoil,
+          imageUrl: updatedCardRecord.imageUrl,
         },
       ],
     };
@@ -1542,6 +1566,7 @@ router.patch("/:auctionId", async (req, res) => {
         description: updatedBundleRecord.description,
         manufacturer: updatedBundleRecord.manufacturer,
         set: updatedBundleRecord.set,
+        imageUrl: updatedBundleRecord.imageUrl,
       },
     };
 
@@ -1549,7 +1574,7 @@ router.patch("/:auctionId", async (req, res) => {
   }
 });
 
-router.delete("/:auctionId", async (req, res) => {
+router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), async (req, res) => {
   const auctionId = req.params.auctionId;
   const auctionRecord = camelize(
     await pool.query<AuctionDb>(
@@ -1582,6 +1607,23 @@ router.delete("/:auctionId", async (req, res) => {
     );
   }
 
+  const imageUrl = camelize(
+    await pool.query<{ image_url: string }>(
+      ` SELECT image_url
+        FROM bundle
+        WHERE auction_id = $1
+        UNION
+        SELECT image_url
+        FROM card
+        WHERE auction_id = $1`,
+      [auctionId]
+    )
+  ).rows[0].imageUrl;
+
+  if (!imageUrl) {
+    throw new ServerError(500, "Error deleting auction");
+  }
+
   // only need to delete from auction table - cascade will delete from cards/bundle
   const deletedAuctionRecord = camelize(
     await pool.query<AuctionDb>(
@@ -1594,6 +1636,15 @@ router.delete("/:auctionId", async (req, res) => {
 
   if (!deletedAuctionRecord) {
     throw new ServerError(500, "Error deleting auction");
+  }
+
+  // will throw error if gcs error
+  try {
+    await deleteImage(imageUrl, req.session.accountId);
+  } catch (err) {
+    console.log(err);
+    // auction was deleted, but there may be an orphaned image in gcs
+    // throw new ServerError(500, "Error deleting auction");
   }
 
   res.sendStatus(204);
@@ -1688,8 +1739,8 @@ router.post(
       const bundleInput = auctionInput.bundle;
       const bundleRecord = camelize(
         await pool.query<BundleDb>(
-          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          ` INSERT INTO bundle (auction_id, game, name, description, manufacturer, set, image_url)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING *`,
           [
             auctionRecord.auctionId,
@@ -1698,6 +1749,7 @@ router.post(
             bundleInput.description,
             bundleInput.manufacturer,
             bundleInput.set,
+            bundleInput.imageUrl,
           ]
         )
       ).rows[0];
@@ -1707,6 +1759,17 @@ router.post(
         await pool.query(`ROLLBACK`);
         console.error("Error inserting bundle into database");
         throw new ServerError(500, "Error creating auction - bundle");
+      }
+
+      try {
+        await preserveImage(bundleInput.imageUrl, req.session.accountId);
+      } catch (err) {
+        await pool.query(`ROLLBACK`);
+        throw new BusinessError(
+          404,
+          "Image not found",
+          `Could not find referenced image at ${bundleInput.imageUrl}. Upload an image by posting to api/v_/images first.`
+        );
       }
 
       await pool.query(`COMMIT`);
@@ -1740,11 +1803,11 @@ router.post(
     // openapi schema ensures exactly one of cards/bundle is present
     const cardsInput = auctionInput.cards;
 
-    // generate string of variables ($1, $2, ... $10), ($11, $11, ... $20) ... for query
+    // generate string of variables ($1, $2, ... $11), ($12, $11, ... $22) ... for query
     const valuesString = cardsInput
       .map(
         (_, i) =>
-          `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(
+          `(${Array.from({ length: 11 }, (_, j) => `$${i * 11 + j + 1}`).join(
             ", "
           )})`
       )
@@ -1754,7 +1817,7 @@ router.post(
       await pool.query<CardDb<Game>>(
         ` INSERT INTO card (
         auction_id, game, name, description, manufacturer, quality_ungraded, 
-        quality_psa, rarity, set, is_foil)
+        quality_psa, rarity, set, is_foil, image_url)
         VALUES ${valuesString}
         RETURNING *`,
         cardsInput.flatMap((card) => [
@@ -1768,26 +1831,48 @@ router.post(
           card.rarity,
           card.set,
           card.isFoil,
+          card.imageUrl,
         ])
       )
     ).rows;
 
-    const cards: Card<Game>[] = cardsRecord.map((cardRecord) => {
-      const card: Card<Game> = {
-        cardId: cardRecord.cardId,
-        game: cardRecord.game,
-        name: cardRecord.name,
-        description: cardRecord.description,
-        manufacturer: cardRecord.manufacturer,
-        ...(cardRecord.qualityUngraded
-          ? { qualityUngraded: cardRecord.qualityUngraded }
-          : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
-        rarity: cardRecord.rarity,
-        set: cardRecord.set,
-        isFoil: cardRecord.isFoil,
-      };
-      return card;
-    });
+    const cards: Card<Game>[] = await Promise.all(
+      cardsRecord.map(async (cardRecord) => {
+        const card: Card<Game> = {
+          cardId: cardRecord.cardId,
+          game: cardRecord.game,
+          name: cardRecord.name,
+          description: cardRecord.description,
+          manufacturer: cardRecord.manufacturer,
+          ...(cardRecord.qualityUngraded
+            ? { qualityUngraded: cardRecord.qualityUngraded }
+            : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+          rarity: cardRecord.rarity,
+          set: cardRecord.set,
+          isFoil: cardRecord.isFoil,
+          imageUrl: cardRecord.imageUrl,
+        };
+
+        try {
+          await preserveImage(cardRecord.imageUrl, req.session.accountId);
+        } catch (err) {
+          await pool.query(`ROLLBACK`);
+          // can be auth error
+          if (err instanceof BusinessError) {
+            throw err;
+          }
+          console.error(err);
+          // or image not found
+          throw new BusinessError(
+            404,
+            "Image not found",
+            `Could not find referenced image at ${cardRecord.imageUrl}. Upload an image by posting to api/v_/images first.`
+          );
+        }
+
+        return card;
+      })
+    );
 
     // if card insert fails, rollback
     if (!cardsRecord) {
