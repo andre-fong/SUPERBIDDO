@@ -226,7 +226,6 @@ router.get("/", async (req, res) => {
       .filter((row) => row.game === "Yugioh")
       .reduce((acc, row) => acc + parseInt(row.frequency), 0);
     const totalHits = numMTGHits + numPokemonHits + numYugiohHits;
-    console.log(numMTGHits, numPokemonHits, numYugiohHits, totalHits);
 
     // calculate number of auctions to return for each game
     const numAuctionsToReturn = {
@@ -238,7 +237,6 @@ router.get("/", async (req, res) => {
         (numYugiohHits / totalHits) * approxNumAuctionsToReturn
       ),
     };
-    console.log(numAuctionsToReturn);
 
     const auctionRecords: {
       auctionId: string;
