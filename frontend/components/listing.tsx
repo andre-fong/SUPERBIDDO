@@ -66,8 +66,8 @@ export default function Listing({
           }
         >
           <img
-            src={getImageUrl(auction) || "/card_placeholder.png"}
-            alt="Card"
+            src={getImageUrl(auction) || ""}
+            alt={auction.name}
             className={styles.TEMP_img}
           />
         </button>
