@@ -7,6 +7,7 @@ import {
   postAuctionNotification,
   notificationMiddleware,
 } from "../middlewares/notifications.js";
+import { getPriceRangeBounds } from "../utils/recommendations/userActions.js";
 
 export const router = express.Router();
 
@@ -105,6 +106,7 @@ router.get("/", async (req, res) => {
 
   const conditions = [];
   const values = [];
+  const priceRangeConditions = [];
 
   function addCondition(sqlTemplate: string, value: string | string[]) {
     if (value === undefined) {
@@ -122,9 +124,44 @@ router.get("/", async (req, res) => {
     values.push(...value);
   }
 
+  function clearWhereConditions() {
+    conditions.length = 0;
+    values.length = 0;
+    priceRangeConditions.length = 0;
+  }
+
+  function addPriceRangeConditions(priceRanges: PriceRange[]) {
+    priceRanges.forEach((priceRange) => {
+      const lowerBound = getPriceRangeBounds(priceRange)[0].toString();
+      const upperBound = getPriceRangeBounds(priceRange)[1].toString();
+
+      priceRangeConditions.push(
+        ` (auction_id IN (
+            (SELECT auction_id FROM bid GROUP BY auction_id HAVING MAX(amount) >= $${
+              values.length + 1
+            } - spread)
+            UNION 
+            (SELECT auction_id FROM auction WHERE start_price >= $${
+              values.length + 1
+            } - spread)
+          ) AND
+          auction_id NOT IN (
+            (SELECT auction_id FROM bid GROUP BY auction_id HAVING MAX(amount) >= $${
+              values.length + 2
+            } - spread)
+            UNION
+            (SELECT auction_id FROM auction WHERE start_price >= $${
+              values.length + 2
+            } - spread)
+          ))`
+      );
+      values.push(lowerBound, upperBound);
+    });
+  }
+
   // return auctions based on user's viewing and bidding history using a
   // content-based recommendation system
-  if (recommended) {
+  if (recommended === "true") {
     if (!req.session.accountId) {
       res.json({ auctions: [], totalNumAuctions: 0 });
       return;
@@ -132,50 +169,357 @@ router.get("/", async (req, res) => {
 
     const approxNumAuctionsToReturn = 10;
 
-    // Use fetch to get
-    let mockData: UserActionsData = {
-      games: {
-        MTG: 5,
-        Pokemon: 10,
-        Yugioh: 1,
-      },
-      prices: {
-        zero_to_ten: 14,
-        ten_to_twenty_five: 5,
-        twenty_five_to_fifty: 1,
-        fifty_to_hundred: 0,
-        hundred_to_three_hundred: 0,
-        three_hundred_to_thousand: 20,
-      },
+    // top 3 most frequently viewed/bidded price ranges for each game
+    const userActionData = camelize(
+      await pool.query<UserActionDataDb>(
+        ` WITH price_ranges AS (
+            SELECT game,
+              CASE
+                WHEN price BETWEEN 0 AND 10 THEN 'zero_to_ten'
+                WHEN price BETWEEN 10 AND 25 THEN 'ten_to_twenty_five'
+                WHEN price BETWEEN 25 AND 50 THEN 'twenty_five_to_fifty'
+                WHEN price BETWEEN 50 AND 100 THEN 'fifty_to_hundred'
+                WHEN price BETWEEN 100 AND 300 THEN 'hundred_to_three_hundred'
+                WHEN price BETWEEN 300 AND 1000 THEN 'three_hundred_to_thousand'
+                WHEN price BETWEEN 1000 AND 5000 THEN 'thousand_to_five_thousand'
+                WHEN price BETWEEN 5000 AND 10000 THEN 'five_thousand_to_ten_thousand'
+                WHEN price > 10000 THEN 'ten_thousand_plus'
+              END AS price_range,
+              CASE
+                WHEN action = 'bid' THEN 5
+                WHEN action = 'view' THEN 1
+              END AS action
+            FROM recommendation
+            WHERE account_id = $1
+          ),
+          game_rows AS (
+            SELECT 
+              game, 
+              price_range, 
+              SUM(action) as frequency
+            FROM price_ranges
+            GROUP BY game, price_range
+          ),
+          game_rows_ranked AS (
+            SELECT 
+              game, 
+              price_range, 
+              frequency,
+              ROW_NUMBER() OVER (PARTITION BY game ORDER BY frequency DESC) as row_num
+            FROM game_rows
+          )
+          SELECT game, price_range, frequency
+          FROM game_rows_ranked
+          WHERE row_num <= 3`,
+        [req.session.accountId]
+      )
+    ).rows;
+
+    // need to parse frequency as it is a string
+    const numMTGHits = userActionData
+      .filter((row) => row.game === "MTG")
+      .reduce((acc, row) => acc + parseInt(row.frequency), 0);
+    const numPokemonHits = userActionData
+      .filter((row) => row.game === "Pokemon")
+      .reduce((acc, row) => acc + parseInt(row.frequency), 0);
+    const numYugiohHits = userActionData
+      .filter((row) => row.game === "Yugioh")
+      .reduce((acc, row) => acc + parseInt(row.frequency), 0);
+    const totalHits = numMTGHits + numPokemonHits + numYugiohHits;
+    console.log(numMTGHits, numPokemonHits, numYugiohHits, totalHits);
+
+    // calculate number of auctions to return for each game
+    const numAuctionsToReturn = {
+      MTG: Math.ceil((numMTGHits / totalHits) * approxNumAuctionsToReturn),
+      Pokemon: Math.ceil(
+        (numPokemonHits / totalHits) * approxNumAuctionsToReturn
+      ),
+      Yugioh: Math.ceil(
+        (numYugiohHits / totalHits) * approxNumAuctionsToReturn
+      ),
     };
+    console.log(numAuctionsToReturn);
 
-    // Of 10 auctions, divide up auctions based on price range frequency
-    const totalPriceRangeHits = Object.values(mockData.prices).reduce(
-      (acc, val) => acc + val,
-      0
-    );
-    mockData.prices = Object.fromEntries(
-      Object.entries(mockData.prices).map(([key, val]) => [
-        key,
-        Math.ceil((val / totalPriceRangeHits) * approxNumAuctionsToReturn),
-      ])
-    );
+    const auctionRecords: {
+      auctionId: string;
+      auctioneerId: string;
+      auctioneerUsername: string;
+      auctioneerEmail: string;
+      name: string;
+      description: string;
+      startPrice: string;
+      spread: string;
+      startTime: Date;
+      endTime: Date;
+      bidId: string;
+      bidderId: string;
+      bidderUsername: string;
+      bidderEmail: string;
+      amount: string;
+      timestamp: Date;
+      numBids: string;
+      isBundle: boolean;
+      cards: {
+        cardId: string;
+        auctionId: string;
+        game: Game;
+        name: string;
+        description: string;
+        manufacturer: string;
+        qualityUngraded: QualityUngraded;
+        qualityPsa: QualityPsaDb;
+        rarity: CardRarity<Game>;
+        set: string;
+        isFoil: boolean;
+      }[];
+      bundle: {
+        bundleId: string;
+        auctionId: string;
+        game: Game;
+        name: string;
+        description: string;
+        manufacturer: string;
+        set: string;
+      };
+      auctionStatus: AuctionStatus;
+      bidStatus?: BidStatus;
+    }[] = [];
 
-    addCondition(
-      `auction_id IN (SELECT auction_id FROM card WHERE game = ?)`,
-      Object.keys(mockData.games)
-    );
-    addCondition(
-      `auction_id IN (SELECT auction_id FROM bundle WHERE game = ?)`,
-      Object.keys(mockData.games)
-    );
+    for (const game of ["MTG", "Pokemon", "Yugioh"]) {
+      clearWhereConditions();
 
-    // TODO: Figure out how to limit auctions based on game and price range
+      // limit auctions to those in the top 3 most frequently viewed/bidded
+      addPriceRangeConditions(
+        userActionData
+          .filter((row) => row.game === game)
+          .map((row) => row.priceRange)
+      );
 
-    // TODO: Remove
-    res.json({ auctions: [], totalNumAuctions: 0 });
+      // add filters for ongoing auctions, game
+      addCondition(
+        `CASE
+          WHEN start_time IS NULL THEN 'Not scheduled'
+          WHEN start_time >= NOW() THEN 'Scheduled'
+          WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
+          ELSE 'Ended'
+        END = ?`,
+        "Ongoing"
+      );
+      addCondition(
+        `(auction_id IN (SELECT auction_id FROM card WHERE game = ?)
+        OR auction_id IN (SELECT auction_id FROM bundle WHERE game = ?))`,
+        game
+      );
+
+      const wherePriceRanges = priceRangeConditions.length
+        ? ` WHERE (${priceRangeConditions.join(" OR ")})`
+        : "";
+
+      const whereClause = conditions.length
+        ? ` AND ${conditions.join(" AND ")}`
+        : "";
+
+      const limit = ` LIMIT $${values.length + 1}`;
+      values.push(numAuctionsToReturn[game]);
+
+      // QUERY START
+      auctionRecords.push(
+        ...camelize(
+          await pool.query<
+            AuctionDb &
+              BidDb & {
+                auctioneer_username: string;
+                auctioneer_email: string;
+              } & {
+                bidder_username: string;
+                bidder_email: string;
+              } & {
+                num_bids: string;
+                is_bundle: boolean;
+              } & { cards: CardDb<Game>[] } & { bundle: BundleDb } & {
+                auction_status: AuctionStatus;
+              } & {
+                bid_status?: BidStatus;
+              }
+          >(
+            ` WITH bid_agg AS (
+              SELECT MAX(amount) AS max_bid_amount, COUNT(*) AS num_bids, auction_id
+              FROM bid
+              GROUP BY auction_id
+            ),
+            filled_auctions AS (
+              SELECT auction.auction_id, account.account_id as auctioneer_id, 
+              account.username as auctioneer_username, 
+              account.email as auctioneer_email, auction.name, auction.description,
+              auction.start_price, auction.spread, auction.start_time, 
+              auction.end_time
+              FROM auction
+              JOIN account ON account.account_id = auction.auctioneer_id
+            ),
+            top_bids AS (
+              SELECT bid.bid_id, bid.auction_id, bid.bidder_id, 
+              account.username as bidder_username, account.email as bidder_email,
+              bid.amount, bid.timestamp
+              FROM bid
+              JOIN account ON account.account_id = bid.bidder_id
+              WHERE bid.amount = (SELECT max_bid_amount FROM bid_agg WHERE auction_id = bid.auction_id)
+            ),
+            cards_agg AS (
+              SELECT auction_id, JSON_AGG(card.*) as cards
+              FROM card
+              GROUP BY auction_id
+            ),
+            bundle_agg AS (
+              SELECT auction_id, JSON_AGG(bundle.*) as bundle
+              FROM bundle
+              GROUP BY auction_id
+            ),
+            auction_status AS (
+              SELECT auction_id,
+              CASE
+                WHEN start_time IS NULL THEN 'Not scheduled'
+                WHEN end_time < NOW() THEN 'Ended'
+                WHEN start_time < NOW() THEN 'Ongoing'
+                ELSE 'Scheduled'
+              END AS auction_status
+              FROM auction
+            )
+            SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
+            top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
+            COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
+            auction_status.auction_status,
+            cards_agg.cards, bundle_agg.bundle
+            FROM filled_auctions
+            LEFT JOIN top_bids USING (auction_id)
+            LEFT JOIN bid_agg USING (auction_id)
+            LEFT JOIN (
+              SELECT auction_id, true as is_bundle
+              FROM bundle
+            ) is_bundle USING (auction_id)
+            LEFT JOIN cards_agg USING (auction_id)
+            LEFT JOIN bundle_agg USING (auction_id)
+            LEFT JOIN auction_status USING (auction_id)
+            ${wherePriceRanges}
+            ${whereClause}
+            ORDER BY num_bids DESC
+            ${limit}
+            `,
+            values
+          )
+        ).rows
+      );
+    }
+
+    const auctions: Auction[] = auctionRecords.map((auctionRecord) => {
+      if (auctionRecord.isBundle) {
+        const bundleRecord = auctionRecord.bundle[0];
+        const bundle: Bundle = {
+          bundleId: bundleRecord.bundleId,
+          game: bundleRecord.game,
+          name: bundleRecord.name,
+          description: bundleRecord.description,
+          manufacturer: bundleRecord.manufacturer,
+          set: bundleRecord.set,
+        };
+
+        const auction: Auction = {
+          auctionId: auctionRecord.auctionId,
+          auctioneer: {
+            accountId: auctionRecord.auctioneerId,
+            username: auctionRecord.auctioneerUsername,
+            email: auctionRecord.auctioneerEmail,
+          },
+          name: auctionRecord.name,
+          description: auctionRecord.description,
+          startPrice: parseFloat(auctionRecord.startPrice),
+          spread: parseFloat(auctionRecord.spread),
+          minNewBidPrice: auctionRecord.bidId
+            ? parseFloat(auctionRecord.amount) +
+              parseFloat(auctionRecord.spread)
+            : parseFloat(auctionRecord.startPrice) +
+              parseFloat(auctionRecord.spread),
+          startTime: auctionRecord.startTime,
+          endTime: auctionRecord.endTime,
+          topBid: auctionRecord.bidId
+            ? {
+                bidId: auctionRecord.bidId,
+                auctionId: auctionRecord.auctionId,
+                bidder: {
+                  accountId: auctionRecord.bidderId,
+                  username: auctionRecord.bidderUsername,
+                  email: auctionRecord.bidderEmail,
+                },
+                amount: parseFloat(auctionRecord.amount),
+                timestamp: auctionRecord.timestamp,
+              }
+            : null,
+          numBids: parseInt(auctionRecord.numBids),
+          auctionStatus: auctionRecord.auctionStatus,
+          bundle: bundle,
+        };
+        return auction;
+      }
+
+      const cardsRecords = auctionRecord.cards;
+      const cards: Card<Game>[] = cardsRecords.map((cardRecord) => {
+        const card: Card<Game> = {
+          cardId: cardRecord.cardId,
+          game: cardRecord.game,
+          name: cardRecord.name,
+          description: cardRecord.description,
+          manufacturer: cardRecord.manufacturer,
+          ...(cardRecord.qualityUngraded
+            ? { qualityUngraded: cardRecord.qualityUngraded }
+            : { qualityPsa: parseInt(cardRecord.qualityPsa) as QualityPsa }),
+          rarity: cardRecord.rarity,
+          set: cardRecord.set,
+          isFoil: cardRecord.isFoil,
+        };
+        return card;
+      });
+
+      const auction: Auction = {
+        auctionId: auctionRecord.auctionId,
+        auctioneer: {
+          accountId: auctionRecord.auctioneerId,
+          username: auctionRecord.auctioneerUsername,
+          email: auctionRecord.auctioneerEmail,
+        },
+        name: auctionRecord.name,
+        description: auctionRecord.description,
+        startPrice: parseFloat(auctionRecord.startPrice),
+        spread: parseFloat(auctionRecord.spread),
+        minNewBidPrice: auctionRecord.bidId
+          ? parseFloat(auctionRecord.amount) + parseFloat(auctionRecord.spread)
+          : parseFloat(auctionRecord.startPrice) +
+            parseFloat(auctionRecord.spread),
+        startTime: auctionRecord.startTime,
+        endTime: auctionRecord.endTime,
+        topBid: auctionRecord.bidId
+          ? {
+              bidId: auctionRecord.bidId,
+              auctionId: auctionRecord.auctionId,
+              bidder: {
+                accountId: auctionRecord.bidderId,
+                username: auctionRecord.bidderUsername,
+                email: auctionRecord.bidderEmail,
+              },
+              amount: parseFloat(auctionRecord.amount),
+              timestamp: auctionRecord.timestamp,
+            }
+          : null,
+        numBids: parseInt(auctionRecord.numBids),
+        auctionStatus: auctionRecord.auctionStatus,
+        cards: cards,
+      };
+      return auction;
+    });
+
+    // In this context, total num auctions means the total number of recommended auctions returned
+    res.json({ auctions, totalNumAuctions: auctions.length });
     return;
   }
+  // End of recommendation system
 
   const bidStatusCte = getBidStatusCte(includeBidStatusFor, values.length + 1);
   if (includeBidStatusFor) {
