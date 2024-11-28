@@ -2,11 +2,12 @@ import multer from "multer";
 import { bucket } from "../configServices/gcsConfig";
 import express from "express";
 import { BusinessError, unauthorized } from "../utils/errors";
-
+import crypto from "crypto";
 export const router = express.Router();
 
 router.post("/", async (req, res, next) => {
   if (!req.session.accountId) {
+
     throw new BusinessError(401, "unauthorized", "must be logged in");
   }
   uploadHandler.single("image")(req, res, (err) => {

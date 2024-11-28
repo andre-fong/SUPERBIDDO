@@ -33,7 +33,7 @@ const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage 
                         <CardMedia
                             component="img"
                             height="140"
-                            image={auction.image ? auction.image : "https://via.placeholder.com/300"}
+                            image={auction.imageUrl ? auction.imageUrl : "https://via.placeholder.com/300"}
                             alt={auction.name}
                             sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
                         />

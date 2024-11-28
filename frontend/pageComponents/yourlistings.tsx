@@ -75,7 +75,6 @@ const YourListings: React.FC<YourListingsProps> = ({
     setCurrentPage(page);
   };
 
-  //TODO: andre countdown timer
   return (
     <>
       <div

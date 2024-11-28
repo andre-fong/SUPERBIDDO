@@ -365,6 +365,7 @@ export async function createAuction(
     startTime: string;
     endTime: string;
     type: string;
+    imageUrl: string;
     bundle?: {
       game: string;
       name: string;
@@ -462,6 +463,7 @@ export async function fetchAuction(
 
 // NOTE:  THIS IS FOR YOURLISTINGS AND YOURBIDDINGS
 //TODO: search statuses
+//Might change this to be the better search function
 export async function fetchSelfAuctions(
   errorFcn: (error: ErrorType) => void,
   type: AuctionSelfType,
@@ -484,7 +486,7 @@ export async function fetchSelfAuctions(
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
       }=${accountId}${
         searchName ? "&name=" + searchName : ""
-      }&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}`,
+      }&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}&sortBy=startTimeAsc`,
       {
         method: "GET",
         headers: {
@@ -714,6 +716,45 @@ export async function getWatching(
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return false;
+  }
+}
+
+export async function uploadImage(
+  errorFcn: (error: ErrorType) => void,
+  image: File
+) {
+  try {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const response = await fetch(`${url}/images`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.imageUrl;
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 500) {
+      errorFcn({
+        message: "Internal server error",
+        severity: Severity.Critical,
+      });
+    }
+    else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return null;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
   }
 }
 
