@@ -192,3 +192,14 @@ type UserActionsData = {
     ten_thousand_plus?: number;
   };
 };
+
+type PriceRange =
+  | "zero_to_ten"
+  | "ten_to_twenty_five"
+  | "twenty_five_to_fifty"
+  | "fifty_to_hundred"
+  | "hundred_to_three_hundred"
+  | "three_hundred_to_thousand"
+  | "thousand_to_five_thousand"
+  | "five_thousand_to_ten_thousand"
+  | "ten_thousand_plus";

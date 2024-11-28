@@ -58,4 +58,10 @@ type UserActionDb = {
   timestamp: Date;
 };
 
+type UserActionDataDb = {
+  game: Game;
+  price_range: PriceRange;
+  frequency: number;
+};
+
 type UserAction = "view" | "bid";
