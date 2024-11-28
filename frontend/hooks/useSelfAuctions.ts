@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Auction, AuctionStatusEnum } from "@/types/auctionTypes";
+import { Auction } from "@/types/auctionTypes";
 import { AuctionSelfType } from "@/types/backendAuctionTypes";
 import { fetchSelfAuctions } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
@@ -7,7 +7,8 @@ import { User } from "@/types/userTypes";
 import {
   allBiddingStatuses,
   determineTypeListings,
-} from "@/utils/determineListings";
+  getImageUrl
+} from "@/utils/determineFunctions";
 
 const useSelfAuctions = (
   type: AuctionSelfType,
@@ -39,8 +40,7 @@ const useSelfAuctions = (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         //TODO: set this type
         auctionsGet.auctions.map((auction: any) => {
-          //TODO set the image
-            return {
+          return {
               auctionId: auction.auctionId,
               name: auction.name,
               status: type === "biddings" ? auction.bidStatus : determineTypeListings(auction.auctionStatus, auction.endTime, auction.numBids),
@@ -49,6 +49,7 @@ const useSelfAuctions = (
               topBid: auction.topBid ? auction.topBid.amount.toFixed(2): null,
               numberOfBids: auction.numBids,
               endDate: auction.endTime ? new Date(auction.endTime) : null,
+              imageUrl: getImageUrl(auction)
             };
 
         })

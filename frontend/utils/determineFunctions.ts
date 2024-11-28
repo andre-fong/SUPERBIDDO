@@ -1,4 +1,5 @@
 import { AuctionStatus, AuctionStatusEnum, BiddingStatus, BiddingStatusEnum } from "@/types/auctionTypes"
+import { Auction } from "@/types/backendAuctionTypes"
 
 export function determineTypeListings(
     status: AuctionStatus,
@@ -28,4 +29,8 @@ export function determineTypeBids(
 
 export function allBiddingStatuses(): BiddingStatus[] {
     return Object.keys(BiddingStatusEnum) as BiddingStatus[]
+}
+
+export function getImageUrl(auction: Auction) {
+    return auction.cards ? auction.cards[0]?.imageUrl : auction.bundle?.imageUrl
 }

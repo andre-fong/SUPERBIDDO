@@ -71,6 +71,7 @@ export type Card = {
   rarity: Rarity;
   set: string;
   isFoil: boolean;
+  imageUrl: string | null;
 };
 
 export type BundleInput = {
@@ -90,6 +91,7 @@ export type Bundle = {
   description?: string;
   manufacturer: string;
   set: string;
+  imageUrl: string | null;
 };
 
 export type BidInput = {

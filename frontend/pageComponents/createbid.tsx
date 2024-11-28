@@ -24,6 +24,7 @@ import { User } from "@/types/userTypes";
 import { PageName } from "@/types/pageTypes";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
+import { uploadImage } from "@/utils/fetchFunctions";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SampleNextArrow(props: any) {
@@ -64,7 +65,6 @@ const CardListing: React.FC<CardListingProps> = ({
 }) => {
   const cardPhotosRef = useRef<File | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
-  const [backPhotoPreview, setBackPreview] = useState<string>();
   const [cardType, setCardType] = useState<string>("MTG");
   const [type, setType] = useState<string>("Card");
   const [quality, setQuality] = useState<string>("Mint");
@@ -178,27 +178,28 @@ const CardListing: React.FC<CardListingProps> = ({
     return date.toLocaleString();
   };
 
-  const handleBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const filePreview = URL.createObjectURL(file);
-    setBackPreview(filePreview);
+  const imageUpload = async (formFile: File) => {
+    return uploadImage(setToast, formFile)
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
-    console.log(file);
     if (!file) {
       return;
     }
 
-    const filePreview = URL.createObjectURL(file);
-    setFrontPreview(filePreview);
-    cardPhotosRef.current = file;
+    const imageUploadResponse = await imageUpload(file);
+
+    if (!imageUploadResponse) {
+      setToast({
+        message: "Error uploading image. Please try again",
+        severity: Severity.Warning,
+      });
+      return;
+    }
+    setFrontPreview(imageUploadResponse);
+    cardPhotosRef.current = imageUploadResponse;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -206,10 +207,11 @@ const CardListing: React.FC<CardListingProps> = ({
     formatCardUploadData(formData);
   };
 
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!frontPhotoPreview) {
+    if (!frontPhotoPreview || !cardPhotosRef.current) {
       setToast({
         message: "Please upload a front photo",
         severity: Severity.Warning,
@@ -263,6 +265,8 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
 
+
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auctionData: any = {
       auctioneerId: user.accountId,
@@ -294,6 +298,7 @@ const CardListing: React.FC<CardListingProps> = ({
               rarity: rarity,
               set: setRef.current?.value || "Unknown Set",
               isFoil: isFoil === "Yes",
+              imageUrl: cardPhotosRef.current,
             }
           : undefined,
     };
@@ -317,8 +322,11 @@ const CardListing: React.FC<CardListingProps> = ({
         description: descriptionRef.current?.value || "",
         manufacturer: manufacturerRef.current?.value || "",
         set: setRef.current?.value || "",
+        imageUrl: cardPhotosRef.current,
       };
     }
+
+    console.log(auctionData);
 
     createAuction(setToast, auctionData).then((auction) => {
       if (!auction.auctionId) {
@@ -363,7 +371,7 @@ const CardListing: React.FC<CardListingProps> = ({
       <Container maxWidth={false} style={{ padding: 40 }}>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
           <Box flex={1} maxWidth="50%">
-            {(frontPhotoPreview || backPhotoPreview) && (
+            {(frontPhotoPreview) && (
               <Box
                 border={1}
                 borderRadius={2}
@@ -375,9 +383,6 @@ const CardListing: React.FC<CardListingProps> = ({
                 <Slider {...settings}>
                   {frontPhotoPreview && (
                     <img src={frontPhotoPreview} alt="Front Preview" />
-                  )}
-                  {backPhotoPreview && (
-                    <img src={backPhotoPreview} alt="Back Preview" />
                   )}
                 </Slider>
               </Box>
@@ -518,23 +523,6 @@ const CardListing: React.FC<CardListingProps> = ({
                   name="imageUploadFront"
                 />
               </Button>
-
-              <Button
-                variant="contained"
-                component="label"
-                fullWidth
-                sx={{ margin: "normal" }}
-              >
-                Upload Back Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={handleBackChange}
-                  name="imageUploadBack"
-                />
-              </Button>
-
               
               <TextField
                 label="Auction Name"

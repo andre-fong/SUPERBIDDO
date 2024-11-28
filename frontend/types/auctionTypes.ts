@@ -56,6 +56,7 @@ export interface Auction {
   topBid: number | null;
   numberOfBids: number;
   endDate: Date | null;
+  imageUrl: string | null;
 }
 
 export type AuctionQualityFilters = {
