@@ -241,6 +241,13 @@ router.get("/", async (req, res) => {
       ),
     };
 
+    // if user has no viewing/bidding history, return 3 random auctions for each game
+    if (totalHits === 0) {
+      numAuctionsToReturn.MTG = 3;
+      numAuctionsToReturn.Pokemon = 3;
+      numAuctionsToReturn.Yugioh = 3;
+    }
+
     const auctionRecords: {
       auctionId: string;
       auctioneerId: string;
