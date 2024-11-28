@@ -279,6 +279,7 @@ router.get("/", async (req, res) => {
         rarity: CardRarity<Game>;
         set: string;
         isFoil: boolean;
+        imageUrl: string;
       }[];
       bundle: {
         bundleId: string;
@@ -288,6 +289,7 @@ router.get("/", async (req, res) => {
         description: string;
         manufacturer: string;
         set: string;
+        imageUrl: string;
       };
       auctionStatus: AuctionStatus;
       bidStatus?: BidStatus;
@@ -428,6 +430,7 @@ router.get("/", async (req, res) => {
           description: bundleRecord.description,
           manufacturer: bundleRecord.manufacturer,
           set: bundleRecord.set,
+          imageUrl: bundleRecord.imageUrl,
         };
 
         const auction: Auction = {
@@ -482,6 +485,7 @@ router.get("/", async (req, res) => {
           rarity: cardRecord.rarity,
           set: cardRecord.set,
           isFoil: cardRecord.isFoil,
+          imageUrl: cardRecord.imageUrl,
         };
         return card;
       });
@@ -1216,7 +1220,6 @@ router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,as
     );
   }
 
-  console.log(auctionRecord)
   const newAuctionDetails = {
     auctionId: auctionId,
     name: req.body.name || auctionRecord.name,

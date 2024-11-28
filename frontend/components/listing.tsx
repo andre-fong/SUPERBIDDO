@@ -7,7 +7,11 @@ import { useTimer } from "react-timer-hook";
 import CheckIcon from "@mui/icons-material/Check";
 import { Auction } from "@/types/backendAuctionTypes";
 import { useState, useMemo, useEffect } from "react";
-import { addWatching, removeWatching, getWatching } from "@/utils/fetchFunctions";
+import {
+  addWatching,
+  removeWatching,
+  getWatching,
+} from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { getImageUrl } from "@/utils/determineFunctions";
 
@@ -66,7 +70,7 @@ export default function Listing({
           }
         >
           <img
-            src={getImageUrl(auction) || ""}
+            src={getImageUrl(auction) || null}
             alt={auction.name}
             className={styles.TEMP_img}
           />
@@ -80,10 +84,30 @@ export default function Listing({
               "&:hover": { backgroundColor: "primary.main" },
               "&:focus-visible": { backgroundColor: "primary.main" },
             }}
-            title={isWatching ? "Remove from your watch list" : "Add this listing to your Watch List"}
-            onClick={() => {isWatching ? removeWatching(setToast, accountId || "0", auction.auctionId).then((newValue: boolean) => {setIsWatching(newValue);}) : addWatching(setToast, accountId || "0", auction.auctionId).then((newValue: boolean) => {setIsWatching(newValue);});}}
+            title={
+              isWatching
+                ? "Remove from your watch list"
+                : "Add this listing to your Watch List"
+            }
+            onClick={() => {
+              isWatching
+                ? removeWatching(
+                    setToast,
+                    accountId || "0",
+                    auction.auctionId
+                  ).then((newValue: boolean) => {
+                    setIsWatching(newValue);
+                  })
+                : addWatching(
+                    setToast,
+                    accountId || "0",
+                    auction.auctionId
+                  ).then((newValue: boolean) => {
+                    setIsWatching(newValue);
+                  });
+            }}
           >
-            {isWatching ? <CheckIcon /> : <StarIcon /> }
+            {isWatching ? <CheckIcon /> : <StarIcon />}
           </IconButton>
         </div>
       </div>
