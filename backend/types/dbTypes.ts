@@ -61,7 +61,7 @@ type UserActionDb = {
 type UserActionDataDb = {
   game: Game;
   price_range: PriceRange;
-  frequency: number;
+  frequency: string;
 };
 
 type UserAction = "view" | "bid";
