@@ -319,7 +319,37 @@ export default function Home({
         </div>
       </div>
 
-      <div className={styles.sell_container}></div>
+      <div className={styles.sell_container}>
+        <Image
+          src="/mtg-cards.webp"
+          alt="Magic: The Gathering cards"
+          fill
+          style={{
+            objectFit: "cover",
+          }}
+        />
+        <div className={styles.hero_text}>
+          <h2 className={styles.sell_title}>Sell your card in days</h2>
+          <p className={styles.sell_subtitle}>
+            Use SuperBiddo&apos;s robust auction and bidding system to turn your{" "}
+            <span className={styles.sell_emphasis}>packs</span> into{" "}
+            <span className={styles.sell_emphasis}>stacks</span>.
+          </p>
+          <Button
+            variant="contained"
+            sx={{
+              width: "fit-content",
+              fontWeight: 600,
+            }}
+            onClick={() => {
+              if (user) setCurPage("create");
+              else setCurPage("login");
+            }}
+          >
+            {user ? "Start Selling Now" : "Sign In to Start Selling"}
+          </Button>
+        </div>
+      </div>
 
       <h2 className={styles.section_title}>Games</h2>
       <div className={styles.section_container}>

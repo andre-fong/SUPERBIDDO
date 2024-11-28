@@ -3,7 +3,8 @@
   /* margin-top: -30px; */
 }
 
-.hero_banner {
+.hero_banner,
+.sell_container {
   position: relative;
   width: 100%;
   aspect-ratio: 10/3;
@@ -34,6 +35,25 @@
   font-size: 1.4em;
   font-weight: 600;
   margin-bottom: 35px;
+}
+
+.sell_title {
+  color: white;
+  font-size: 2.3em;
+  font-weight: 700;
+  /* margin-bottom: 5px; */
+}
+.sell_subtitle {
+  max-width: 50%;
+  color: rgb(220, 220, 220);
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.sell_emphasis {
+  font-weight: bold;
+  text-decoration: underline;
+  color: var(--secondary);
 }
 
 .section_title {
@@ -133,6 +153,12 @@
   }
   .game_title {
     font-size: 1.5em;
+  }
+  .sell_title {
+    font-size: 1.8em;
+  }
+  .sell_subtitle {
+    font-size: 0.8em;
   }
 }
 @media (min-width: 1300px) {
