@@ -16,7 +16,7 @@ import {
   Box,
 } from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
-import { createAuction } from "@/utils/fetchFunctions";
+import { createAuction, getGeminiInput } from "@/utils/fetchFunctions";
 import cardRarities, { qualityList, PSAList } from "@/types/cardGameInfo";
 import styles from "@/styles/CardListing.module.css";
 import { ErrorType, Severity } from "@/types/errorTypes";
@@ -63,7 +63,7 @@ const CardListing: React.FC<CardListingProps> = ({
   setCurPage,
   context,
 }) => {
-  const cardPhotosRef = useRef<File | null>(null);
+  const cardPhotosRef = useRef<string | null>(null);
   const [frontPhotoPreview, setFrontPreview] = useState<string>();
   const [cardType, setCardType] = useState<string>("MTG");
   const [type, setType] = useState<string>("Card");
@@ -81,15 +81,11 @@ const CardListing: React.FC<CardListingProps> = ({
   const endDateRef = useRef<HTMLInputElement>(null);
   const auctionNameRef = useRef<HTMLInputElement>(null);
 
-  const formatCardUploadData = async (uploadFormData: FormData) => {
+  const formatCardUploadData = async () => {
+    if (!cardPhotosRef.current) { return; }
+    
     try {
-      const response = await fetch("http://localhost:3000/api", {
-        method: "POST",
-        body: uploadFormData,
-      });
-
-      const data = await response.json();
-      const cardInfo = JSON.parse(data.response);
+      const cardInfo = await getGeminiInput(setToast, cardPhotosRef.current);
       setType(cardInfo.type === "bundle" ? "Bundle" : "Card");
 
       let price;
@@ -201,10 +197,7 @@ const CardListing: React.FC<CardListingProps> = ({
     setFrontPreview(imageUploadResponse);
     cardPhotosRef.current = imageUploadResponse;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    formatCardUploadData(formData);
+    formatCardUploadData();
   };
 
 
@@ -508,21 +501,21 @@ const CardListing: React.FC<CardListingProps> = ({
                 rows={4}
               />
 
-              <Button
+                <Button
                 variant="contained"
                 component="label"
                 fullWidth
                 sx={{ marginBottom: "10px" }}
-              >
+                >
                 Upload Front Photo
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png, image/jpeg, image/jpg, image/webp, image/bmp"
                   hidden
                   onChange={handleFileChange}
                   name="imageUploadFront"
                 />
-              </Button>
+                </Button>
               
               <TextField
                 label="Auction Name"

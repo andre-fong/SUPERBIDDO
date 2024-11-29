@@ -8,7 +8,6 @@ import {
   BusinessError,
 } from "../utils/errors.js";
 export const router = express.Router();
-import { sendEmail } from "../utils/emailInfo/email.js";
 
 export async function findEmail(email: string) {
   const account = camelize(
