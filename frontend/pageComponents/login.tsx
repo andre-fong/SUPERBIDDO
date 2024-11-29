@@ -204,10 +204,16 @@ export default function Login({
         initial={{ opacity: 0, y: "-10px" }}
         animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
       >
-        <img
-          src="https://images2.alphacoders.com/136/thumb-1920-1368422.jpeg"
+        <Image
+          src="/pokemon-banner-2.jpg"
           alt="SuperBiddo"
-          className={styles.TEMP_img}
+          priority
+          fill
+          sizes="100vw"
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+          }}
         />
       </motion.div>
     </motion.main>

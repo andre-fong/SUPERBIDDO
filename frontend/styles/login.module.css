@@ -38,18 +38,11 @@
 }
 
 .image_container {
+  position: relative;
   flex: 1;
   min-width: 50%;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
-}
-
-/* TODO: replace with downloaded image, delete this style */
-.TEMP_img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
 }
 
 .title {
