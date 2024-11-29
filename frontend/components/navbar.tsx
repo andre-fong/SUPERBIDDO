@@ -32,6 +32,7 @@ const navVariants = {
     opacity: 1,
     y: 0,
     transition: {
+      delay: 0.3,
       duration: 0.3,
       ease: "easeInOut",
     },
@@ -64,9 +65,6 @@ export default function Navbar({
 }) {
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
-
-  // TODO: Mock data
-  const notificationCount = 2;
 
   // Track scroll position to make navbar sticky
   const { scrollY } = useScroll();

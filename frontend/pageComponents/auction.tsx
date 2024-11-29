@@ -879,7 +879,6 @@ export default function Auction({
         {tabIndex === 0 && !auctionLoading && (
           <>
             <section className={styles.listing_details_container}>
-              {/* TODO: Fill in details */}
               <div className={styles.listing_details_left}>
                 {!isBundle && (
                   <div className={styles.detail_row}>

@@ -1,6 +1,5 @@
 import { PageName } from "@/types/pageTypes";
 import styles from "@/styles/listing.module.css";
-import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
 import StarIcon from "@mui/icons-material/Star";
 import { useTimer } from "react-timer-hook";
@@ -70,7 +69,7 @@ export default function Listing({
           }
         >
           <img
-            src={getImageUrl(auction) || null}
+            src={getImageUrl(auction) || undefined}
             alt={auction.name}
             className={styles.TEMP_img}
           />
@@ -112,12 +111,18 @@ export default function Listing({
         </div>
       </div>
 
-      <p
+      <button
         className={styles.title}
         title="Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection"
+        onClick={() =>
+          setCurPage(
+            "auction",
+            JSON.stringify({ auctionId: auction.auctionId })
+          )
+        }
       >
         {auction.name}
-      </p>
+      </button>
 
       <p className={styles.quality}>
         {auction.cards?.at(0)?.qualityPsa &&

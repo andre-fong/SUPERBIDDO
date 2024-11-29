@@ -1,7 +1,7 @@
 "use client";
 import styles from "./page.module.css";
 import { changePageTitle } from "@/utils/pageManagement";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { PageData, PageName } from "@/types/pageTypes";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Login from "@/pageComponents/login";
@@ -11,10 +11,10 @@ import CreateBid from "@/pageComponents/createbid";
 import YourListings from "@/pageComponents/yourlistings";
 import YourBiddings from "@/pageComponents/yourbiddings";
 import useUser from "@/hooks/useUser";
-import { toast } from "react-toastify";
 import { ErrorType, Severity } from "@/types/errorTypes";
 import ErrorToast from "@/components/errorToast";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import { AnimatePresence, motion } from "motion/react";
 import Results from "@/pageComponents/results";
 import Home from "@/pageComponents/home";
@@ -50,7 +50,7 @@ const pageVariants = {
     opacity: 1,
     x: 0,
     transition: {
-      duration: 0.2,
+      duration: 0.3,
       ease: "easeInOut",
     },
   },
@@ -58,13 +58,12 @@ const pageVariants = {
     opacity: 0,
     x: "-10px",
     transition: {
-      duration: 0.2,
+      duration: 0.3,
       ease: "easeInOut",
     },
   },
 };
 
-// TODO: Use Framer Motion for page transitions
 /**
  * CORE PAGE HANDLER FOR SUPERBIDDO
  */
@@ -102,6 +101,19 @@ export default function PageHandler() {
           setToast={setToast}
           context={pageContext}
         />
+      ),
+    },
+    landing: {
+      title: "Welcome to SuperBiddo, the best real-time TCG auction site!",
+      component: (
+        <div>
+          <h1>Welcome to SuperBiddo!</h1>
+          <p>
+            SuperBiddo is the best real-time TCG auction site on the web! We
+            offer a wide variety of TCGs to bid on, including Pokemon, Yu-Gi-Oh,
+            and Magic: The Gathering. Get started by signing up or logging in!
+          </p>
+        </div>
       ),
     },
     results: {
@@ -147,10 +159,6 @@ export default function PageHandler() {
           context={pageContext}
         />
       ),
-    },
-    profile: {
-      title: "Profile | SuperBiddo",
-      component: <h1 className={styles.title}>Profile</h1>,
     },
     create: {
       title: "Create Auction | SuperBiddo",
@@ -198,7 +206,6 @@ export default function PageHandler() {
           setCurPage={setCurPage}
           user={user}
           setToast={setToast}
-          // TODO: Remove hardcoded auctionId and use context when redirecting to this page
           context={pageContext}
         />
       ),
@@ -253,6 +260,12 @@ export default function PageHandler() {
           {/* CURRENT PAGE BEING RENDERED */}
           {pages[curPage].component}
         </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {curPage !== "login" && curPage !== "signup" && (
+          <Footer setCurPage={setCurPage} user={user} />
+        )}
       </AnimatePresence>
     </ThemeProvider>
   );

@@ -50,29 +50,6 @@ import ListingSkeleton from "@/components/listingSkeleton";
 import { getAuctionSearchResults } from "@/utils/fetchFunctions";
 import { AuctionStatus, AuctionStatusEnum } from "@/types/auctionTypes";
 
-// TODO: Remove this when we have a backend
-enum Game {
-  MTG = "MTG",
-  YGO = "YGO",
-  PKM = "PKM",
-  DBS = "DBS",
-  FF = "FF",
-  WS = "WS",
-  VG = "VG",
-}
-enum Quality {
-  NM = "NM",
-  LP = "LP",
-  MP = "MP",
-  HP = "HP",
-}
-enum Rarity {
-  C = "C",
-  U = "U",
-  R = "R",
-  M = "M",
-}
-
 //////////////////////////////////////////////////
 //            MUI STYLED ACCORDION              //
 //////////////////////////////////////////////////
@@ -216,8 +193,6 @@ export default function Results({
   function fetchResults(page: number) {
     setResults([]);
     setResultsLoading(true);
-
-    // TODO: Quality, rarity, sort by
 
     const searchParams: AuctionSearchQuery = {};
 
