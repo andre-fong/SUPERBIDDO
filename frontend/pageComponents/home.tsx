@@ -327,6 +327,7 @@ export default function Home({
           src="/mtg-cards.webp"
           alt="Magic: The Gathering cards"
           fill
+          sizes="100vw"
           style={{
             objectFit: "cover",
           }}
