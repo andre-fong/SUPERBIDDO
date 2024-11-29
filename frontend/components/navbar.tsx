@@ -435,8 +435,12 @@ export default function Navbar({
                                     className={
                                       styles.account_popper_section_item
                                     }
-                                    // TODO: Set my bids filter to "won"
-                                    onClick={() => setCurPage("yourBiddings")}
+                                    onClick={() =>
+                                      setCurPage(
+                                        "yourBiddings",
+                                        JSON.stringify({ filter: "Won" })
+                                      )
+                                    }
                                   >
                                     Purchase History
                                   </button>

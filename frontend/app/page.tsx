@@ -180,7 +180,7 @@ export default function PageHandler() {
           user={user}
           setToast={setToast}
           setCurPage={setCurPage}
-          // context={pageContext}
+          context={pageContext}
         />
       ) : (
         <div>Loading...</div>

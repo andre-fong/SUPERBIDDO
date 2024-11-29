@@ -7,7 +7,7 @@ import { User } from "@/types/userTypes";
 import {
   allBiddingStatuses,
   determineTypeListings,
-  getImageUrl
+  getImageUrl,
 } from "@/utils/determineFunctions";
 
 const useSelfAuctions = (
@@ -23,9 +23,10 @@ const useSelfAuctions = (
   const [totalPages, setTotalPages] = useState<number>(0);
   useEffect(() => {
     if (type === "biddings" && searchStatuses.length === 0) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       searchStatuses = allBiddingStatuses();
     }
-    
+
     fetchSelfAuctions(
       errorFcn,
       type,
@@ -37,21 +38,27 @@ const useSelfAuctions = (
     ).then((auctionsGet) => {
       setTotalPages(Math.ceil(auctionsGet.totalNumAuctions / pageSize));
       setAuctions(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         //TODO: set this type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         auctionsGet.auctions.map((auction: any) => {
           return {
-              auctionId: auction.auctionId,
-              name: auction.name,
-              status: type === "biddings" ? auction.bidStatus : determineTypeListings(auction.auctionStatus, auction.endTime, auction.numBids),
-              image: null,
-              description: auction.description,
-              topBid: auction.topBid ? auction.topBid.amount.toFixed(2): null,
-              numberOfBids: auction.numBids,
-              endDate: auction.endTime ? new Date(auction.endTime) : null,
-              imageUrl: getImageUrl(auction)
-            };
-
+            auctionId: auction.auctionId,
+            name: auction.name,
+            status:
+              type === "biddings"
+                ? auction.bidStatus
+                : determineTypeListings(
+                    auction.auctionStatus,
+                    auction.endTime,
+                    auction.numBids
+                  ),
+            image: null,
+            description: auction.description,
+            topBid: auction.topBid ? auction.topBid.amount.toFixed(2) : null,
+            numberOfBids: auction.numBids,
+            endDate: auction.endTime ? new Date(auction.endTime) : null,
+            imageUrl: getImageUrl(auction),
+          };
         })
       );
     });

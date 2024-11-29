@@ -151,6 +151,25 @@ export default function Footer({
                 <button
                   onClick={() => {
                     if (user) {
+                      setCurPage(
+                        "yourBiddings",
+                        JSON.stringify({ filter: "Won" })
+                      );
+                    } else {
+                      setCurPage(
+                        "login",
+                        JSON.stringify({ next: "yourBiddings", filter: "Won" })
+                      );
+                    }
+                  }}
+                >
+                  Purchase History
+                </button>
+              </li>
+              <li className={styles.link}>
+                <button
+                  onClick={() => {
+                    if (user) {
                       setCurPage("watchList");
                     } else {
                       setCurPage(
