@@ -1,0 +1,5 @@
+.main {
+  margin-top: 50px;
+  padding: clamp(30px, 10vw, 300px);
+  background-color: black;
+}
