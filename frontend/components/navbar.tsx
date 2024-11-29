@@ -32,6 +32,7 @@ const navVariants = {
     opacity: 1,
     y: 0,
     transition: {
+      delay: 0.3,
       duration: 0.3,
       ease: "easeInOut",
     },
