@@ -119,6 +119,7 @@ export default function Home({
                 alt="Pokemon Banner"
                 fill
                 priority
+                sizes="100vw"
                 style={{
                   objectFit: "cover",
                   objectPosition: "0 35%",
@@ -169,6 +170,7 @@ export default function Home({
                 alt="Magic: The Gathering Banner"
                 fill
                 priority
+                sizes="100vw"
                 style={{
                   objectFit: "cover",
                   objectPosition: "15% 35%",
@@ -222,6 +224,7 @@ export default function Home({
                 alt="Yu-Gi-Oh! Banner"
                 fill
                 priority
+                sizes="100vw"
                 style={{
                   objectFit: "cover",
                   objectPosition: "center",
@@ -364,6 +367,7 @@ export default function Home({
               src="/pokemon-banner-2.jpg"
               alt="Pokémon banner"
               fill
+              sizes="(max-width: 600px) 50vw, 100vw"
               style={{
                 objectFit: "cover",
                 objectPosition: "center",
@@ -384,6 +388,7 @@ export default function Home({
               src="/mtg-banner-1.avif"
               alt="Magic: The Gathering banner"
               fill
+              sizes="(max-width: 600px) 50vw, 100vw"
               style={{
                 objectFit: "cover",
                 objectPosition: "center",
@@ -404,6 +409,7 @@ export default function Home({
               src="/yugioh-banner-1.jpg"
               alt="Yu-Gi-Oh! banner"
               fill
+              sizes="(max-width: 600px) 50vw, 100vw"
               style={{
                 objectFit: "cover",
                 objectPosition: "bottom",
@@ -419,6 +425,7 @@ export default function Home({
               src="/pokemon-banner-1.jpg"
               alt="And more banner"
               fill
+              sizes="(max-width: 600px) 50vw, 100vw"
               style={{
                 objectFit: "cover",
                 objectPosition: "center",
