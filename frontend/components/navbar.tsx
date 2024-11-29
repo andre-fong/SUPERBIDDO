@@ -66,9 +66,6 @@ export default function Navbar({
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
 
-  // TODO: Mock data
-  const notificationCount = 2;
-
   // Track scroll position to make navbar sticky
   const { scrollY } = useScroll();
   const ref = useRef<HTMLDivElement | null>(null);
