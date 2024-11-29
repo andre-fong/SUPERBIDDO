@@ -104,6 +104,19 @@ export default function PageHandler() {
         />
       ),
     },
+    landing: {
+      title: "Welcome to SuperBiddo, the best real-time TCG auction site!",
+      component: (
+        <div>
+          <h1>Welcome to SuperBiddo!</h1>
+          <p>
+            SuperBiddo is the best real-time TCG auction site on the web! We
+            offer a wide variety of TCGs to bid on, including Pokemon, Yu-Gi-Oh,
+            and Magic: The Gathering. Get started by signing up or logging in!
+          </p>
+        </div>
+      ),
+    },
     results: {
       title: "Results | SuperBiddo",
       component: (
@@ -147,10 +160,6 @@ export default function PageHandler() {
           context={pageContext}
         />
       ),
-    },
-    profile: {
-      title: "Profile | SuperBiddo",
-      component: <h1 className={styles.title}>Profile</h1>,
     },
     create: {
       title: "Create Auction | SuperBiddo",

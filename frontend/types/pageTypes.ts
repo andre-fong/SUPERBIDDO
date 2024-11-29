@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 
 export type PageName =
+  | "landing"
   | "home"
   | "results"
   | "login"
   | "signup"
   | "auction"
-  | "profile"
   | "create"
   | "yourListings"
   | "yourBiddings"
