@@ -632,6 +632,75 @@ paths:
           $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/InternalServerError"
+  /api/v1/auctions/{auctionId}/watchers:
+    post:
+      summary: Add a watcher to this auction.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - watcherId
+              properties:
+                watcherId:
+                  type: string
+                  format: uuid
+      responses:
+        201:
+          description: The newly added watcher.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  watcherId:
+                    type: string
+                    format: uuid
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        409:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/auctions/{auctionId}/watchers/{accountId}:
+    delete:
+      summary: Remove the watcher from this auction.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          description: The uuid of an account.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Successfully removed watcher.
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions/{auctionId}/bids:
     get:
       summary: Get bids for an auction by its auctionId.
