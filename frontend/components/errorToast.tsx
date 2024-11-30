@@ -16,6 +16,8 @@ function ErrorToast({ message, severity }: ErrorType) {
             toast.error(message);
         } else if (severity === Severity.Warning) {
             toast.warn(message);
+        } else if (severity === Severity.Info) {
+            toast.info(message);
         }
     }, [message, severity]);
 

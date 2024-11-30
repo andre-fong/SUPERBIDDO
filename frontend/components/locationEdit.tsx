@@ -180,6 +180,10 @@ export default function LocationEdit({
       .then(() => {
         setSubmitting(false);
         setLocationEditOpen(false);
+        setToast({
+          message: "Your address was updated.",
+          severity: Severity.Info,
+        });
       })
       .catch((error) => {
         setSubmitting(false);

@@ -1,4 +1,5 @@
 export enum Severity {
+    Info = "info",
     Critical = "critical",
     Warning = "warning"
 }
