@@ -55,7 +55,7 @@ type AuctionStatus =
   | "Scheduled"
   | "Ongoing"
   | "Successful"
-  | "Failed";
+  | "Unsuccessful";
 
 type BidStatus =
   | "Not bid (ended)"
