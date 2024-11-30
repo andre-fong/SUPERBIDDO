@@ -25,7 +25,11 @@ type AuctionInput = {
 
 type Auction = {
   auctionId: string;
-  auctioneer: Account;
+  auctioneer: Account & {
+    addressFormatted?: string;
+    latitude?: number;
+    longitude?: number;
+  };
   name: string;
   description?: string;
   startPrice: number;

@@ -7,7 +7,7 @@ import {
   postAuctionNotification,
   notificationMiddleware,
   deleteAuctionNotification,
-  patchAuctionNotification
+  patchAuctionNotification,
 } from "../middlewares/notifications.js";
 import { getPriceRangeBounds } from "../utils/recommendations/userActions.js";
 import { deleteImage, preserveImage } from "./images.js";
@@ -253,6 +253,9 @@ router.get("/", async (req, res) => {
       auctioneerId: string;
       auctioneerUsername: string;
       auctioneerEmail: string;
+      auctioneerAddressFormatted?: string;
+      auctioneerLatitude?: number;
+      auctioneerLongitude?: number;
       name: string;
       description: string;
       startPrice: string;
@@ -340,6 +343,9 @@ router.get("/", async (req, res) => {
               BidDb & {
                 auctioneer_username: string;
                 auctioneer_email: string;
+                auctioneer_address_formatted?: string;
+                auctioneer_latitude?: number;
+                auctioneer_longitude?: number;
               } & {
                 bidder_username: string;
                 bidder_email: string;
@@ -360,7 +366,11 @@ router.get("/", async (req, res) => {
             filled_auctions AS (
               SELECT auction.auction_id, account.account_id as auctioneer_id, 
               account.username as auctioneer_username, 
-              account.email as auctioneer_email, auction.name, auction.description,
+              account.email as auctioneer_email, 
+              account.address_formatted as auctioneer_address_formatted,
+              account.latitude as auctioneer_latitude,
+              account.longitude as auctioneer_longitude,
+              auction.name, auction.description,
               auction.start_price, auction.spread, auction.start_time, 
               auction.end_time
               FROM auction
@@ -439,6 +449,9 @@ router.get("/", async (req, res) => {
             accountId: auctionRecord.auctioneerId,
             username: auctionRecord.auctioneerUsername,
             email: auctionRecord.auctioneerEmail,
+            addressFormatted: auctionRecord.auctioneerAddressFormatted,
+            latitude: auctionRecord.auctioneerLatitude,
+            longitude: auctionRecord.auctioneerLongitude,
           },
           name: auctionRecord.name,
           description: auctionRecord.description,
@@ -686,7 +699,13 @@ router.get("/", async (req, res) => {
   const auctionRecords = camelize(
     await pool.query<
       AuctionDb &
-        BidDb & { auctioneer_username: string; auctioneer_email: string } & {
+        BidDb & {
+          auctioneer_username: string;
+          auctioneer_email: string;
+          auctioneer_address_formatted?: string;
+          auctioneer_latitude?: number;
+          auctioneer_longitude?: number;
+        } & {
           bidder_username: string;
           bidder_email: string;
         } & {
@@ -706,7 +725,11 @@ router.get("/", async (req, res) => {
         filled_auctions AS (
           SELECT auction.auction_id, account.account_id as auctioneer_id, 
           account.username as auctioneer_username, 
-          account.email as auctioneer_email, auction.name, auction.description,
+          account.email as auctioneer_email, 
+          account.address_formatted as auctioneer_address_formatted,
+          account.latitude as auctioneer_latitude,
+          account.longitude as auctioneer_longitude,
+          auction.name, auction.description,
           auction.start_price, auction.spread, auction.start_time, 
           auction.end_time
           FROM auction
@@ -785,6 +808,9 @@ router.get("/", async (req, res) => {
           accountId: auctionRecord.auctioneerId,
           username: auctionRecord.auctioneerUsername,
           email: auctionRecord.auctioneerEmail,
+          addressFormatted: auctionRecord.auctioneerAddressFormatted,
+          latitude: auctionRecord.auctioneerLatitude,
+          longitude: auctionRecord.auctioneerLongitude,
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
@@ -842,6 +868,9 @@ router.get("/", async (req, res) => {
         accountId: auctionRecord.auctioneerId,
         username: auctionRecord.auctioneerUsername,
         email: auctionRecord.auctioneerEmail,
+        addressFormatted: auctionRecord.auctioneerAddressFormatted,
+        latitude: auctionRecord.auctioneerLatitude,
+        longitude: auctionRecord.auctioneerLongitude,
       },
       name: auctionRecord.name,
       description: auctionRecord.description,
@@ -958,7 +987,13 @@ router.get("/:auctionId", async (req, res) => {
   const auctionRecord = camelize(
     await pool.query<
       AuctionDb &
-        BidDb & { auctioneer_username: string; auctioneer_email: string } & {
+        BidDb & {
+          auctioneer_username: string;
+          auctioneer_email: string;
+          auctioneer_address_formatted?: string;
+          auctioneer_latitude?: number;
+          auctioneer_longitude?: number;
+        } & {
           bidder_username: string;
           bidder_email: string;
         } & {
@@ -979,7 +1014,11 @@ router.get("/:auctionId", async (req, res) => {
         filled_auction AS (
           SELECT auction.auction_id, account.account_id as auctioneer_id, 
           account.username as auctioneer_username, 
-          account.email as auctioneer_email, auction.name, auction.description,
+          account.email as auctioneer_email, 
+          account.address_formatted as auctioneer_address_formatted,
+          account.latitude as auctioneer_latitude,
+          account.longitude as auctioneer_longitude,
+          auction.name, auction.description,
           auction.start_price, auction.spread, auction.start_time, 
           auction.end_time
           FROM auction
@@ -1049,6 +1088,9 @@ router.get("/:auctionId", async (req, res) => {
         accountId: auctionRecord.auctioneerId,
         username: auctionRecord.auctioneerUsername,
         email: auctionRecord.auctioneerEmail,
+        addressFormatted: auctionRecord.auctioneerAddressFormatted,
+        latitude: auctionRecord.auctioneerLatitude,
+        longitude: auctionRecord.auctioneerLongitude,
       },
       name: auctionRecord.name,
       description: auctionRecord.description,
@@ -1131,6 +1173,9 @@ router.get("/:auctionId", async (req, res) => {
       accountId: auctionRecord.auctioneerId,
       username: auctionRecord.auctioneerUsername,
       email: auctionRecord.auctioneerEmail,
+      addressFormatted: auctionRecord.auctioneerAddressFormatted,
+      latitude: auctionRecord.auctioneerLatitude,
+      longitude: auctionRecord.auctioneerLongitude,
     },
     name: auctionRecord.name,
     description: auctionRecord.description,
@@ -1173,492 +1218,516 @@ router.get("/:auctionId", async (req, res) => {
   res.json(auction);
 });
 
-router.patch("/:auctionId", notificationMiddleware(patchAuctionNotification) ,async (req, res) => {
-  const auctionId = req.params.auctionId;
+router.patch(
+  "/:auctionId",
+  notificationMiddleware(patchAuctionNotification),
+  async (req, res) => {
+    const auctionId = req.params.auctionId;
 
-  const auctionRecord = camelize(
-    await pool.query<AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }>(
-      ` WITH cards_agg AS (
-          SELECT auction_id, JSON_AGG(card.*) as cards
-          FROM card
-          GROUP BY auction_id
-        ),
-        bundle_agg AS (
-          SELECT auction_id, JSON_AGG(bundle.*) as bundle
-          FROM bundle
-          GROUP BY auction_id
+    const auctionRecord = camelize(
+      await pool.query<
+        AuctionDb & { cards?: CardDb<Game>[]; bundle?: BundleDb }
+      >(
+        ` WITH cards_agg AS (
+            SELECT auction_id, JSON_AGG(card.*) as cards
+            FROM card 
+            GROUP BY auction_id
+          ),
+          bundle_agg AS (
+            SELECT auction_id, JSON_AGG(bundle.*) as bundle
+            FROM bundle
+            GROUP BY auction_id
+          )
+          SELECT *
+          FROM auction
+          LEFT JOIN cards_agg USING (auction_id)
+          LEFT JOIN bundle_agg USING (auction_id)
+          WHERE auction_id = $1`,
+        [auctionId]
+      )
+    ).rows[0];
+
+    if (!auctionRecord) {
+      throw new BusinessError(404, "Auction not found");
+    }
+
+    if (
+      !req.session.accountId ||
+      auctionRecord.auctioneerId !== req.session.accountId
+    ) {
+      throw unauthorized();
+    }
+
+    if (
+      auctionRecord.startTime &&
+      new Date(auctionRecord.startTime).getTime() < Date.now()
+    ) {
+      throw new BusinessError(
+        409,
+        "Cannot modify auction",
+        "Auction has already started"
+      );
+    }
+
+    const newAuctionDetails = {
+      auctionId: auctionId,
+      name: req.body.name || auctionRecord.name,
+      description: req.body.description || auctionRecord.description,
+      startPrice:
+        req.body.startPrice !== undefined
+          ? req.body.startPrice
+          : auctionRecord.startPrice,
+      spread: req.body.spread || auctionRecord.spread,
+      startTime:
+        req.body.startTime !== undefined
+          ? req.body.startTime
+          : auctionRecord.startTime,
+      endTime:
+        req.body.endTime !== undefined
+          ? req.body.endTime
+          : auctionRecord.endTime,
+    };
+
+    const newCardDetails = auctionRecord.cards
+      ? {
+          cardId: auctionRecord.cards[0].cardId,
+          cardName: req.body.cardName || auctionRecord.cards[0].name,
+          cardDescription:
+            req.body.cardDescription || auctionRecord.cards[0].description,
+          cardManufacturer:
+            req.body.cardManufacturer || auctionRecord.cards[0].manufacturer,
+          cardQualityUngraded:
+            req.body.cardQualityUngraded || req.body.cardQualityPsa
+              ? req.body.cardQualityUngraded
+              : auctionRecord.cards[0].qualityUngraded,
+          cardQualityPsa:
+            req.body.cardQualityPsa || req.body.cardQualityUngraded
+              ? req.body.cardQualityPsa
+              : auctionRecord.cards[0].qualityPsa,
+          cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
+          cardSet: req.body.cardSet || auctionRecord.cards[0].set,
+          cardIsFoil:
+            req.body.cardIsFoil !== undefined
+              ? req.body.cardIsFoil
+              : auctionRecord.cards[0].isFoil,
+          cardGame: req.body.cardGame || auctionRecord.cards[0].game,
+        }
+      : null;
+
+    const newBundleDetails = auctionRecord.bundle
+      ? {
+          bundleId: auctionRecord.bundle[0].bundleId,
+          bundleName: req.body.bundleName || auctionRecord.bundle[0].name,
+          bundleDescription:
+            req.body.bundleDescription || auctionRecord.bundle[0].description,
+          bundleManufacturer:
+            req.body.bundleManufacturer || auctionRecord.bundle[0].manufacturer,
+          bundleSet: req.body.bundleSet || auctionRecord.bundle[0].set,
+          bundleGame: req.body.bundleGame || auctionRecord.bundle[0].game,
+        }
+      : null;
+
+    if (
+      newAuctionDetails.startTime &&
+      new Date(newAuctionDetails.startTime).getTime() < Date.now()
+    ) {
+      throw new BusinessError(
+        409,
+        "Invalid auction start time",
+        "Auction must start in the future"
+      );
+    }
+
+    if (
+      (newAuctionDetails.startTime && !newAuctionDetails.endTime) ||
+      (!newAuctionDetails.startTime && newAuctionDetails.endTime)
+    ) {
+      throw new BusinessError(
+        400,
+        "Invalid auction start/end time",
+        "Start and end time must both be provided or both be null"
+      );
+    }
+
+    if (
+      newAuctionDetails.startTime &&
+      newAuctionDetails.endTime &&
+      new Date(newAuctionDetails.endTime).getTime() -
+        new Date(newAuctionDetails.startTime).getTime() <
+        5 * 60 * 1000
+    ) {
+      throw new BusinessError(
+        400,
+        "Invalid auction start/end time",
+        "Auction must last at least 5 minutes"
+      );
+    }
+
+    if (
+      newCardDetails &&
+      newCardDetails.cardQualityPsa &&
+      newCardDetails.cardQualityUngraded
+    ) {
+      throw new BusinessError(
+        400,
+        "Invalid card quality",
+        "Cannot have both ungraded and PSA quality"
+      );
+    }
+
+    switch (newCardDetails && newCardDetails.cardGame) {
+      case "MTG": {
+        const rarities = [
+          "Common",
+          "Uncommon",
+          "Rare",
+          "Mythic Rare",
+          "Special / Bonus Cards",
+          "Basic Land",
+          "Masterpiece Series",
+          "Promos",
+          "Extended Art",
+          "Borderless",
+        ];
+        if (!rarities.includes(newCardDetails.cardRarity)) {
+          throw new BusinessError(
+            400,
+            "Invalid card rarity",
+            "Invalid rarity for MTG card"
+          );
+        }
+        break;
+      }
+      case "Pokemon": {
+        const rarities = [
+          "Common",
+          "Uncommon",
+          "Rare",
+          "Holo Rare",
+          "Reverse Holo",
+          "Rare Holo V",
+          "Ultra Rare",
+          "Full Art",
+          "Secret Rare",
+          "Amazing Rare",
+          "Rainbow Rare",
+          "Gold Secret Rare",
+          "Promos",
+          "Radiant Collection",
+        ];
+        if (!rarities.includes(newCardDetails.cardRarity)) {
+          throw new BusinessError(
+            400,
+            "Invalid card rarity",
+            "Invalid rarity for Pokemon card"
+          );
+        }
+        break;
+      }
+      case "Yugioh": {
+        const rarities = [
+          "Common",
+          "Rare",
+          "Super Rare",
+          "Ultra Rare",
+          "Secret Rare",
+          "Ultimate Rare",
+          "Ghost Rare",
+          "Starlight Rare",
+          "Collector's Rare",
+          "Prismatic Secret Rare",
+          "Parallel Rare",
+          "Platinum Rare",
+        ];
+        if (!rarities.includes(newCardDetails.cardRarity)) {
+          throw new BusinessError(
+            400,
+            "Invalid card rarity",
+            "Invalid rarity for Yugioh card"
+          );
+        }
+        break;
+      }
+    }
+
+    // if one quality is provided, set the other to null
+    if (newCardDetails && newCardDetails.cardQualityPsa) {
+      newCardDetails.cardQualityUngraded = null;
+    }
+
+    if (newCardDetails && newCardDetails.cardQualityUngraded) {
+      newCardDetails.cardQualityPsa = null;
+    }
+
+    const auctioneerRecord = camelize(
+      await pool.query<AccountDb>(
+        ` SELECT *
+          FROM account
+          WHERE account_id = $1`,
+        [req.session.accountId]
+      )
+    ).rows[0];
+
+    const auctioneer: Account & {
+      addressFormatted: string;
+      latitude: number;
+      longitude: number;
+    } = {
+      accountId: auctioneerRecord.accountId,
+      username: auctioneerRecord.username,
+      email: auctioneerRecord.email,
+      addressFormatted: auctioneerRecord.addressFormatted,
+      latitude: auctioneerRecord.latitude,
+      longitude: auctioneerRecord.longitude,
+    };
+
+    await pool.query(`BEGIN`);
+
+    const updatedAuctionRecord = camelize(
+      await pool.query<AuctionDb>(
+        ` UPDATE auction
+          SET name = $1, description = $2, start_price = $3, spread = $4, start_time = $5, end_time = $6
+          WHERE auction_id = $7
+          RETURNING *`,
+        [
+          newAuctionDetails.name,
+          newAuctionDetails.description,
+          newAuctionDetails.startPrice,
+          newAuctionDetails.spread,
+          newAuctionDetails.startTime,
+          newAuctionDetails.endTime,
+          auctionId,
+        ]
+      )
+    ).rows[0];
+
+    if (!updatedAuctionRecord) {
+      await pool.query(`ROLLBACK`);
+      throw new ServerError(500, "Error updating auction");
+    }
+
+    if (newCardDetails) {
+      const updatedCardRecord = camelize(
+        await pool.query<CardDb<Game>>(
+          ` UPDATE card
+            SET name = $1, description = $2, manufacturer = $3, quality_ungraded = $4, quality_psa = $5, rarity = $6, set = $7, is_foil = $8, game = $9
+            WHERE card_id = $10
+            RETURNING *`,
+          [
+            newCardDetails.cardName,
+            newCardDetails.cardDescription,
+            newCardDetails.cardManufacturer,
+            newCardDetails.cardQualityUngraded,
+            newCardDetails.cardQualityPsa,
+            newCardDetails.cardRarity,
+            newCardDetails.cardSet,
+            newCardDetails.cardIsFoil,
+            newCardDetails.cardGame,
+            newCardDetails.cardId,
+          ]
         )
-        SELECT *
-        FROM auction
-        LEFT JOIN cards_agg USING (auction_id)
-        LEFT JOIN bundle_agg USING (auction_id)
-        WHERE auction_id = $1`,
-      [auctionId]
-    )
-  ).rows[0];
+      ).rows[0];
 
-  if (!auctionRecord) {
-    throw new BusinessError(404, "Auction not found");
-  }
-
-
-  if (
-    !req.session.accountId ||
-    auctionRecord.auctioneerId !== req.session.accountId
-  ) {
-    throw unauthorized();
-  }
-
-  if (
-    auctionRecord.startTime &&
-    new Date(auctionRecord.startTime).getTime() < Date.now()
-  ) {
-    throw new BusinessError(
-      409,
-      "Cannot modify auction",
-      "Auction has already started"
-    );
-  }
-
-  const newAuctionDetails = {
-    auctionId: auctionId,
-    name: req.body.name || auctionRecord.name,
-    description: req.body.description || auctionRecord.description,
-    startPrice:
-      req.body.startPrice !== undefined
-        ? req.body.startPrice
-        : auctionRecord.startPrice,
-    spread: req.body.spread || auctionRecord.spread,
-    startTime:
-      req.body.startTime !== undefined
-        ? req.body.startTime
-        : auctionRecord.startTime,
-    endTime:
-      req.body.endTime !== undefined ? req.body.endTime : auctionRecord.endTime,
-  };
-
-  const newCardDetails = auctionRecord.cards
-    ? {
-        cardId: auctionRecord.cards[0].cardId,
-        cardName: req.body.cardName || auctionRecord.cards[0].name,
-        cardDescription:
-          req.body.cardDescription || auctionRecord.cards[0].description,
-        cardManufacturer:
-          req.body.cardManufacturer || auctionRecord.cards[0].manufacturer,
-        cardQualityUngraded:
-          req.body.cardQualityUngraded || req.body.cardQualityPsa
-            ? req.body.cardQualityUngraded
-            : auctionRecord.cards[0].qualityUngraded,
-        cardQualityPsa:
-          req.body.cardQualityPsa || req.body.cardQualityUngraded
-            ? req.body.cardQualityPsa
-            : auctionRecord.cards[0].qualityPsa,
-        cardRarity: req.body.cardRarity || auctionRecord.cards[0].rarity,
-        cardSet: req.body.cardSet || auctionRecord.cards[0].set,
-        cardIsFoil:
-          req.body.cardIsFoil !== undefined
-            ? req.body.cardIsFoil
-            : auctionRecord.cards[0].isFoil,
-        cardGame: req.body.cardGame || auctionRecord.cards[0].game,
+      if (!updatedCardRecord) {
+        await pool.query(`ROLLBACK`);
+        throw new ServerError(500, "Error updating card");
       }
-    : null;
 
-  const newBundleDetails = auctionRecord.bundle
-    ? {
-        bundleId: auctionRecord.bundle[0].bundleId,
-        bundleName: req.body.bundleName || auctionRecord.bundle[0].name,
-        bundleDescription:
-          req.body.bundleDescription || auctionRecord.bundle[0].description,
-        bundleManufacturer:
-          req.body.bundleManufacturer || auctionRecord.bundle[0].manufacturer,
-        bundleSet: req.body.bundleSet || auctionRecord.bundle[0].set,
-        bundleGame: req.body.bundleGame || auctionRecord.bundle[0].game,
-      }
-    : null;
+      await pool.query(`COMMIT`);
 
-  if (
-    newAuctionDetails.startTime &&
-    new Date(newAuctionDetails.startTime).getTime() < Date.now()
-  ) {
-    throw new BusinessError(
-      409,
-      "Invalid auction start time",
-      "Auction must start in the future"
-    );
-  }
-
-  if (
-    (newAuctionDetails.startTime && !newAuctionDetails.endTime) ||
-    (!newAuctionDetails.startTime && newAuctionDetails.endTime)
-  ) {
-    throw new BusinessError(
-      400,
-      "Invalid auction start/end time",
-      "Start and end time must both be provided or both be null"
-    );
-  }
-
-  if (
-    newAuctionDetails.startTime &&
-    newAuctionDetails.endTime &&
-    new Date(newAuctionDetails.endTime).getTime() -
-      new Date(newAuctionDetails.startTime).getTime() <
-      5 * 60 * 1000
-  ) {
-    throw new BusinessError(
-      400,
-      "Invalid auction start/end time",
-      "Auction must last at least 5 minutes"
-    );
-  }
-
-  if (
-    newCardDetails &&
-    newCardDetails.cardQualityPsa &&
-    newCardDetails.cardQualityUngraded
-  ) {
-    throw new BusinessError(
-      400,
-      "Invalid card quality",
-      "Cannot have both ungraded and PSA quality"
-    );
-  }
-
-  switch (newCardDetails && newCardDetails.cardGame) {
-    case "MTG": {
-      const rarities = [
-        "Common",
-        "Uncommon",
-        "Rare",
-        "Mythic Rare",
-        "Special / Bonus Cards",
-        "Basic Land",
-        "Masterpiece Series",
-        "Promos",
-        "Extended Art",
-        "Borderless",
-      ];
-      if (!rarities.includes(newCardDetails.cardRarity)) {
-        throw new BusinessError(
-          400,
-          "Invalid card rarity",
-          "Invalid rarity for MTG card"
-        );
-      }
-      break;
-    }
-    case "Pokemon": {
-      const rarities = [
-        "Common",
-        "Uncommon",
-        "Rare",
-        "Holo Rare",
-        "Reverse Holo",
-        "Rare Holo V",
-        "Ultra Rare",
-        "Full Art",
-        "Secret Rare",
-        "Amazing Rare",
-        "Rainbow Rare",
-        "Gold Secret Rare",
-        "Promos",
-        "Radiant Collection",
-      ];
-      if (!rarities.includes(newCardDetails.cardRarity)) {
-        throw new BusinessError(
-          400,
-          "Invalid card rarity",
-          "Invalid rarity for Pokemon card"
-        );
-      }
-      break;
-    }
-    case "Yugioh": {
-      const rarities = [
-        "Common",
-        "Rare",
-        "Super Rare",
-        "Ultra Rare",
-        "Secret Rare",
-        "Ultimate Rare",
-        "Ghost Rare",
-        "Starlight Rare",
-        "Collector's Rare",
-        "Prismatic Secret Rare",
-        "Parallel Rare",
-        "Platinum Rare",
-      ];
-      if (!rarities.includes(newCardDetails.cardRarity)) {
-        throw new BusinessError(
-          400,
-          "Invalid card rarity",
-          "Invalid rarity for Yugioh card"
-        );
-      }
-      break;
-    }
-  }
-
-  // if one quality is provided, set the other to null
-  if (newCardDetails && newCardDetails.cardQualityPsa) {
-    newCardDetails.cardQualityUngraded = null;
-  }
-
-  if (newCardDetails && newCardDetails.cardQualityUngraded) {
-    newCardDetails.cardQualityPsa = null;
-  }
-
-  const auctioneerRecord = camelize(
-    await pool.query<AccountDb>(
-      ` SELECT *
-        FROM account
-        WHERE account_id = $1`,
-      [req.session.accountId]
-    )
-  ).rows[0];
-
-  const auctioneer: Account = {
-    accountId: auctioneerRecord.accountId,
-    username: auctioneerRecord.username,
-    email: auctioneerRecord.email,
-  };
-
-  await pool.query(`BEGIN`);
-
-  const updatedAuctionRecord = camelize(
-    await pool.query<AuctionDb>(
-      ` UPDATE auction
-        SET name = $1, description = $2, start_price = $3, spread = $4, start_time = $5, end_time = $6
-        WHERE auction_id = $7
-        RETURNING *`,
-      [
-        newAuctionDetails.name,
-        newAuctionDetails.description,
-        newAuctionDetails.startPrice,
-        newAuctionDetails.spread,
-        newAuctionDetails.startTime,
-        newAuctionDetails.endTime,
-        auctionId,
-      ]
-    )
-  ).rows[0];
-
-  if (!updatedAuctionRecord) {
-    await pool.query(`ROLLBACK`);
-    throw new ServerError(500, "Error updating auction");
-  }
-
-  if (newCardDetails) {
-    const updatedCardRecord = camelize(
-      await pool.query<CardDb<Game>>(
-        ` UPDATE card
-          SET name = $1, description = $2, manufacturer = $3, quality_ungraded = $4, quality_psa = $5, rarity = $6, set = $7, is_foil = $8, game = $9
-          WHERE card_id = $10
-          RETURNING *`,
-        [
-          newCardDetails.cardName,
-          newCardDetails.cardDescription,
-          newCardDetails.cardManufacturer,
-          newCardDetails.cardQualityUngraded,
-          newCardDetails.cardQualityPsa,
-          newCardDetails.cardRarity,
-          newCardDetails.cardSet,
-          newCardDetails.cardIsFoil,
-          newCardDetails.cardGame,
-          newCardDetails.cardId,
-        ]
-      )
-    ).rows[0];
-
-    if (!updatedCardRecord) {
-      await pool.query(`ROLLBACK`);
-      throw new ServerError(500, "Error updating card");
-    }
-
-    await pool.query(`COMMIT`);
-
-    const auction: Auction = {
-      auctionId: updatedAuctionRecord.auctionId,
-      auctioneer: {
-        accountId: auctioneer.accountId,
-        username: auctioneer.username,
-        email: auctioneer.email,
-      },
-      name: updatedAuctionRecord.name,
-      description: updatedAuctionRecord.description,
-      startPrice: parseFloat(updatedAuctionRecord.startPrice),
-      spread: parseFloat(updatedAuctionRecord.spread),
-      minNewBidPrice:
-        parseFloat(updatedAuctionRecord.startPrice) +
-        parseFloat(updatedAuctionRecord.spread),
-      startTime: updatedAuctionRecord.startTime,
-      endTime: updatedAuctionRecord.endTime,
-      topBid: null,
-      numBids: 0,
-      auctionStatus: updatedAuctionRecord.startTime
-        ? "Scheduled"
-        : "Not scheduled",
-      cards: [
-        {
-          cardId: updatedCardRecord.cardId,
-          game: updatedCardRecord.game,
-          name: updatedCardRecord.name,
-          description: updatedCardRecord.description,
-          manufacturer: updatedCardRecord.manufacturer,
-          ...(updatedCardRecord.qualityUngraded
-            ? { qualityUngraded: updatedCardRecord.qualityUngraded }
-            : {
-                qualityPsa: parseInt(
-                  updatedCardRecord.qualityPsa
-                ) as QualityPsa,
-              }),
-          rarity: updatedCardRecord.rarity,
-          set: updatedCardRecord.set,
-          isFoil: updatedCardRecord.isFoil,
-          imageUrl: updatedCardRecord.imageUrl,
+      const auction: Auction = {
+        auctionId: updatedAuctionRecord.auctionId,
+        auctioneer: {
+          accountId: auctioneer.accountId,
+          username: auctioneer.username,
+          email: auctioneer.email,
+          addressFormatted: auctioneer.addressFormatted,
+          latitude: auctioneer.latitude,
+          longitude: auctioneer.longitude,
         },
-      ],
-    };
+        name: updatedAuctionRecord.name,
+        description: updatedAuctionRecord.description,
+        startPrice: parseFloat(updatedAuctionRecord.startPrice),
+        spread: parseFloat(updatedAuctionRecord.spread),
+        minNewBidPrice:
+          parseFloat(updatedAuctionRecord.startPrice) +
+          parseFloat(updatedAuctionRecord.spread),
+        startTime: updatedAuctionRecord.startTime,
+        endTime: updatedAuctionRecord.endTime,
+        topBid: null,
+        numBids: 0,
+        auctionStatus: updatedAuctionRecord.startTime
+          ? "Scheduled"
+          : "Not scheduled",
+        cards: [
+          {
+            cardId: updatedCardRecord.cardId,
+            game: updatedCardRecord.game,
+            name: updatedCardRecord.name,
+            description: updatedCardRecord.description,
+            manufacturer: updatedCardRecord.manufacturer,
+            ...(updatedCardRecord.qualityUngraded
+              ? { qualityUngraded: updatedCardRecord.qualityUngraded }
+              : {
+                  qualityPsa: parseInt(
+                    updatedCardRecord.qualityPsa
+                  ) as QualityPsa,
+                }),
+            rarity: updatedCardRecord.rarity,
+            set: updatedCardRecord.set,
+            isFoil: updatedCardRecord.isFoil,
+            imageUrl: updatedCardRecord.imageUrl,
+          },
+        ],
+      };
 
-    res.json(auction);
+      res.json(auction);
+    }
+
+    if (newBundleDetails) {
+      const updatedBundleRecord = camelize(
+        await pool.query<BundleDb>(
+          ` UPDATE bundle
+            SET name = $1, description = $2, manufacturer = $3, set = $4, game = $5
+            WHERE bundle_id = $6
+            RETURNING *`,
+          [
+            newBundleDetails.bundleName,
+            newBundleDetails.bundleDescription,
+            newBundleDetails.bundleManufacturer,
+            newBundleDetails.bundleSet,
+            newBundleDetails.bundleGame,
+            newBundleDetails.bundleId,
+          ]
+        )
+      ).rows[0];
+
+      if (!updatedBundleRecord) {
+        await pool.query(`ROLLBACK`);
+        throw new ServerError(500, "Error updating bundle");
+      }
+
+      await pool.query(`COMMIT`);
+
+      const auction: Auction = {
+        auctionId: updatedAuctionRecord.auctionId,
+        auctioneer: {
+          accountId: auctioneer.accountId,
+          username: auctioneer.username,
+          email: auctioneer.email,
+          addressFormatted: auctioneer.addressFormatted,
+          latitude: auctioneer.latitude,
+          longitude: auctioneer.longitude,
+        },
+        name: updatedAuctionRecord.name,
+        description: updatedAuctionRecord.description,
+        startPrice: parseFloat(updatedAuctionRecord.startPrice),
+        spread: parseFloat(updatedAuctionRecord.spread),
+        minNewBidPrice:
+          parseFloat(updatedAuctionRecord.startPrice) +
+          parseFloat(updatedAuctionRecord.spread),
+        startTime: updatedAuctionRecord.startTime,
+        endTime: updatedAuctionRecord.endTime,
+        topBid: null,
+        numBids: 0,
+        auctionStatus: updatedAuctionRecord.startTime
+          ? "Scheduled"
+          : "Not scheduled",
+        bundle: {
+          bundleId: updatedBundleRecord.bundleId,
+          game: updatedBundleRecord.game,
+          name: updatedBundleRecord.name,
+          description: updatedBundleRecord.description,
+          manufacturer: updatedBundleRecord.manufacturer,
+          set: updatedBundleRecord.set,
+          imageUrl: updatedBundleRecord.imageUrl,
+        },
+      };
+
+      res.json(auction);
+    }
   }
+);
 
-  if (newBundleDetails) {
-    const updatedBundleRecord = camelize(
-      await pool.query<BundleDb>(
-        ` UPDATE bundle
-          SET name = $1, description = $2, manufacturer = $3, set = $4, game = $5
-          WHERE bundle_id = $6
-          RETURNING *`,
-        [
-          newBundleDetails.bundleName,
-          newBundleDetails.bundleDescription,
-          newBundleDetails.bundleManufacturer,
-          newBundleDetails.bundleSet,
-          newBundleDetails.bundleGame,
-          newBundleDetails.bundleId,
-        ]
+router.delete(
+  "/:auctionId",
+  notificationMiddleware(deleteAuctionNotification),
+  async (req, res) => {
+    const auctionId = req.params.auctionId;
+    const auctionRecord = camelize(
+      await pool.query<AuctionDb>(
+        ` SELECT *
+          FROM auction
+          WHERE auction_id = $1`,
+        [auctionId]
       )
     ).rows[0];
 
-    if (!updatedBundleRecord) {
-      await pool.query(`ROLLBACK`);
-      throw new ServerError(500, "Error updating bundle");
+    if (!auctionRecord) {
+      throw new BusinessError(404, "Auction not found");
     }
 
-    await pool.query(`COMMIT`);
+    if (
+      !req.session.accountId ||
+      auctionRecord.auctioneerId !== req.session.accountId
+    ) {
+      throw unauthorized();
+    }
 
-    const auction: Auction = {
-      auctionId: updatedAuctionRecord.auctionId,
-      auctioneer: {
-        accountId: auctioneer.accountId,
-        username: auctioneer.username,
-        email: auctioneer.email,
-      },
-      name: updatedAuctionRecord.name,
-      description: updatedAuctionRecord.description,
-      startPrice: parseFloat(updatedAuctionRecord.startPrice),
-      spread: parseFloat(updatedAuctionRecord.spread),
-      minNewBidPrice:
-        parseFloat(updatedAuctionRecord.startPrice) +
-        parseFloat(updatedAuctionRecord.spread),
-      startTime: updatedAuctionRecord.startTime,
-      endTime: updatedAuctionRecord.endTime,
-      topBid: null,
-      numBids: 0,
-      auctionStatus: updatedAuctionRecord.startTime
-        ? "Scheduled"
-        : "Not scheduled",
-      bundle: {
-        bundleId: updatedBundleRecord.bundleId,
-        game: updatedBundleRecord.game,
-        name: updatedBundleRecord.name,
-        description: updatedBundleRecord.description,
-        manufacturer: updatedBundleRecord.manufacturer,
-        set: updatedBundleRecord.set,
-        imageUrl: updatedBundleRecord.imageUrl,
-      },
-    };
+    if (
+      auctionRecord.startTime &&
+      new Date(auctionRecord.startTime).getTime() < Date.now()
+    ) {
+      throw new BusinessError(
+        409,
+        "Cannot delete auction",
+        "Auction has already started"
+      );
+    }
 
-    res.json(auction);
+    const imageUrl = camelize(
+      await pool.query<{ image_url: string }>(
+        ` SELECT image_url
+          FROM bundle
+          WHERE auction_id = $1
+          UNION
+          SELECT image_url
+          FROM card
+          WHERE auction_id = $1`,
+        [auctionId]
+      )
+    ).rows[0].imageUrl;
+
+    if (!imageUrl) {
+      throw new ServerError(500, "Error deleting auction");
+    }
+
+    // only need to delete from auction table - cascade will delete from cards/bundle
+    const deletedAuctionRecord = camelize(
+      await pool.query<AuctionDb>(
+        ` DELETE FROM auction
+          WHERE auction_id = $1
+          RETURNING *`,
+        [auctionId]
+      )
+    ).rows[0];
+
+    if (!deletedAuctionRecord) {
+      throw new ServerError(500, "Error deleting auction");
+    }
+
+    // will throw error if gcs error
+    try {
+      await deleteImage(imageUrl, req.session.accountId);
+    } catch (err) {
+      console.log(err);
+      // auction was deleted, but there may be an orphaned image in gcs
+      // throw new ServerError(500, "Error deleting auction");
+    }
+
+    res.sendStatus(204);
   }
-});
-
-router.delete("/:auctionId", notificationMiddleware(deleteAuctionNotification), async (req, res) => {
-  const auctionId = req.params.auctionId;
-  const auctionRecord = camelize(
-    await pool.query<AuctionDb>(
-      ` SELECT *
-        FROM auction
-        WHERE auction_id = $1`,
-      [auctionId]
-    )
-  ).rows[0];
-
-  if (!auctionRecord) {
-    throw new BusinessError(404, "Auction not found");
-  }
-
-  if (
-    !req.session.accountId ||
-    auctionRecord.auctioneerId !== req.session.accountId
-  ) {
-    throw unauthorized();
-  }
-
-  if (
-    auctionRecord.startTime &&
-    new Date(auctionRecord.startTime).getTime() < Date.now()
-  ) {
-    throw new BusinessError(
-      409,
-      "Cannot delete auction",
-      "Auction has already started"
-    );
-  }
-
-  const imageUrl = camelize(
-    await pool.query<{ image_url: string }>(
-      ` SELECT image_url
-        FROM bundle
-        WHERE auction_id = $1
-        UNION
-        SELECT image_url
-        FROM card
-        WHERE auction_id = $1`,
-      [auctionId]
-    )
-  ).rows[0].imageUrl;
-
-  if (!imageUrl) {
-    throw new ServerError(500, "Error deleting auction");
-  }
-
-  // only need to delete from auction table - cascade will delete from cards/bundle
-  const deletedAuctionRecord = camelize(
-    await pool.query<AuctionDb>(
-      ` DELETE FROM auction
-        WHERE auction_id = $1
-        RETURNING *`,
-      [auctionId]
-    )
-  ).rows[0];
-
-  if (!deletedAuctionRecord) {
-    throw new ServerError(500, "Error deleting auction");
-  }
-
-  // will throw error if gcs error
-  try {
-    await deleteImage(imageUrl, req.session.accountId);
-  } catch (err) {
-    console.log(err);
-    // auction was deleted, but there may be an orphaned image in gcs
-    // throw new ServerError(500, "Error deleting auction");
-  }
-
-  res.sendStatus(204);
-});
+);
 
 router.post(
   "/",
@@ -1729,9 +1798,9 @@ router.post(
 
     const auctioneerRecord = camelize(
       await pool.query<AccountDb>(
-        ` SELECT username, email
-        FROM account
-        WHERE account_id = $1`,
+        ` SELECT *
+          FROM account
+          WHERE account_id = $1`,
         [auctionInput.auctioneerId]
       )
     ).rows[0];
@@ -1790,6 +1859,9 @@ router.post(
           accountId: auctionRecord.auctioneerId,
           username: auctioneerRecord.username,
           email: auctioneerRecord.email,
+          addressFormatted: auctioneerRecord.addressFormatted,
+          latitude: auctioneerRecord.latitude,
+          longitude: auctioneerRecord.longitude,
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
@@ -1899,6 +1971,9 @@ router.post(
         accountId: auctionRecord.auctioneerId,
         username: auctioneerRecord.username,
         email: auctioneerRecord.email,
+        addressFormatted: auctioneerRecord.addressFormatted,
+        latitude: auctioneerRecord.latitude,
+        longitude: auctioneerRecord.longitude,
       },
       name: auctionRecord.name,
       description: auctionRecord.description,

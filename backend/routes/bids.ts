@@ -39,8 +39,8 @@ router.post(
       await pool
         .query<BidDb>(
           ` INSERT INTO bid (auction_id, bidder_id, amount)
-          VALUES ($1, $2, $3)
-          RETURNING *`,
+            VALUES ($1, $2, $3)
+            RETURNING *`,
           [auctionId, bidderId, amount]
         )
         .catch((err) => {
@@ -70,7 +70,12 @@ router.post(
     ).rows[0];
 
     const bidderRecord = camelize(
-      await pool.query<AccountDb>(
+      await pool.query<
+        Omit<
+          AccountDb,
+          "passhash" | "address_formatted" | "latitude" | "longitude"
+        >
+      >(
         ` SELECT account_id, username, email FROM account WHERE account_id = $1`,
         [bidderId]
       )
