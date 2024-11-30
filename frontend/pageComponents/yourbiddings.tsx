@@ -22,7 +22,6 @@ import { User } from "@/types/userTypes";
 import {
   BiddingStatus,
   BiddingStatusEnum,
-  Auction,
 } from "@/types/auctionTypes";
 import ListingsGallery from "@/components/listingsGallery";
 import useSelfAuctions from "@/hooks/useSelfAuctions";
@@ -53,11 +52,12 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   // Set status provided in context if exists
-  useEffect(() => {
-    if (context) {
-      setSelectedStatuses([context]);
-    }
-  }, [context]);
+  //TODO: andre fix this
+  // useEffect(() => {
+  //   if (context != "{}") {
+  //     setSelectedStatuses([context]);
+  //   }
+  // }, [context]);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);

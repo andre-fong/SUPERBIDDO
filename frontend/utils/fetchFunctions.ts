@@ -460,7 +460,6 @@ export async function fetchSelfAuctions(
           `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
       )
       .join("&");
-
     const response = await fetch(
       `${url}/auctions?${
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
