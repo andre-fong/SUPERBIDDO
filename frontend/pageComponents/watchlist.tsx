@@ -67,7 +67,6 @@ export default function WatchList({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultsPage, user]);
-
   return (
     <>
       <main className={styles.main}>
@@ -122,13 +121,14 @@ export default function WatchList({
             {!resultsLoading && results.length === 0 && (
             <div style={{ fontStyle: "italic" }}>No auctions watching</div>
             )}
-            {results?.map((auction) => (
+            {results?.map((auction: Auction) => (
             <Listing
               key={auction.auctionId}
               auction={auction}
               setCurPage={setCurPage}
               accountId={user?.accountId}
               setToast={setToast}
+              watchingSet={true}
             />
             ))}
             

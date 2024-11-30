@@ -185,6 +185,13 @@ paths:
             type: string
             format: uuid
         - in: query
+          name: includeWatchingFor
+          description: The uuid of a user. If provided, the watched status of the user will be included in the response for each auction. Must match signed in user id.
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
           name: watchedBy
           description: The uuid of a user. If provided, only auctions that this user is watching will be returned. Must match signed in user id.
           required: false
@@ -486,6 +493,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: includeWatchingFor
+          in: query
+          description: The uuid of a user. If provided, the watched status of the user will be included in the response. Must match signed in user id.
+          required: false
+          schema:
+            type: string
+            format: uuid
         - name: longPollMaxBidId
           in: query
           description: The uuid of the current bid. If provided, and the current leading bid on the auction is the provided id, the request will not return immediately. Instead, it will wait until a new bid is placed on the auction.
@@ -630,6 +644,75 @@ paths:
           $ref: "#/components/responses/NotFound"
         409:
           $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/auctions/{auctionId}/watchers:
+    post:
+      summary: Add a watcher to this auction.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - watcherId
+              properties:
+                watcherId:
+                  type: string
+                  format: uuid
+      responses:
+        201:
+          description: The newly added watcher.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  watcherId:
+                    type: string
+                    format: uuid
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        409:
+          $ref: "#/components/responses/Conflict"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  /api/v1/auctions/{auctionId}/watchers/{accountId}:
+    delete:
+      summary: Remove the watcher from this auction.
+      parameters:
+        - name: auctionId
+          in: path
+          description: The uuid of an auction.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: accountId
+          in: path
+          description: The uuid of an account.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        204:
+          description: Successfully removed watcher.
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions/{auctionId}/bids:

@@ -128,4 +128,5 @@ export type AuctionSearchQuery = {
   page?: number;
   pageSize?: number;
   watchedBy?: string;
+  includeWatchingFor?: string | undefined;
 };

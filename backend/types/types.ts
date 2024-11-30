@@ -45,12 +45,18 @@ type Auction = {
   numBids: number;
   auctionStatus: AuctionStatus;
   bidStatus?: BidStatus;
+  watching?: boolean;
 } & (
   | { cards: Card<Game>[]; bundle?: never }
   | { cards?: never; bundle: Bundle }
 );
 
-type AuctionStatus = "Not scheduled" | "Scheduled" | "Ongoing" | "Ended";
+type AuctionStatus =
+  | "Not scheduled"
+  | "Scheduled"
+  | "Ongoing"
+  | "Successful"
+  | "Unsuccessful";
 
 type BidStatus =
   | "Not bid (ended)"

@@ -282,6 +282,7 @@ export default function Results({
 
     // PAGE NUMBER
     searchParams.page = page;
+    searchParams.includeWatchingFor = user?.accountId;
 
     getAuctionSearchResults(setToast, searchParams).then(
       (results) => {
@@ -1548,6 +1549,7 @@ export default function Results({
             {results?.map((auction) => (
               <Listing
                 key={auction.auctionId}
+                watchingSet={auction.watching || false}
                 auction={auction}
                 setCurPage={setCurPage}
                 accountId={user?.accountId}

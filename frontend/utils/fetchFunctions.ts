@@ -581,13 +581,13 @@ export async function addWatching(
   auctionId: string
 ) {
   try {
-    const response = await fetch(`${url}/watching`, {
+    const response = await fetch(`${url}/auctions/${auctionId}/watchers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ accountId, auctionId }),
+      body: JSON.stringify({ watcherId: accountId }),
     });
 
     if (response.ok) {
@@ -626,14 +626,16 @@ export async function removeWatching(
   auctionId: string
 ) {
   try {
-    const response = await fetch(`${url}/watching/${auctionId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ accountId }),
-    });
+    const response = await fetch(
+      `${url}/auctions/${auctionId}/watchers/${accountId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     if (response.ok) {
       return false;
@@ -669,17 +671,20 @@ export async function getWatching(
   auctionId: string
 ) {
   try {
-    const response = await fetch(`${url}/watching/${auctionId}/${accountId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${url}/auctions/${auctionId}?includeWatchingFor=${accountId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     if (response.ok) {
       const watching = await response.json();
-      return watching.length > 0;
+      return watching.watching;
     } else if (response.status === 401) {
       errorFcn({
         message: "Action requires authentication",

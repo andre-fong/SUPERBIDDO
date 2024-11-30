@@ -16,7 +16,7 @@ import { router as accountRouter } from "./routes/accounts.js";
 import { router as auctionRouter } from "./routes/auctions.js";
 import { router as bidRouter } from "./routes/bids.js";
 import { router as oauthRouter } from "./routes/oauth.js";
-import { router as watchingRouter } from "./routes/watching.js";
+import { router as watchersRouter } from "./routes/watchers.js";
 import { router as imageRouter } from "./routes/images.js";
 import { router as geminiUploadRouter } from "./routes/geminiUpload.js";
 import { Server } from "socket.io";
@@ -58,8 +58,8 @@ app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
+app.use("/api/v1/auctions/:auctionId/watchers", watchersRouter);
 app.use("/api/v1/oauth", oauthRouter);
-app.use("/api/v1/watching", watchingRouter);
 app.use("/api/v1/images", imageRouter);
 app.use("/api/v1/geminiUpload", geminiUploadRouter);
 
