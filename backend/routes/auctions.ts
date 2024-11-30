@@ -18,6 +18,7 @@ router.get("/", async (req, res) => {
   const {
     recommended,
     includeBidStatusFor,
+    includeWatchingFor,
     auctioneerId,
     watchedBy,
     name,
@@ -49,6 +50,7 @@ router.get("/", async (req, res) => {
   } = req.query as {
     recommended: string;
     includeBidStatusFor: string;
+    includeWatchingFor: string;
     auctioneerId: string;
     bidderId: string;
     watchedBy: string;
@@ -84,7 +86,7 @@ router.get("/", async (req, res) => {
     throw unauthorized();
   }
 
-  if (watchedBy && req.session.accountId !== watchedBy) {
+  if (includeWatchingFor && req.session.accountId !== includeWatchingFor) {
     throw unauthorized();
   }
 
@@ -562,6 +564,11 @@ router.get("/", async (req, res) => {
     values.push(includeBidStatusFor);
   }
 
+  const watchingCte = getWatchingCte(includeWatchingFor, values.length + 1);
+  if (includeWatchingFor) {
+    values.push(includeWatchingFor);
+  }
+
   addCondition(`auctioneer_id = ?`, auctioneerId);
   addCondition(
     `auction_id IN (SELECT auction_id FROM watch WHERE account_id = ?)`,
@@ -735,6 +742,7 @@ router.get("/", async (req, res) => {
           auction_status: AuctionStatus;
         } & {
           bid_status?: BidStatus;
+          watching?: boolean;
         }
     >(
       ` WITH bid_agg AS (
@@ -792,12 +800,14 @@ router.get("/", async (req, res) => {
           END AS auction_status
           FROM auction
         ) ${includeBidStatusFor ? `, bid_status AS (${bidStatusCte})` : ""}
+        ${includeWatchingFor ? `, watching AS (${watchingCte})` : ""}
         SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
         top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
         COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
         auction_status.auction_status,
         cards_agg.cards, bundle_agg.bundle
         ${includeBidStatusFor ? `, bid_status.bid_status` : ""}
+        ${includeWatchingFor ? `, watching.watching` : ""}
         FROM filled_auctions
         LEFT JOIN top_bids USING (auction_id)
         LEFT JOIN bid_agg USING (auction_id)
@@ -809,6 +819,7 @@ router.get("/", async (req, res) => {
         LEFT JOIN bundle_agg USING (auction_id)
         LEFT JOIN auction_status USING (auction_id)
         ${includeBidStatusFor ? `LEFT JOIN bid_status USING (auction_id)` : ""}
+        ${includeWatchingFor ? `LEFT JOIN watching USING (auction_id)` : ""}
         ${whereClause}
         ${orderBy}
         ${limit}
@@ -869,6 +880,7 @@ router.get("/", async (req, res) => {
         numBids: parseInt(auctionRecord.numBids),
         auctionStatus: auctionRecord.auctionStatus,
         ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
+        ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
         bundle: bundle,
       };
       return auction;
@@ -931,6 +943,7 @@ router.get("/", async (req, res) => {
       numBids: parseInt(auctionRecord.numBids),
       auctionStatus: auctionRecord.auctionStatus,
       ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
+      ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
       cards: cards,
     };
     return auction;
@@ -938,19 +951,26 @@ router.get("/", async (req, res) => {
 
   const totalNumAuctions = camelize(
     await pool.query<{ count: string }>(
-      ` ${
-        includeBidStatusFor ? `WITH bid_status AS (${bidStatusCte})` : ""
-      } SELECT COUNT(*) FROM
+      ` ${includeBidStatusFor ? `WITH bid_status AS (${bidStatusCte})` : ""} 
+      ${
+        includeWatchingFor && includeBidStatusFor
+          ? `, watched AS (${watchingCte})`
+          : ""
+      }  
+      ${
+        includeWatchingFor && !includeBidStatusFor
+          ? `WITH watched AS (${watchingCte})`
+          : ""
+      }
+      SELECT COUNT(*) FROM
       (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
       as count`,
       // capped at 1001 to prevent large queries
-      // if includeBidStatusFor, first value is bidder_id
-      // however, it's only included in where clause if bidStatus is present
       values.slice(
         0,
-        values.length - 2 - (name && !sortBy ? 1 : 0) // subtract 1 for sortBy unless
+        values.length - 2 - (name && !sortBy ? 1 : 0) // exclude page, and pageSize (-2).
+        // subtract 1 if name and not sortBy (ordered by name similarity by default, but no ordering here)
       )
-      // exclude page, and pageSize
     )
   ).rows[0].count;
 
@@ -964,8 +984,13 @@ router.get("/:auctionId", async (req, res) => {
   const auctionId = req.params.auctionId;
 
   const includeBidStatusFor = req.query.includeBidStatusFor as string;
+  const includeWatchingFor = req.query.includeWatchingFor as string;
 
   if (includeBidStatusFor && req.session.accountId !== includeBidStatusFor) {
+    throw unauthorized();
+  }
+
+  if (includeWatchingFor && req.session.accountId !== includeWatchingFor) {
     throw unauthorized();
   }
 
@@ -1036,6 +1061,7 @@ router.get("/:auctionId", async (req, res) => {
           auction_status: AuctionStatus;
         } & {
           bid_status?: BidStatus;
+          watching?: boolean;
         }
     >(
       ` WITH bid_agg AS (
@@ -1090,6 +1116,14 @@ router.get("/:auctionId", async (req, res) => {
         COALESCE(bid_agg.num_bids, 0) as num_bids, is_bundle.is_bundle,
         auction_status.auction_status
         ${includeBidStatusFor ? `, bid_status.bid_status` : ""}
+        ${
+          includeWatchingFor
+            ? `, 
+        auction_id IN (SELECT auction_id FROM watch WHERE account_id = $${
+          includeBidStatusFor ? 3 : 2
+        }) as watching`
+            : ""
+        }
         FROM filled_auction
         LEFT JOIN top_bid ON true
         LEFT JOIN bid_agg USING (auction_id)
@@ -1101,7 +1135,16 @@ router.get("/:auctionId", async (req, res) => {
         LEFT JOIN auction_status USING (auction_id)
         ${includeBidStatusFor ? `LEFT JOIN bid_status USING (auction_id)` : ""}
         WHERE auction_id = $1`,
-      [auctionId, ...(includeBidStatusFor ? [includeBidStatusFor] : [])]
+      [
+        auctionId,
+        ...(includeBidStatusFor
+          ? includeWatchingFor
+            ? [includeBidStatusFor, includeWatchingFor]
+            : [includeBidStatusFor]
+          : includeWatchingFor
+          ? [includeWatchingFor]
+          : []),
+      ]
     )
   ).rows[0];
 
@@ -1162,6 +1205,7 @@ router.get("/:auctionId", async (req, res) => {
       numBids: parseInt(auctionRecord.numBids),
       auctionStatus: auctionRecord.auctionStatus,
       ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
+      ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
       bundle: bundleRecord,
     };
 
@@ -1248,6 +1292,7 @@ router.get("/:auctionId", async (req, res) => {
     numBids: parseInt(auctionRecord.numBids),
     auctionStatus: auctionRecord.auctionStatus,
     ...(includeBidStatusFor ? { bidStatus: auctionRecord.bidStatus } : {}),
+    ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
     cards: cards,
   };
 
@@ -2072,4 +2117,20 @@ function getBidStatusCte(bidderId: string, valNum: number) {
           GROUP BY auction_id
         ) bid_agg USING(auction_id)
     ) bid_status`;
+}
+
+// generate CTE for watched based on account_id.
+// valNum is the parameter number which will supply the account_id
+function getWatchingCte(accountId: string, valNum: number) {
+  if (!accountId) {
+    return null;
+  }
+  return `
+    SELECT auction_id,
+    auction_id IN (
+      SELECT auction_id
+      FROM watch
+      WHERE account_id = $${valNum}
+      ) AS watching
+    FROM auction`;
 }

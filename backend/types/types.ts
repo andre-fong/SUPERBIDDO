@@ -45,6 +45,7 @@ type Auction = {
   numBids: number;
   auctionStatus: AuctionStatus;
   bidStatus?: BidStatus;
+  watching?: boolean;
 } & (
   | { cards: Card<Game>[]; bundle?: never }
   | { cards?: never; bundle: Bundle }
