@@ -129,7 +129,7 @@ export default function Listing({
 
       <button
         className={styles.title}
-        title="Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection"
+        title={auction.name}
         onClick={() =>
           setCurPage(
             "auction",
