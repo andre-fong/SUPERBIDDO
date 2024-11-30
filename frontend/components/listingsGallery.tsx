@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Grid, Card, CardMedia, Box, Typography, CardContent, Skeleton } from '@mui/material';
-import { Auction } from '@/types/auctionTypes';
+import { AuctionListings, AuctionStatus } from '@/types/auctionTypes';
 import StatusLabel from './statusLabel';
 import { styled } from "@mui/material/styles";
 import { PageName } from '@/types/pageTypes';
@@ -15,7 +15,7 @@ const CardContentNoPadding = styled(CardContent)(`
   `);
 
 interface ListingsGalleryProps {
-    auctions: Auction[];
+    auctions: AuctionListings[];
     setCurPage: (page: PageName, context?: string) => void;
     isLoaded: boolean;
 }

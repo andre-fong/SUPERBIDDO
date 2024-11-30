@@ -311,10 +311,8 @@ router.get("/", async (req, res) => {
       // add filters for ongoing auctions, game
       addCondition(
         `CASE
-          WHEN start_time IS NULL THEN 'Not scheduled'
-          WHEN start_time >= NOW() THEN 'Scheduled'
           WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
-          ELSE 'Ended'
+          ELSE 'Not ongoing'
         END = ?`,
         "Ongoing"
       );
@@ -329,9 +327,9 @@ router.get("/", async (req, res) => {
         : "";
 
       const whereClause = conditions.length
-        ? priceRangeConditions.length > 0 
-          ? ` AND ${conditions.join(" AND ")}` 
-          : ` WHERE ${conditions.join(" AND ")}` 
+        ? priceRangeConditions.length > 0
+          ? ` AND ${conditions.join(" AND ")}`
+          : ` WHERE ${conditions.join(" AND ")}`
         : "";
 
       const limit = ` LIMIT $${values.length + 1}`;
@@ -400,7 +398,16 @@ router.get("/", async (req, res) => {
               SELECT auction_id,
               CASE
                 WHEN start_time IS NULL THEN 'Not scheduled'
-                WHEN end_time < NOW() THEN 'Ended'
+                WHEN end_time < NOW() THEN 
+                  CASE 
+                    WHEN (
+                      SELECT COUNT(*) 
+                      FROM bid 
+                      WHERE bid.auction_id = auction_id
+                      ) > 0 
+                    THEN 'Successful' 
+                    ELSE 'Unsuccessful' 
+                  END
                 WHEN start_time < NOW() THEN 'Ongoing'
                 ELSE 'Scheduled'
               END AS auction_status
@@ -586,9 +593,18 @@ router.get("/", async (req, res) => {
   addCondition(
     `CASE
       WHEN start_time IS NULL THEN 'Not scheduled'
-      WHEN start_time >= NOW() THEN 'Scheduled'
-      WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
-      ELSE 'Ended'
+      WHEN end_time < NOW() THEN 
+        CASE 
+          WHEN (
+            SELECT COUNT(*) 
+            FROM bid 
+            WHERE bid.auction_id = auction_id
+            ) > 0 
+          THEN 'Successful' 
+          ELSE 'Unsuccessful' 
+        END
+      WHEN start_time < NOW() THEN 'Ongoing'
+      ELSE 'Scheduled'
     END = ?`,
     auctionStatus
   );
@@ -761,7 +777,16 @@ router.get("/", async (req, res) => {
           SELECT auction_id,
           CASE
             WHEN start_time IS NULL THEN 'Not scheduled'
-            WHEN end_time < NOW() THEN 'Ended'
+            WHEN end_time < NOW() THEN 
+              CASE 
+                WHEN (
+                  SELECT COUNT(*) 
+                  FROM bid 
+                  WHERE bid.auction_id = auction_id
+                  ) > 0 
+                THEN 'Successful' 
+                ELSE 'Unsuccessful' 
+              END
             WHEN start_time < NOW() THEN 'Ongoing'
             ELSE 'Scheduled'
           END AS auction_status
@@ -1046,7 +1071,16 @@ router.get("/:auctionId", async (req, res) => {
           SELECT auction_id,
           CASE
             WHEN start_time IS NULL THEN 'Not scheduled'
-            WHEN end_time < NOW() THEN 'Ended'
+            WHEN end_time < NOW() THEN 
+              CASE 
+                WHEN (
+                  SELECT COUNT(*) 
+                  FROM bid 
+                  WHERE bid.auction_id = auction_id
+                  ) > 0 
+                THEN 'Successful' 
+                ELSE 'Unsuccessful' 
+              END
             WHEN start_time < NOW() THEN 'Ongoing'
             ELSE 'Scheduled'
           END AS auction_status

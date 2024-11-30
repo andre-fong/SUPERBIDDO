@@ -1072,7 +1072,8 @@ components:
         - Not scheduled
         - Scheduled
         - Ongoing
-        - Ended
+        - Successful
+        - Unsuccessful
     BidStatus:
       type: string
       enum:
@@ -1235,8 +1236,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/Account"
         - type: object
-          required:
-            - address
           properties:
             address:
               $ref: "#/components/schemas/Address"

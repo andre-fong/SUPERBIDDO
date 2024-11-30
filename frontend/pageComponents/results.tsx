@@ -186,7 +186,7 @@ export default function Results({
   const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
 
   // TODO: Change status ended
-  const [status, setStatus] = useState<AuctionStatus>(
+  const [status, setStatus] = useState<AuctionStatus | "Ended">(
     AuctionStatusEnum.Ongoing
   );
 
@@ -275,7 +275,7 @@ export default function Results({
     }
 
     // STATUS
-    searchParams.auctionStatus = status;
+    searchParams.auctionStatus = status === "Ended" ? [AuctionStatusEnum.Successful, AuctionStatusEnum.Unsuccessful] : status;
 
     // SORT BY
     searchParams.sortBy = sortBy;

@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Auction } from "@/types/auctionTypes";
-import { AuctionSelfType } from "@/types/backendAuctionTypes";
+import { AuctionSelfType, Auction } from "@/types/backendAuctionTypes";
+import { AuctionListings, AuctionStatus } from "@/types/auctionTypes";
 import { fetchSelfAuctions } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import {
   allBiddingStatuses,
-  determineTypeListings,
   getImageUrl,
 } from "@/utils/determineFunctions";
 
@@ -20,36 +19,30 @@ const useSelfAuctions = (
   pageSize: number
   
 ) => {
-  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [auctions, setAuctions] = useState<AuctionListings[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   useEffect(() => {
-    if (type === "biddings" && searchStatuses.length === 0) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      searchStatuses = allBiddingStatuses();
-    }
     setIsLoaded(false);
     fetchSelfAuctions(
       (err: ErrorType) => {
-        setIsLoaded(false);
+        setIsLoaded(true);
         errorFcn(err);
       },
       type,
       user.accountId,
       searchTerm,
-      searchStatuses,
+      type === "biddings" && searchStatuses.length === 0 ? allBiddingStatuses() : searchStatuses,
       pageSize,
       currentPage
     ).then((auctionsGet) => {
       setTotalPages(Math.ceil(auctionsGet.totalNumAuctions / pageSize));
       setAuctions(
-        //TODO: set this type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        auctionsGet.auctions.map((auction: any) => {
+        auctionsGet.auctions.map((auction: Auction & { bidStatus: string; auctionStatus: AuctionStatus; endTime: string | null }) => {
           return {
               auctionId: auction.auctionId,
               name: auction.name,
-              status: type === "biddings" ? auction.bidStatus : determineTypeListings(auction.auctionStatus, auction.endTime, auction.numBids),
+              status: type === "biddings" ? auction.bidStatus : auction.auctionStatus,
               image: null,
               description: auction.description,
               topBid: auction.topBid ? auction.topBid.amount.toFixed(2): null,

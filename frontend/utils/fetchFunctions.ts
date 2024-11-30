@@ -363,34 +363,7 @@ export async function submitBid(
 }
 export async function createAuction(
   errorFcn: (error: ErrorType) => void,
-  auctionData: {
-    auctioneerId: string;
-    name: string;
-    description: string;
-    startPrice: number;
-    spread: number;
-    startTime: string;
-    endTime: string;
-    type: string;
-    imageUrl: string;
-    bundle?: {
-      game: string;
-      name: string;
-      description: string;
-      manufacturer: string;
-      set: string;
-    };
-    cards?: {
-      game: string;
-      name: string;
-      description: string;
-      manufacturer: string;
-      quality: string;
-      rarity: string;
-      set: string;
-      isFoil: boolean;
-    };
-  }
+  auctionData: Auction
 ) {
   try {
     const response = await fetch(`${url}/auctions`, {
@@ -487,7 +460,6 @@ export async function fetchSelfAuctions(
           `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
       )
       .join("&");
-
     const response = await fetch(
       `${url}/auctions?${
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
