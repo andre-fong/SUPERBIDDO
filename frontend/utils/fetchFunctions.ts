@@ -685,7 +685,8 @@ export async function getWatching(
 
     if (response.ok) {
       const watching = await response.json();
-      return watching.length > 0;
+      console.log(watching.auctionId);
+      return watching.auctionId ? true : false;
     } else if (response.status === 401) {
       errorFcn({
         message: "Action requires authentication",
