@@ -449,9 +449,11 @@ router.get("/", async (req, res) => {
             accountId: auctionRecord.auctioneerId,
             username: auctionRecord.auctioneerUsername,
             email: auctionRecord.auctioneerEmail,
-            addressFormatted: auctionRecord.auctioneerAddressFormatted,
-            latitude: auctionRecord.auctioneerLatitude,
-            longitude: auctionRecord.auctioneerLongitude,
+            address: {
+              addressFormatted: auctionRecord.auctioneerAddressFormatted,
+              latitude: auctionRecord.auctioneerLatitude,
+              longitude: auctionRecord.auctioneerLongitude,
+            },
           },
           name: auctionRecord.name,
           description: auctionRecord.description,
@@ -808,9 +810,11 @@ router.get("/", async (req, res) => {
           accountId: auctionRecord.auctioneerId,
           username: auctionRecord.auctioneerUsername,
           email: auctionRecord.auctioneerEmail,
-          addressFormatted: auctionRecord.auctioneerAddressFormatted,
-          latitude: auctionRecord.auctioneerLatitude,
-          longitude: auctionRecord.auctioneerLongitude,
+          address: {
+            addressFormatted: auctionRecord.auctioneerAddressFormatted,
+            latitude: auctionRecord.auctioneerLatitude,
+            longitude: auctionRecord.auctioneerLongitude,
+          },
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
@@ -868,9 +872,11 @@ router.get("/", async (req, res) => {
         accountId: auctionRecord.auctioneerId,
         username: auctionRecord.auctioneerUsername,
         email: auctionRecord.auctioneerEmail,
-        addressFormatted: auctionRecord.auctioneerAddressFormatted,
-        latitude: auctionRecord.auctioneerLatitude,
-        longitude: auctionRecord.auctioneerLongitude,
+        address: {
+          addressFormatted: auctionRecord.auctioneerAddressFormatted,
+          latitude: auctionRecord.auctioneerLatitude,
+          longitude: auctionRecord.auctioneerLongitude,
+        },
       },
       name: auctionRecord.name,
       description: auctionRecord.description,
@@ -1088,9 +1094,11 @@ router.get("/:auctionId", async (req, res) => {
         accountId: auctionRecord.auctioneerId,
         username: auctionRecord.auctioneerUsername,
         email: auctionRecord.auctioneerEmail,
-        addressFormatted: auctionRecord.auctioneerAddressFormatted,
-        latitude: auctionRecord.auctioneerLatitude,
-        longitude: auctionRecord.auctioneerLongitude,
+        address: {
+          addressFormatted: auctionRecord.auctioneerAddressFormatted,
+          latitude: auctionRecord.auctioneerLatitude,
+          longitude: auctionRecord.auctioneerLongitude,
+        },
       },
       name: auctionRecord.name,
       description: auctionRecord.description,
@@ -1173,9 +1181,11 @@ router.get("/:auctionId", async (req, res) => {
       accountId: auctionRecord.auctioneerId,
       username: auctionRecord.auctioneerUsername,
       email: auctionRecord.auctioneerEmail,
-      addressFormatted: auctionRecord.auctioneerAddressFormatted,
-      latitude: auctionRecord.auctioneerLatitude,
-      longitude: auctionRecord.auctioneerLongitude,
+      address: {
+        addressFormatted: auctionRecord.auctioneerAddressFormatted,
+        latitude: auctionRecord.auctioneerLatitude,
+        longitude: auctionRecord.auctioneerLongitude,
+      },
     },
     name: auctionRecord.name,
     description: auctionRecord.description,
@@ -1469,16 +1479,16 @@ router.patch(
     ).rows[0];
 
     const auctioneer: Account & {
-      addressFormatted: string;
-      latitude: number;
-      longitude: number;
+      address: Address;
     } = {
       accountId: auctioneerRecord.accountId,
       username: auctioneerRecord.username,
       email: auctioneerRecord.email,
-      addressFormatted: auctioneerRecord.addressFormatted,
-      latitude: auctioneerRecord.latitude,
-      longitude: auctioneerRecord.longitude,
+      address: {
+        addressFormatted: auctioneerRecord.addressFormatted,
+        latitude: auctioneerRecord.latitude,
+        longitude: auctioneerRecord.longitude,
+      },
     };
 
     await pool.query(`BEGIN`);
@@ -1537,14 +1547,7 @@ router.patch(
 
       const auction: Auction = {
         auctionId: updatedAuctionRecord.auctionId,
-        auctioneer: {
-          accountId: auctioneer.accountId,
-          username: auctioneer.username,
-          email: auctioneer.email,
-          addressFormatted: auctioneer.addressFormatted,
-          latitude: auctioneer.latitude,
-          longitude: auctioneer.longitude,
-        },
+        auctioneer: auctioneer,
         name: updatedAuctionRecord.name,
         description: updatedAuctionRecord.description,
         startPrice: parseFloat(updatedAuctionRecord.startPrice),
@@ -1611,14 +1614,7 @@ router.patch(
 
       const auction: Auction = {
         auctionId: updatedAuctionRecord.auctionId,
-        auctioneer: {
-          accountId: auctioneer.accountId,
-          username: auctioneer.username,
-          email: auctioneer.email,
-          addressFormatted: auctioneer.addressFormatted,
-          latitude: auctioneer.latitude,
-          longitude: auctioneer.longitude,
-        },
+        auctioneer: auctioneer,
         name: updatedAuctionRecord.name,
         description: updatedAuctionRecord.description,
         startPrice: parseFloat(updatedAuctionRecord.startPrice),
@@ -1859,9 +1855,11 @@ router.post(
           accountId: auctionRecord.auctioneerId,
           username: auctioneerRecord.username,
           email: auctioneerRecord.email,
-          addressFormatted: auctioneerRecord.addressFormatted,
-          latitude: auctioneerRecord.latitude,
-          longitude: auctioneerRecord.longitude,
+          address: {
+            addressFormatted: auctioneerRecord.addressFormatted,
+            latitude: auctioneerRecord.latitude,
+            longitude: auctioneerRecord.longitude,
+          },
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
@@ -1971,9 +1969,11 @@ router.post(
         accountId: auctionRecord.auctioneerId,
         username: auctioneerRecord.username,
         email: auctioneerRecord.email,
-        addressFormatted: auctioneerRecord.addressFormatted,
-        latitude: auctioneerRecord.latitude,
-        longitude: auctioneerRecord.longitude,
+        address: {
+          addressFormatted: auctioneerRecord.addressFormatted,
+          latitude: auctioneerRecord.latitude,
+          longitude: auctioneerRecord.longitude,
+        },
       },
       name: auctionRecord.name,
       description: auctionRecord.description,

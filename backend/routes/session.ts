@@ -44,12 +44,26 @@ router.get("/", async (req, res, next) => {
     )
   ).rows[0];
 
-  const account: Account & {
-    addressFormatted?: string;
-    latitude?: number;
-    longitude?: number;
-  } = accountRecord;
+  const account:
+    | Account
+    | (Account & {
+        address: Address;
+      }) = {
+    accountId: accountRecord.accountId,
+    email: accountRecord.email,
+    username: accountRecord.username,
+    ...(accountRecord.addressFormatted
+      ? {
+          address: {
+            addressFormatted: accountRecord.addressFormatted,
+            latitude: accountRecord.latitude,
+            longitude: accountRecord.longitude,
+          },
+        }
+      : {}),
+  };
 
+  console.log(account);
   res.json(account);
 });
 
