@@ -1765,6 +1765,28 @@ router.post(
       );
     }
 
+    // auctioneer must have an address to post auction
+    const auctioneerRecord = camelize(
+      await pool.query<AccountDb>(
+        ` SELECT *
+          FROM account
+          WHERE account_id = $1`,
+        [auctionInput.auctioneerId]
+      )
+    ).rows[0];
+
+    if (!auctioneerRecord) {
+      throw new ServerError(500, "Error creating auction");
+    }
+
+    if (!auctioneerRecord.addressFormatted) {
+      throw new BusinessError(
+        409,
+        "Auctioneer missing address",
+        "Auctioneer must have an address to post an auction."
+      );
+    }
+
     // use transaction to rollback if any insert fails
     await pool.query(`BEGIN`);
     // insert auction first since cards/bundle reference auction
@@ -1789,21 +1811,6 @@ router.post(
     if (!auctionRecord) {
       await pool.query(`ROLLBACK`);
       console.error("Error inserting auction into database");
-      throw new ServerError(500, "Error creating auction");
-    }
-
-    const auctioneerRecord = camelize(
-      await pool.query<AccountDb>(
-        ` SELECT *
-          FROM account
-          WHERE account_id = $1`,
-        [auctionInput.auctioneerId]
-      )
-    ).rows[0];
-
-    if (!auctioneerRecord) {
-      await pool.query(`ROLLBACK`);
-      console.error("Error fetching auctioneer");
       throw new ServerError(500, "Error creating auction");
     }
 
