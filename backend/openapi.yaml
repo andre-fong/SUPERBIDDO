@@ -1236,8 +1236,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/Account"
         - type: object
-          required:
-            - address
           properties:
             address:
               $ref: "#/components/schemas/Address"
