@@ -11,6 +11,8 @@ import styles from "@/styles/locationEdit.module.css";
 import { debounce } from "@mui/material/utils";
 import parse from "autosuggest-highlight/parse";
 import { ErrorType, Severity } from "@/types/errorTypes";
+import { editLocation } from "@/utils/fetchFunctions";
+import { User } from "@/types/userTypes";
 
 // Key can only be used on our domains, so it's safe to expose
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -50,15 +52,19 @@ export default function LocationEdit({
   locationEditOpen,
   setLocationEditOpen,
   setToast,
+  user,
 }: {
   locationEditOpen: boolean;
   setLocationEditOpen: (open: boolean) => void;
   setToast: (error: ErrorType) => void;
+  user: User | null;
 }) {
   const [value, setValue] = useState<PlaceType | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [sessionToken, setSessionToken] = useState<any>();
   const loaded = useRef(false);
 
   if (typeof window !== "undefined" && !loaded.current) {
@@ -73,6 +79,21 @@ export default function LocationEdit({
     loaded.current = true;
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!loaded.current || !(window as any).google || !locationEditOpen) {
+      return;
+    }
+
+    const token =
+      new // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).google.maps.places.AutocompleteSessionToken();
+    setSessionToken(token);
+  }, [loaded, locationEditOpen]);
+  useEffect(() => {
+    console.log(sessionToken?.aw);
+  }, [sessionToken]);
+
   const fetchPlaces = useMemo(
     () =>
       debounce(
@@ -80,21 +101,18 @@ export default function LocationEdit({
           request: { input: string },
           callback: (results?: PlaceType[]) => void
         ) => {
-          const token =
-            new // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).google.maps.places.AutocompleteSessionToken();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (autocompleteService.current as any).getPlacePredictions(
             {
               ...request,
-              sessionToken: token,
+              sessionToken: sessionToken,
             },
             callback
           );
         },
         400
       ),
-    []
+    [sessionToken]
   );
 
   useEffect(() => {
@@ -149,9 +167,24 @@ export default function LocationEdit({
       return;
     }
 
+    if (!user) {
+      setToast({
+        message: "Please log in to edit your location",
+        severity: Severity.Critical,
+      });
+      return;
+    }
+
     setSubmitting(true);
-    // TODO: Submit to new endpoint
-    console.log("submitting ", value.place_id);
+    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
+      .then(() => {
+        setSubmitting(false);
+        setLocationEditOpen(false);
+      })
+      .catch((error) => {
+        setSubmitting(false);
+        setToast(error);
+      });
   }
 
   return (
