@@ -608,7 +608,7 @@ export default function Navbar({
       </motion.nav>
 
       <LocationEdit
-        locationEditOpen={locationEditOpen}
+        locationEditOpen={locationEditOpen && !!user}
         setLocationEditOpen={setLocationEditOpen}
       />
     </>

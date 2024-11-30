@@ -39,6 +39,7 @@ interface StructuredFormatting {
 }
 interface PlaceType {
   description: string;
+  place_id: string;
   structured_formatting: StructuredFormatting;
 }
 
@@ -143,13 +144,6 @@ export default function LocationEdit({
       <div className={styles.container}>
         <h2 className={styles.title}>Edit Location</h2>
 
-        {/* <TextField
-          label="Location"
-          variant="outlined"
-          fullWidth
-          placeholder="Enter your location"
-        /> */}
-
         <Autocomplete
           fullWidth
           sx={{ marginBottom: "30px" }}
@@ -188,7 +182,8 @@ export default function LocationEdit({
               ])
             );
             return (
-              <li key={key} {...optionProps}>
+              // Hacky fix for duplicate key issue
+              <li key={crypto.randomUUID()} {...optionProps}>
                 <Grid container sx={{ alignItems: "center" }}>
                   <Grid item sx={{ display: "flex", width: 44 }}>
                     <LocationOnIcon sx={{ color: "text.secondary" }} />
@@ -228,7 +223,9 @@ export default function LocationEdit({
           style={{ border: 0 }}
           loading="lazy"
           allowFullScreen
-          src={`https://www.google.com/maps/embed/v1/place?q=place_id:ChIJDz1H5hWegqoRMfiDyQGd0tE&key=${googleMapsApiKey}`}
+          src={`https://www.google.com/maps/embed/v1/place?q=place_id:${
+            value?.place_id || "ChIJf9Wrt2_a1IkRrHuIaQFuZbs"
+          }&key=${googleMapsApiKey}`}
         ></iframe>
 
         <div className={styles.button_row}>
