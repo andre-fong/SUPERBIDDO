@@ -871,8 +871,12 @@ components:
               readOnly: true
               allOf:
                 - $ref: "#/components/schemas/Account"
-                - address:
-                  $ref: "#/components/schemas/Address"
+                - type: object
+                  required:
+                    - address
+                  properties:
+                    address:
+                      $ref: "#/components/schemas/Address"
             name:
               type: string
               maxLength: 100
