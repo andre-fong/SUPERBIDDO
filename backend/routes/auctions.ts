@@ -10,7 +10,7 @@ import {
   patchAuctionNotification,
 } from "../middlewares/notifications.js";
 import { getPriceRangeBounds } from "../utils/recommendations/userActions.js";
-import { deleteImage, preserveImage } from "./images.js";
+import { deleteImage, generateImageName, preserveImage } from "./images.js";
 
 export const router = express.Router();
 
@@ -1799,6 +1799,39 @@ router.post(
         "Invalid auction end time",
         "Auction must last at least 5 minutes"
       );
+    }
+
+    // start of imageUrl(s) name must match auctioneerId
+    // (check that image actually exists happens later when trying to preserve))
+    if (auctionInput.bundle) {
+      if (
+        !generateImageName(auctionInput.bundle.imageUrl).startsWith(
+          req.session.accountId
+        )
+      ) {
+        throw new BusinessError(
+          409,
+          "Invalid image url",
+          "Image must be uploaded by auctioneer. Upload an image by posting to api/v_/images first."
+        );
+      }
+    } else {
+      if (auctionInput.cards) {
+        if (
+          auctionInput.cards.some(
+            (card) =>
+              !generateImageName(card.imageUrl).startsWith(
+                req.session.accountId
+              )
+          )
+        ) {
+          throw new BusinessError(
+            409,
+            "Invalid image url",
+            "Images must be uploaded by auctioneer. Upload images by posting to api/v_/images first."
+          );
+        }
+      }
     }
 
     // auctioneer must have an address to post auction
