@@ -31,6 +31,13 @@ export default function Listing({
   const [ended, setEnded] = useState(false);
   const [isWatching, setIsWatching] = useState(false);
 
+  const shortAddressMsg = useMemo(() => {
+    if (!auction.auctioneer.address)
+      return <span className={styles.no_address}>No location provided.</span>;
+    const parts = auction.auctioneer.address.addressFormatted.split(", ");
+    return `From ${parts[parts.length - 3]}, ${parts[parts.length - 1]}`;
+  }, [auction.auctioneer.address]);
+
   useEffect(() => {
     if (!accountId) return;
 
@@ -210,7 +217,15 @@ export default function Listing({
         </p>
       )}
 
-      <p className={styles.location}>From Toronto, ON</p>
+      <p
+        className={styles.location}
+        title={
+          auction.auctioneer.address?.addressFormatted ||
+          "No location provided."
+        }
+      >
+        {shortAddressMsg}
+      </p>
     </div>
   );
 }
