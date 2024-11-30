@@ -17,6 +17,8 @@
     "@mui/base": "^5.0.0-beta.61",
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
+    "@types/autosuggest-highlight": "^3.2.3",
+    "autosuggest-highlight": "^3.3.4",
     "bard-ai": "^2.0.3",
     "cross-env": "^7.0.3",
     "fs": "^0.0.1-security",
