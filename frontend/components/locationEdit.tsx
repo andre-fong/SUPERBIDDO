@@ -90,6 +90,12 @@ export default function LocationEdit({
       (window as any).google.maps.places.AutocompleteSessionToken();
     setSessionToken(token);
   }, [loaded, locationEditOpen]);
+
+  useEffect(() => {
+    setInputValue(user?.address?.addressFormatted || "");
+  }, [locationEditOpen, user]);
+
+  // TODO: Remove
   useEffect(() => {
     console.log(sessionToken?.aw);
   }, [sessionToken]);
@@ -216,12 +222,16 @@ export default function LocationEdit({
           includeInputInList
           filterSelectedOptions
           value={value}
+          freeSolo
+          inputValue={inputValue}
           disabled={submitting}
           noOptionsText="No locations"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onChange={(event: any, newValue: PlaceType | null) => {
-            setOptions(newValue ? [newValue, ...options] : options);
-            setValue(newValue);
+          onChange={(event: any, newValue: string | PlaceType | null) => {
+            if (typeof newValue !== "string") {
+              setOptions(newValue ? [newValue, ...options] : options);
+              setValue(newValue);
+            }
           }}
           onInputChange={(event, newInputValue) => {
             setInputValue(newInputValue);
@@ -231,6 +241,9 @@ export default function LocationEdit({
           )}
           renderOption={(props, option) => {
             const { key, ...optionProps } = props;
+
+            if (typeof option === "string") return null;
+
             const matches =
               option.structured_formatting.main_text_matched_substrings || [];
 
