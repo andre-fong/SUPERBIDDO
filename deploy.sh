@@ -24,6 +24,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "Backend build successful!"
 
+echo "Removing dangling images locally..."
+docker rmi $(docker images --filter “dangling=true” -q --no-trunc)
+
 echo "Uploading the frontend image to $SERVER..."
 docker save frontend | bzip2 | pv | ssh $SERVER docker load
 if [ $? -ne 0 ]; then
