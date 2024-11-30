@@ -11,6 +11,7 @@ import Image from "next/image";
 import { ErrorType } from "@/types/errorTypes";
 import { getImageUrl } from "@/utils/determineFunctions";
 import { handleWatching } from "@/utils/watchingFunctions";
+import { getWatching } from "@/utils/fetchFunctions";
 
 export default function Listing({
   auction,
