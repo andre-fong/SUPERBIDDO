@@ -326,7 +326,9 @@ router.get("/", async (req, res) => {
         : "";
 
       const whereClause = conditions.length
-        ? ` AND ${conditions.join(" AND ")}`
+        ? priceRangeConditions.length > 0 
+          ? ` AND ${conditions.join(" AND ")}` 
+          : ` WHERE ${conditions.join(" AND ")}` 
         : "";
 
       const limit = ` LIMIT $${values.length + 1}`;
