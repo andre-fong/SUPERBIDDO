@@ -13,6 +13,7 @@ import {
 } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { getImageUrl } from "@/utils/determineFunctions";
+import { handleWatching } from "@/utils/watchingFunctions";
 
 export default function Listing({
   auction,
@@ -91,21 +92,13 @@ export default function Listing({
                 : "Add this listing to your Watch List"
             }
             onClick={() => {
-              isWatching
-                ? removeWatching(
-                    setToast,
-                    accountId || "0",
-                    auction.auctionId
-                  ).then((newValue: boolean) => {
-                    setIsWatching(newValue);
-                  })
-                : addWatching(
-                    setToast,
-                    accountId || "0",
-                    auction.auctionId
-                  ).then((newValue: boolean) => {
-                    setIsWatching(newValue);
-                  });
+              handleWatching(
+                isWatching,
+                auction.auctionId,
+                accountId || "0",
+                setIsWatching,
+                setToast
+              );
             }}
           >
             {isWatching ? <CheckIcon /> : <StarIcon />}

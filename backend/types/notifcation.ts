@@ -13,39 +13,39 @@ export enum NotificationEvents {
 export const NotificationMessages = {
     [NotificationEvents.AuctionOutbidded]: {
         eventHeader: "Outbidded!",
-        eventBody: (auctionName: string) => `You have been outbid on the auction: ${auctionName}`,
+        eventBody: (auctionName: string, args: any = {}) => `You have been outbid on the auction: ${auctionName}`,
     },
     [NotificationEvents.AuctionReceivedBid]: {
         eventHeader: "New Bid!",
-        eventBody: (auctionName: string) => `A new bid has been placed on your auction: ${auctionName}`,
+        eventBody: (auctionName: string, args: any = {}) => `A new bid has been placed on your auction: ${auctionName}`,
     },
     [NotificationEvents.AuctionBidWon]: {
         eventHeader: "Auction Won!",
-        eventBody: (auctionName: string) => `You have won the auction: ${auctionName}`,
+        eventBody: (auctionName: string, args: any = {}) => `You have won the auction: ${auctionName}. Please send ${args.amount} to the following address: ${args.email}`,
     },
     [NotificationEvents.AuctionBidLost]: {
         eventHeader: "Auction Lost!",
-        eventBody: (auctionName: string) => `You have lost the auction: ${auctionName}`,
+        eventBody: (auctionName: string, args: any = {}) => `You have lost the auction: ${auctionName}`,
     },
     [NotificationEvents.AuctionEndingSoon]: {
         eventHeader: "Auction Ending Soon!",
-        eventBody: (auctionName: string) => `The auction: ${auctionName} you bid on is ending soon`,
+        eventBody: (auctionName: string, args: any = {}) => `The auction: ${auctionName} you bid on is ending soon`,
     },
     [NotificationEvents.AuctionOwningEnded]: {
         eventHeader: "Auction Ended!",
-        eventBody: (auctionName: string) => `Your auction: ${auctionName} has ended`,
+        eventBody: (auctionName: string, args: any = {}) => `Your auction: ${auctionName} has ended`,
     },
     [NotificationEvents.AuctionWatchingReceivedBid]: {
         eventHeader: "New Bid!",
-        eventBody: (auctionName: string) => `A new bid has been placed on the auction you are watching: ${auctionName}`,
+        eventBody: (auctionName: string, args: any = {}) => `A new bid has been placed on the auction you are watching: ${auctionName}`,
     },
     [NotificationEvents.AuctionWatchingEnded]: {
         eventHeader: "Auction Ended!",
-        eventBody: (auctionName: string) => `The auction you are watching: ${auctionName} has ended`,
+        eventBody: (auctionName: string, args: any = {}) => `The auction you are watching: ${auctionName} has ended`,
     },
     [NotificationEvents.AuctionWatchingEndingSoon]: {
         eventHeader: "Auction Ending Soon!",
-        eventBody: (auctionName: string) => `The auction you are watching: ${auctionName} is ending soon`,
+        eventBody: (auctionName: string, args: any = {}) => `The auction you are watching: ${auctionName} is ending soon`,
     },
     
 };

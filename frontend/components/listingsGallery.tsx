@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Grid, Card, CardMedia, Box, Typography, CardContent } from '@mui/material';
+import { Grid, Card, CardMedia, Box, Typography, CardContent, Skeleton } from '@mui/material';
 import { Auction } from '@/types/auctionTypes';
 import StatusLabel from './statusLabel';
 import { styled } from "@mui/material/styles";
@@ -17,19 +17,19 @@ const CardContentNoPadding = styled(CardContent)(`
 interface ListingsGalleryProps {
     auctions: Auction[];
     setCurPage: (page: PageName, context?: string) => void;
+    isLoaded: boolean;
 }
 
 const handleCardClick = (event: React.MouseEvent<HTMLDivElement>, auctionId: string, setCurPage: (page: PageName, context?: string) => void) => {
     setCurPage("auction", JSON.stringify({auctionId: auctionId}))
 };
 
-const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage }) => {
+const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage, isLoaded }) => {
     return (
         <Grid container spacing={2}>
-            {auctions.map((auction) => (
+            {isLoaded ? auctions.map((auction) => (
                 <Grid item xs={12} sm={6} md={4} key={auction.auctionId}>
                     <Card onClick={(event) => handleCardClick(event, auction.auctionId, setCurPage)}>
-                        
                         <CardMedia
                             component="img"
                             height="140"
@@ -59,7 +59,27 @@ const ListingsGallery: React.FC<ListingsGalleryProps> = ({ auctions, setCurPage 
                         </CardContentNoPadding>
                     </Card>
                 </Grid>
-            ))}
+            )): 
+                [...Array(9)].map((_, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Card>
+                            <CardMedia>
+                                <Skeleton variant="rectangular" height={140} />
+                            </CardMedia>
+                            <CardContentNoPadding>
+                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                    <Skeleton variant="text" width="60%" />
+                                    <Skeleton variant="circular" width={24} height={24} />
+                                </Box>
+                                <Skeleton variant="text" width="40%" />
+                                <Skeleton variant="text" width="80%" />
+                                <Skeleton variant="text" width="50%" />
+                                <Skeleton variant="text" width="70%" />
+                            </CardContentNoPadding>
+                        </Card>
+                    </Grid>
+                ))
+            }
         </Grid>
     );
 };

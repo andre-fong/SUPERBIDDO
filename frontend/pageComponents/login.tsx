@@ -14,9 +14,6 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-// GET THIS WORKING AND STOP DISABLING :))))))))
-const enableCaptcha = true;
-
 export default function Login({
   setCurPage,
   context,
@@ -51,7 +48,7 @@ export default function Login({
 
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (enableCaptcha && !reCAPTCHAPassed) {
+    if (!reCAPTCHAPassed) {
       setToast({
         message: "Please complete the captcha",
         severity: Severity.Warning,
@@ -157,20 +154,20 @@ export default function Login({
             onChange={() => setSubmitError(false)}
           />
 
-          {enableCaptcha && (
-            <div
-              className={styles.recaptcha}
-              style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}
-            >
-              <ReCAPTCHA
-                sitekey={process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY as string}
-                onChange={() => {
-                  setReCAPTCHAPassed(true);
-                  setReCAPTCHAError(false);
-                }}
-              />
-            </div>
-          )}
+
+          <div
+            className={styles.recaptcha}
+            style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}
+          >
+            <ReCAPTCHA
+              sitekey={process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY as string}
+              onChange={() => {
+                setReCAPTCHAPassed(true);
+                setReCAPTCHAError(false);
+              }}
+            />
+          </div>
+
           <Button
             variant="contained"
             type="submit"
