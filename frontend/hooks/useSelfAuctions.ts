@@ -6,7 +6,6 @@ import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
 import {
   allBiddingStatuses,
-  determineTypeListings,
   getImageUrl,
 } from "@/utils/determineFunctions";
 
@@ -24,7 +23,6 @@ const useSelfAuctions = (
   const [totalPages, setTotalPages] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   useEffect(() => {
-    console.log(searchStatuses)
     setIsLoaded(false);
     fetchSelfAuctions(
       (err: ErrorType) => {
@@ -44,7 +42,7 @@ const useSelfAuctions = (
           return {
               auctionId: auction.auctionId,
               name: auction.name,
-              status: type === "biddings" ? auction.bidStatus : determineTypeListings(auction.auctionStatus, auction.endTime, auction.numBids),
+              status: type === "biddings" ? auction.bidStatus : auction.auctionStatus,
               image: null,
               description: auction.description,
               topBid: auction.topBid ? auction.topBid.amount.toFixed(2): null,

@@ -460,7 +460,11 @@ export async function fetchSelfAuctions(
           `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
       )
       .join("&");
-
+    console.log(`${url}/auctions?${
+        type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
+      }=${accountId}${
+        searchName != "" ? "&name=" + searchName : ""
+      }&page=${currentPage}&pageSize=${pageSize}&${searchStatusQuery}&sortBy=startTimeAsc`)
     const response = await fetch(
       `${url}/auctions?${
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
