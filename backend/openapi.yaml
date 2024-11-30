@@ -1072,7 +1072,8 @@ components:
         - Not scheduled
         - Scheduled
         - Ongoing
-        - Ended
+        - Successful
+        - Unsuccessful
     BidStatus:
       type: string
       enum:
