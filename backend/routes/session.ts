@@ -29,15 +29,26 @@ router.get("/", async (req, res, next) => {
   }
 
   const accountRecord = camelize(
-    await pool.query<Omit<AccountDb, "passhash">>(
-      `SELECT account_id, email, username
-      FROM account
-      WHERE account_id=$1`,
+    await pool.query<
+      Omit<AccountDb, "passhash"> & {
+        address_formatted: string;
+        latitude: number;
+        longitude: number;
+      }
+    >(
+      ` SELECT account_id, email, username, 
+        address_formatted, latitude, longitude
+        FROM account
+        WHERE account_id=$1`,
       [req.session.accountId]
     )
   ).rows[0];
 
-  const account: Account = accountRecord;
+  const account: Account & {
+    addressFormatted?: string;
+    latitude?: number;
+    longitude?: number;
+  } = accountRecord;
 
   res.json(account);
 });
