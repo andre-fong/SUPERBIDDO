@@ -289,7 +289,6 @@ export default function Results({
         setResults(results.auctions);
         setResultCount(results.totalNumAuctions);
         setResultsLoading(false);
-        console.log(results);
       },
       (err) => {
         setToast(err);
