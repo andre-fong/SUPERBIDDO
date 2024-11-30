@@ -53,14 +53,20 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       # backend environment variables
       - FRONTEND_URL=${FRONTEND_URL}
+      - GCS_FILENAME=/run/secrets/gcs_credentials
+      - GCS_ID=${GCS_ID}
+      - GCS_BUCKET=${GCS_BUCKET}
+      - EMAIL_USER=${EMAIL_USER}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
       # secrets
-      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GEMINI_API_KEY
+      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GEMINI_API_KEY,EMAIL_PASSWORD
       - DB_USER_FILE=/run/secrets/db_user
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - SESSION_SECRET_FILE=/run/secrets/session_secret
       - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
       - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
       - GEMINI_API_KEY_FILE=/run/secrets/gemini_api_key
+      - EMAIL_PASSWORD_FILE=/run/secrets/email_password
     secrets:
       - db_user
       - db_password
@@ -68,6 +74,8 @@ services:
       - google_client_id
       - google_client_secret
       - gemini_api_key
+      - email_password
+      - gcs_credentials
 
   # postgres database
   database:
@@ -103,3 +111,7 @@ secrets:
     environment: "GOOGLE_CLIENT_SECRET"
   gemini_api_key:
     environment: "GEMINI_API_KEY"
+  email_password:
+    environment: "EMAIL_PASSWORD"
+  gcs_credentials:
+    file: ./gcs-storage-credentials.json
