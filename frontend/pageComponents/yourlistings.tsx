@@ -50,7 +50,7 @@ const YourListings: React.FC<YourListingsProps> = ({
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const { auctions, totalPages } = useSelfAuctions(
+  const { auctions, totalPages, isLoaded } = useSelfAuctions(
     "listings",
     setToast,
     user,
@@ -137,7 +137,7 @@ const YourListings: React.FC<YourListingsProps> = ({
           sx={{ mt: 1, mb: 2 }}
         />
 
-        <ListingsGallery auctions={auctions} setCurPage={setCurPage} />
+        <ListingsGallery auctions={auctions} setCurPage={setCurPage} isLoaded={isLoaded} />
         {totalPages === 0 && (
           <Typography
             variant="body1"
