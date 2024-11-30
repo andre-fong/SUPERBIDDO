@@ -414,6 +414,11 @@
   aspect-ratio: 2.5/3.5;
 }
 
+.no_address {
+  color: gray;
+  font-style: italic;
+}
+
 @media (max-width: 800px) {
   .hero_container {
     flex-direction: column;

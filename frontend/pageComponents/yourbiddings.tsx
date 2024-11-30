@@ -22,7 +22,6 @@ import { User } from "@/types/userTypes";
 import {
   BiddingStatus,
   BiddingStatusEnum,
-  Auction,
 } from "@/types/auctionTypes";
 import ListingsGallery from "@/components/listingsGallery";
 import useSelfAuctions from "@/hooks/useSelfAuctions";
@@ -55,7 +54,12 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
   // Set status provided in context if exists
   useEffect(() => {
     if (context) {
-      setSelectedStatuses([context]);
+      const status = JSON.parse(context)?.filter;
+      if (auctionStatuses.includes(status as BiddingStatus)) {
+        setTimeout(() => {
+          setSelectedStatuses([status]);
+        }, 500);
+      }
     }
   }, [context]);
 
@@ -86,7 +90,6 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
     setCurrentPage(page);
   };
 
-  //TODO: andre countdown timer
   return (
     <>
       <div

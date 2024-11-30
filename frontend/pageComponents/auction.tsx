@@ -35,7 +35,7 @@ import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
-import type { Auction, BidDetails, Quality, QualityPsa, QualityUngraded } from "@/types/backendAuctionTypes";
+import type { Address, Auction, BidDetails, Quality, QualityPsa, QualityUngraded } from "@/types/backendAuctionTypes";
 import { getWatching } from "@/utils/fetchFunctions";
 import { handleWatching } from "@/utils/watchingFunctions";
 import { determineQualityTooltip, getImageUrl } from "@/utils/determineFunctions";
@@ -138,6 +138,14 @@ export default function Auction({
   const [description, setDescription] = useState<string>("");
   const [sellerAccountId, setSellerAccountId] = useState<string>("");
   const [sellerUsername, setSellerUsername] = useState<string>("");
+  const [sellerAddress, setSellerAddress] = useState<Address>();
+  const shortSellerAddress = useMemo(() => {
+    if (!sellerAddress) {
+      return <span className={styles.no_address}>No address provided</span>;
+    }
+    const parts = sellerAddress.addressFormatted.split(", ");
+    return `${parts[parts.length - 3]}, ${parts[parts.length - 2]}`;
+  }, [sellerAddress]);
   const [spread, setSpread] = useState<number>(0);
   const [startPrice, setStartPrice] = useState<number>(0);
   const [imageUrl, setImageUrl] = useState<string | null>("");
@@ -249,6 +257,7 @@ export default function Auction({
         setDescription(auction.description || "");
         setSellerAccountId(auction.auctioneer.accountId);
         setSellerUsername(auction.auctioneer.username);
+        setSellerAddress(auction.auctioneer.address);
 
         if (!auctionIsBundle) {
           const qualityType = auction.cards?.at(0)?.qualityUngraded
@@ -733,10 +742,15 @@ export default function Auction({
                 />
               ) : (
                 <div className={styles.location_row}>
-                  <p className={styles.location}>Toronto, ON</p>
+                  <p className={styles.location}>{shortSellerAddress}</p>
                   <button
                     className={styles.view_map}
                     title="View location on Google Maps"
+                    onClick={() => {
+                      window.open(
+                        `https://www.google.com/maps/search/${sellerAddress?.addressFormatted}`
+                      );
+                    }}
                   >
                     <PlaceIcon fontSize="small" />
                   </button>
@@ -937,7 +951,13 @@ export default function Auction({
 
             <div className={styles.auctioneer_location}>
               <PlaceIcon fontSize="large" />
-              <p className={styles.auctioneer_location_text}>Toronto, ON</p>
+              <p className={styles.auctioneer_location_text}>
+                {sellerAddress?.addressFormatted || (
+                  <span className={styles.no_address}>
+                    No location provided.
+                  </span>
+                )}
+              </p>
             </div>
           </section>
         )}

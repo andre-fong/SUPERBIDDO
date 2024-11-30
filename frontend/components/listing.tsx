@@ -28,6 +28,23 @@ export default function Listing({
   const [ended, setEnded] = useState(false);
   const [isWatching, setIsWatching] = useState(watchingSet);
 
+  const shortAddressMsg = useMemo(() => {
+    if (!auction.auctioneer.address)
+      return <span className={styles.no_address}>No location provided.</span>;
+    const parts = auction.auctioneer.address.addressFormatted.split(", ");
+    return `From ${parts[parts.length - 3]}, ${parts[parts.length - 1]}`;
+  }, [auction.auctioneer.address]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    getWatching(setToast, accountId, auction.auctionId).then((watching) => {
+      setIsWatching(watching);
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId]);
+
   const imageUrl = useMemo(() => getImageUrl(auction), [auction]);
 
   const unscheduled = useMemo(() => !auction.startTime, [auction.startTime]);
@@ -109,7 +126,7 @@ export default function Listing({
 
       <button
         className={styles.title}
-        title="Charizard 181 Set 1999 Addition Exclusive Rare Card 51/234 Last in Collection"
+        title={auction.name}
         onClick={() =>
           setCurPage(
             "auction",
@@ -197,7 +214,15 @@ export default function Listing({
         </p>
       )}
 
-      <p className={styles.location}>From Toronto, ON</p>
+      <p
+        className={styles.location}
+        title={
+          auction.auctioneer.address?.addressFormatted ||
+          "No location provided."
+        }
+      >
+        {shortAddressMsg}
+      </p>
     </div>
   );
 }

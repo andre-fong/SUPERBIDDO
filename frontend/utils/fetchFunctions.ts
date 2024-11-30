@@ -460,7 +460,6 @@ export async function fetchSelfAuctions(
           `${type === "biddings" ? "bidStatus" : "auctionStatus"}=${status}`
       )
       .join("&");
-
     const response = await fetch(
       `${url}/auctions?${
         type === "biddings" ? "includeBidStatusFor" : "auctioneerId"
@@ -731,8 +730,7 @@ export async function uploadImage(
         message: "Internal server error",
         severity: Severity.Critical,
       });
-    }
-    else {
+    } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
 
@@ -743,15 +741,21 @@ export async function uploadImage(
   }
 }
 
-export async function getGeminiInput(errorFcn: (error: ErrorType) => void, imageUrl: string) {
+export async function getGeminiInput(
+  errorFcn: (error: ErrorType) => void,
+  imageUrl: string
+) {
   try {
-    const response = await fetch(`${url}/geminiUpload/${encodeURIComponent(imageUrl)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${url}/geminiUpload/${encodeURIComponent(imageUrl)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -780,6 +784,50 @@ export async function getGeminiInput(errorFcn: (error: ErrorType) => void, image
     errorFcn({ message: unkownError, severity: Severity.Critical });
     return null;
   }
+}
+
+export async function editLocation(
+  errorFcn: (error: ErrorType) => void,
+  accountId: string,
+  placeId: string,
+  sessionToken: string
+) {
+  try {
+    const response = await fetch(
+      `${url}/accounts/${accountId}/address?sessionToken=${sessionToken}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ placeId }),
+      }
+    );
+
+    if (response.ok) {
+      return await response.json();
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 404) {
+      errorFcn({ message: "Place ID not found", severity: Severity.Critical });
+    } else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+
+  return null;
 }
 
 // GRAVEYARD OF VICTORS CODE -> MOVE TO CHADTHEW'S CODE

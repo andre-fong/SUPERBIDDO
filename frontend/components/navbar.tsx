@@ -611,6 +611,7 @@ export default function Navbar({
         locationEditOpen={locationEditOpen && !!user}
         setLocationEditOpen={setLocationEditOpen}
         setToast={setToast}
+        user={user}
       />
     </>
   );

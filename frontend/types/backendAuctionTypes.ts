@@ -8,6 +8,13 @@ export type Account = {
   accountId: string;
   email: string;
   username: string;
+  address?: Address;
+};
+
+export type Address = {
+  addressFormatted: string;
+  latitude: number;
+  longitude: number;
 };
 
 export type AuctionInput = {

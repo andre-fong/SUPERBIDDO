@@ -11,6 +11,8 @@ import styles from "@/styles/locationEdit.module.css";
 import { debounce } from "@mui/material/utils";
 import parse from "autosuggest-highlight/parse";
 import { ErrorType, Severity } from "@/types/errorTypes";
+import { editLocation } from "@/utils/fetchFunctions";
+import { User } from "@/types/userTypes";
 
 // Key can only be used on our domains, so it's safe to expose
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -50,15 +52,34 @@ export default function LocationEdit({
   locationEditOpen,
   setLocationEditOpen,
   setToast,
+  user,
 }: {
   locationEditOpen: boolean;
   setLocationEditOpen: (open: boolean) => void;
   setToast: (error: ErrorType) => void;
+  user: User | null;
 }) {
   const [value, setValue] = useState<PlaceType | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [optionClickedFirstTime, setOptionClickedFirstTime] = useState(false);
+
+  const embeddedMapsURL = useMemo(() => {
+    if (!optionClickedFirstTime) {
+      if (user?.address) {
+        return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${user.address.addressFormatted}`;
+      } else {
+        // default of UTSC :)
+        return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=place_id:ChIJf9Wrt2_a1IkRrHuIaQFuZbs`;
+      }
+    } else {
+      return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=place_id:${value?.place_id}`;
+    }
+  }, [optionClickedFirstTime, user, value]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [sessionToken, setSessionToken] = useState<any>();
   const loaded = useRef(false);
 
   if (typeof window !== "undefined" && !loaded.current) {
@@ -73,6 +94,27 @@ export default function LocationEdit({
     loaded.current = true;
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!loaded.current || !(window as any).google || !locationEditOpen) {
+      return;
+    }
+
+    const token =
+      new // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).google.maps.places.AutocompleteSessionToken();
+    setSessionToken(token);
+  }, [loaded, locationEditOpen]);
+
+  useEffect(() => {
+    setInputValue(user?.address?.addressFormatted || "");
+  }, [locationEditOpen, user]);
+
+  // TODO: Remove
+  useEffect(() => {
+    console.log(sessionToken?.aw);
+  }, [sessionToken]);
+
   const fetchPlaces = useMemo(
     () =>
       debounce(
@@ -80,21 +122,18 @@ export default function LocationEdit({
           request: { input: string },
           callback: (results?: PlaceType[]) => void
         ) => {
-          const token =
-            new // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).google.maps.places.AutocompleteSessionToken();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (autocompleteService.current as any).getPlacePredictions(
             {
               ...request,
-              sessionToken: token,
+              sessionToken: sessionToken,
             },
             callback
           );
         },
         400
       ),
-    []
+    [sessionToken]
   );
 
   useEffect(() => {
@@ -149,9 +188,28 @@ export default function LocationEdit({
       return;
     }
 
+    if (!user) {
+      setToast({
+        message: "Please log in to edit your location",
+        severity: Severity.Critical,
+      });
+      return;
+    }
+
     setSubmitting(true);
-    // TODO: Submit to new endpoint
-    console.log("submitting ", value.place_id);
+    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
+      .then(() => {
+        setSubmitting(false);
+        setLocationEditOpen(false);
+        setToast({
+          message: "Your address was updated.",
+          severity: Severity.Info,
+        });
+      })
+      .catch((error) => {
+        setSubmitting(false);
+        setToast(error);
+      });
   }
 
   return (
@@ -179,12 +237,17 @@ export default function LocationEdit({
           includeInputInList
           filterSelectedOptions
           value={value}
+          freeSolo
+          inputValue={inputValue}
           disabled={submitting}
           noOptionsText="No locations"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onChange={(event: any, newValue: PlaceType | null) => {
-            setOptions(newValue ? [newValue, ...options] : options);
-            setValue(newValue);
+          onChange={(event: any, newValue: string | PlaceType | null) => {
+            if (typeof newValue !== "string") {
+              setOptions(newValue ? [newValue, ...options] : options);
+              setValue(newValue);
+              setOptionClickedFirstTime(true);
+            }
           }}
           onInputChange={(event, newInputValue) => {
             setInputValue(newInputValue);
@@ -194,6 +257,9 @@ export default function LocationEdit({
           )}
           renderOption={(props, option) => {
             const { key, ...optionProps } = props;
+
+            if (typeof option === "string") return null;
+
             const matches =
               option.structured_formatting.main_text_matched_substrings || [];
 
@@ -247,12 +313,14 @@ export default function LocationEdit({
           style={{ border: 0 }}
           loading="lazy"
           allowFullScreen
-          src={`https://www.google.com/maps/embed/v1/place?q=place_id:${
-            value?.place_id || "ChIJf9Wrt2_a1IkRrHuIaQFuZbs"
-          }&key=${googleMapsApiKey}`}
+          src={embeddedMapsURL}
         ></iframe>
 
-        <div className={styles.button_row}>
+        <p className={styles.maps_note}>
+          (Note: Above map will update whenever the location input is changed.)
+        </p>
+
+        <p className={styles.button_row}>
           <Button
             variant="outlined"
             type="button"
@@ -269,7 +337,7 @@ export default function LocationEdit({
           >
             Save
           </Button>
-        </div>
+        </p>
       </form>
     </Dialog>
   );
