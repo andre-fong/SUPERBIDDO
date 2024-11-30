@@ -35,10 +35,20 @@ import { useTimer } from "react-timer-hook";
 import InnerImageZoom from "react-inner-image-zoom";
 import Slider from "react-slick";
 import { fetchAuction } from "@/utils/fetchFunctions";
-import type { Address, Auction, BidDetails, Quality, QualityPsa, QualityUngraded } from "@/types/backendAuctionTypes";
+import type {
+  Address,
+  Auction,
+  BidDetails,
+  Quality,
+  QualityPsa,
+  QualityUngraded,
+} from "@/types/backendAuctionTypes";
 import { getWatching } from "@/utils/fetchFunctions";
 import { handleWatching } from "@/utils/watchingFunctions";
-import { determineQualityTooltip, getImageUrl } from "@/utils/determineFunctions";
+import {
+  determineQualityTooltip,
+  getImageUrl,
+} from "@/utils/determineFunctions";
 
 function auctionPollingStart(
   auctionId: string,
@@ -99,7 +109,7 @@ function formatBids(bids: BidDetails[]): AuctionBidHistory[] {
 
   return formattedBids;
 }
-  
+
 const pageSize = 999999999;
 
 const gameMap = {
@@ -340,46 +350,6 @@ export default function Auction({
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function SampleNextArrow(props: any) {
-    const { className, style, onClick } = props;
-    return (
-      <div
-        className={className}
-        style={{
-          ...style,
-          display: "block",
-          background: "gray",
-          borderRadius: "50%",
-          paddingTop: "1px",
-          right: "20px",
-          zIndex: 999,
-        }}
-        onClick={onClick}
-      />
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function SamplePrevArrow(props: any) {
-    const { className, style, onClick } = props;
-    return (
-      <div
-        className={className}
-        style={{
-          ...style,
-          display: "block",
-          background: "gray",
-          borderRadius: "50%",
-          paddingTop: "1px",
-          left: "20px",
-          zIndex: 999,
-        }}
-        onClick={onClick}
-      />
-    );
-  }
-
   const [tabIndex, setTabIndex] = useState(0);
 
   return (
@@ -428,35 +398,13 @@ export default function Auction({
                 />
               </div>
             ) : (
-              <div className={styles.slick_container}>
-                <Slider
-                  // className={styles.slick_container}
-                  dots
-                  dotsClass={`${styles.slick_dots} slick-dots`}
-                  // infinite
-                  speed={500}
-                  slidesToShow={1}
-                  slidesToScroll={1}
-                  nextArrow={<SampleNextArrow />}
-                  prevArrow={<SamplePrevArrow />}
-                >
-                  <div className={styles.zoom_card_container}>
-                    <InnerImageZoom
-                      className={styles.card}
-                      src={imageUrl}
-                      zoomSrc={imageUrl}
-                      zoomType="hover"
-                    />
-                  </div>
-                  <div className={styles.zoom_card_container}>
-                    <InnerImageZoom
-                      className={styles.card}
-                      src={imageUrl}
-                      zoomSrc={imageUrl}
-                      zoomType="hover"
-                    />
-                  </div>
-                </Slider>
+              <div className={styles.zoom_card_container}>
+                <InnerImageZoom
+                  className={styles.card}
+                  src={imageUrl}
+                  zoomSrc={imageUrl}
+                  zoomType="hover"
+                />
               </div>
             )}
           </div>
@@ -721,7 +669,12 @@ export default function Auction({
                         {qualityType === "PSA" ? `PSA ${quality}` : quality}
                       </p>
                       <Tooltip
-                        title={determineQualityTooltip(qualityType === "PSA" ? quality as QualityPsa : quality as QualityUngraded, qualityType)}
+                        title={determineQualityTooltip(
+                          qualityType === "PSA"
+                            ? (quality as QualityPsa)
+                            : (quality as QualityUngraded),
+                          qualityType
+                        )}
                         placement="top"
                         arrow
                       >

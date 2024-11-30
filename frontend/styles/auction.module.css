@@ -10,9 +10,6 @@
 
 .card_container {
   flex: 1;
-
-  /* Needed for react-slick to calculate width of carousel */
-  min-width: 0;
   max-width: 700px;
   padding: 10px 0 20px 0;
   background-color: rgb(220, 220, 220);
@@ -23,14 +20,10 @@
 }
 
 .zoom_card_container {
-  display: flex !important;
+  width: 100%;
+  display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
-}
-
-.slick_dots {
-  bottom: -20px !important;
 }
 
 .card {
@@ -400,10 +393,6 @@
 
 .payment_details_container {
   padding: 20px 0;
-}
-
-.slick_container {
-  min-width: 0px;
 }
 
 .image_skeleton {
