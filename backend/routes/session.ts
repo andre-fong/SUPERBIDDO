@@ -80,7 +80,7 @@ router.post("/", async (req, res, next) => {
 });
 
 router.delete("/", async (req, res, next) => {
-  if (!req.session.accountId && !req.user) {
+  if (!req.session.accountId) {
     throw sessionNotFound();
   }
   req.session.destroy(() => {
