@@ -49,7 +49,7 @@ async function getAllBiddersWithEmail(auctionId: string) {
 
 async function getTopBidder(auctionId: string) {
   return await pool.query(
-    `SELECT bid.bidder_id, account.email, account.username 
+    `SELECT bid.bidder_id, account.email, account.username, bid.amount 
      FROM bid 
      JOIN account ON bid.bidder_id = account.account_id 
      WHERE auction_id = $1 
@@ -69,11 +69,11 @@ async function getAuctionName(auctionId: string) {
   return result.rows.length > 0 ? result.rows[0].name : null;
 }
 
-function sendNotification(event: NotificationEvents, accountId: string, email: string, auctionName: string, username: string) {
+function sendNotification(event: NotificationEvents, accountId: string, email: string, auctionName: string, username: string, args: any = {}) {
   if (io.sockets.adapter.rooms.has(accountId)) {
     io.to(accountId).emit(event, auctionName);
   } else {
-    sendEmail(email, event, auctionName, username);
+    sendEmail(email, event, auctionName, username, args);
   }
 }
 
@@ -122,7 +122,7 @@ function scheduleBidEndReminder(
           });
 
           if (topBidder) {
-            sendNotification(NotificationEvents.AuctionBidWon, topBidder.bidder_id, topBidder.email, auctionName, topBidder.username);
+            sendNotification(NotificationEvents.AuctionBidWon, topBidder.bidder_id, topBidder.email, auctionName, topBidder.username, {email: auctioneerEmail, amount: topBidder.amount});
           }
         }
       );

@@ -70,6 +70,7 @@ const CardListing: React.FC<CardListingProps> = ({
   const [quality, setQuality] = useState<string>("Mint");
   const [isFoil, setIsFoil] = useState<string>("No");
   const [rarity, setRarity] = useState<string>("Common");
+  const [isImageLoading, setImageLoading] = useState<boolean>(false);
 
   const cardNameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);

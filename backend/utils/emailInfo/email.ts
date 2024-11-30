@@ -13,12 +13,12 @@ const transporter = nodemailer.createTransport({
 
 
 
-export async function sendEmail(to: string, event: NotificationEvents, auctionName: string, username: string) {
+export async function sendEmail(to: string, event: NotificationEvents, auctionName: string, username: string, args: any = {}) {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: to, 
         subject: NotificationMessages[event].eventHeader, 
-        html: generateEmailTemplate(username, NotificationMessages[event].eventBody(auctionName)),
+        html: generateEmailTemplate(username, NotificationMessages[event].eventBody(auctionName, args)),
     };
     try {
         const info = await transporter.sendMail(mailOptions);
