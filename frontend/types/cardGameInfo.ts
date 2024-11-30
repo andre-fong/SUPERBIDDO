@@ -1,3 +1,5 @@
+import { Quality } from "./backendAuctionTypes";
+
 interface CardRarities {
   [key: string]: {
     rarities: string[];
