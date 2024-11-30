@@ -8,11 +8,6 @@ import { Auction } from "@/types/backendAuctionTypes";
 import { useState, useMemo, useEffect } from "react";
 import Skeleton from "@mui/material/Skeleton";
 import Image from "next/image";
-import {
-  addWatching,
-  removeWatching,
-  getWatching,
-} from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { getImageUrl } from "@/utils/determineFunctions";
 import { handleWatching } from "@/utils/watchingFunctions";
@@ -22,24 +17,16 @@ export default function Listing({
   setCurPage,
   accountId,
   setToast,
+  watchingSet,
 }: {
   auction: Auction;
   setCurPage: (page: PageName, context?: string) => void;
   accountId: string | undefined;
   setToast: (err: ErrorType) => void;
+  watchingSet: boolean;
 }) {
   const [ended, setEnded] = useState(false);
-  const [isWatching, setIsWatching] = useState(false);
-
-  useEffect(() => {
-    if (!accountId) return;
-
-    getWatching(setToast, accountId, auction.auctionId).then((watching) => {
-      setIsWatching(watching);
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountId]);
+  const [isWatching, setIsWatching] = useState(watchingSet);
 
   const imageUrl = useMemo(() => getImageUrl(auction), [auction]);
 

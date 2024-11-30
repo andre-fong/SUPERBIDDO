@@ -67,7 +67,6 @@ export default function WatchList({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultsPage, user]);
-
   return (
     <>
       <main className={styles.main}>
@@ -129,6 +128,7 @@ export default function WatchList({
               setCurPage={setCurPage}
               accountId={user?.accountId}
               setToast={setToast}
+              watchingSet={true}
             />
             ))}
             

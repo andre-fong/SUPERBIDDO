@@ -35,7 +35,7 @@ export type Auction = {
   endTime: Date;
   topBid: Bid;
   numBids: number;
-  watched?: boolean;
+  watching?: boolean | null;
 } & ({ cards: Card[]; bundle?: never } | { cards?: never; bundle: Bundle });
 
 export type CardInput = {
