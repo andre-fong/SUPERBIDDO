@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "storage.googleapis.com",
         port: "",
-        pathname: "superbiddo-bucket-0/**",
+        pathname: "/superbiddo-bucket-0/**",
       },
     ],
   },

@@ -6,6 +6,8 @@ import { useTimer } from "react-timer-hook";
 import CheckIcon from "@mui/icons-material/Check";
 import { Auction } from "@/types/backendAuctionTypes";
 import { useState, useMemo, useEffect } from "react";
+import Skeleton from "@mui/material/Skeleton";
+import Image from "next/image";
 import {
   addWatching,
   removeWatching,
@@ -35,7 +37,11 @@ export default function Listing({
     getWatching(setToast, accountId, auction.auctionId).then((watching) => {
       setIsWatching(watching);
     });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
+
+  const imageUrl = useMemo(() => getImageUrl(auction), [auction]);
 
   const unscheduled = useMemo(() => !auction.startTime, [auction.startTime]);
   const inFuture = useMemo(
@@ -70,11 +76,19 @@ export default function Listing({
           }
         >
           <div className={styles.img_relative}>
-            <img
-              src={getImageUrl(auction) || undefined}
-              alt={auction.name}
-              className={styles.TEMP_img}
-            />
+            {!imageUrl ? (
+              <div className={styles.image_skeleton}>
+                <Skeleton />
+              </div>
+            ) : (
+              <Image
+                src={imageUrl}
+                alt={auction.name}
+                fill
+                sizes="300px"
+                style={{ width: "100%", objectFit: "contain" }}
+              />
+            )}
           </div>
         </button>
         <div className={styles.star}>
