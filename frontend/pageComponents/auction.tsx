@@ -1,5 +1,6 @@
 import { PageName } from "@/types/pageTypes";
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import Image from "next/image";
 import styles from "@/styles/auction.module.css";
 import { User } from "@/types/userTypes";
 import { AuctionBidHistory } from "@/types/auctionTypes";
@@ -256,7 +257,6 @@ export default function Auction({
     setBidsLoading(false);
   }
 
-
   // This useEffect should only run once, since it initiates the long polling
   useEffect(() => {
     if (!user) {
@@ -337,9 +337,11 @@ export default function Auction({
           }
         );
 
-        getWatching(setToast, user.accountId, curAuctionId.current).then((isWatching: boolean) => {
-          setWatching(isWatching);
-        })
+        getWatching(setToast, user.accountId, curAuctionId.current).then(
+          (isWatching: boolean) => {
+            setWatching(isWatching);
+          }
+        );
         setAuctionLoading(false);
       }
     );
@@ -458,36 +460,45 @@ export default function Auction({
       <main className={styles.main}>
         <div className={styles.hero_container}>
           <div className={styles.card_container}>
-            <div className={styles.slick_container}>
-              <Slider
-                // className={styles.slick_container}
-                dots
-                dotsClass={`${styles.slick_dots} slick-dots`}
-                // infinite
-                speed={500}
-                slidesToShow={1}
-                slidesToScroll={1}
-                nextArrow={<SampleNextArrow />}
-                prevArrow={<SamplePrevArrow />}
-              >
-                <div className={styles.zoom_card_container}>
-                  <InnerImageZoom
-                    className={styles.card}
-                    src={imageUrl || ""}
-                    zoomSrc={imageUrl || ""}
-                    zoomType="hover"
-                  />
-                </div>
-                <div className={styles.zoom_card_container}>
-                  <InnerImageZoom
-                    className={styles.card}
-                    src={imageUrl || ""}
-                    zoomSrc={imageUrl || ""}
-                    zoomType="hover"
-                  />
-                </div>
-              </Slider>
-            </div>
+            {!imageUrl ? (
+              <div className={styles.image_skeleton}>
+                <Skeleton
+                  variant="rounded"
+                  sx={{ width: "90%", height: "90%" }}
+                />
+              </div>
+            ) : (
+              <div className={styles.slick_container}>
+                <Slider
+                  // className={styles.slick_container}
+                  dots
+                  dotsClass={`${styles.slick_dots} slick-dots`}
+                  // infinite
+                  speed={500}
+                  slidesToShow={1}
+                  slidesToScroll={1}
+                  nextArrow={<SampleNextArrow />}
+                  prevArrow={<SamplePrevArrow />}
+                >
+                  <div className={styles.zoom_card_container}>
+                    <InnerImageZoom
+                      className={styles.card}
+                      src={imageUrl}
+                      zoomSrc={imageUrl}
+                      zoomType="hover"
+                    />
+                  </div>
+                  <div className={styles.zoom_card_container}>
+                    <InnerImageZoom
+                      className={styles.card}
+                      src={imageUrl}
+                      zoomSrc={imageUrl}
+                      zoomType="hover"
+                    />
+                  </div>
+                </Slider>
+              </div>
+            )}
           </div>
 
           <div className={styles.info_container}>
@@ -690,7 +701,6 @@ export default function Auction({
                         fullWidth
                         size="large"
                         disabled
-                       
                       >
                         Watch
                       </Button>
@@ -700,7 +710,15 @@ export default function Auction({
                         startIcon={<StarIcon />}
                         fullWidth
                         size="large"
-                        onClick={() => handleWatching(watching, curAuctionId.current, user.accountId, setWatching, setToast)}
+                        onClick={() =>
+                          handleWatching(
+                            watching,
+                            curAuctionId.current,
+                            user.accountId,
+                            setWatching,
+                            setToast
+                          )
+                        }
                       >
                         Watching
                       </Button>
@@ -710,7 +728,15 @@ export default function Auction({
                         startIcon={<StarIcon />}
                         fullWidth
                         size="large"
-                        onClick={() => handleWatching(watching, curAuctionId.current, user.accountId, setWatching, setToast)}
+                        onClick={() =>
+                          handleWatching(
+                            watching,
+                            curAuctionId.current,
+                            user.accountId,
+                            setWatching,
+                            setToast
+                          )
+                        }
                       >
                         Watch
                       </Button>
@@ -826,12 +852,12 @@ export default function Auction({
             </div>
 
             <div className={styles.account_row}>
-              {/* PFP image */}
-              {/* TODO: Replace with downloaded default pfp (or api) */}
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png"
-                alt="Profile Picture"
-                className={styles.TEMP_pfp}
+              <Image
+                src="/default-pfp.png"
+                alt="Default profile picture"
+                width={35}
+                height={35}
+                style={{ borderRadius: "999px", marginRight: "10px" }}
               />
               {auctionLoading ? (
                 <Skeleton
@@ -941,10 +967,12 @@ export default function Auction({
         {tabIndex === 1 && !auctionLoading && (
           <section className={styles.auctioneer_details_container}>
             <div className={styles.auctioneer_row}>
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png"
-                alt="Profile Picture"
-                className={styles.TEMP_auctioneer_pfp}
+              <Image
+                src="/default-pfp.png"
+                alt="Default profile picture"
+                width={60}
+                height={60}
+                style={{ borderRadius: "999px" }}
               />
               <div className={styles.auctioneer_info}>
                 <p className={styles.auctioneer_username}>{sellerUsername}</p>

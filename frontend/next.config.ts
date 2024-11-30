@@ -8,7 +8,17 @@ const nextConfig: NextConfig = {
     }
 
     return config;
-  }
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/superbiddo-bucket-0/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
