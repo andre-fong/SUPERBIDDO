@@ -13,9 +13,9 @@ import {
   QualityPsa,
   QualityUngraded,
 } from "@/types/backendAuctionTypes";
-import exp from "constants";
+
 const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
-// const url = `http://localhost:3001/api/v1`;
+
 const unkownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
@@ -755,6 +755,45 @@ export async function uploadImage(
       });
     }
     else {
+      errorFcn({ message: unkownError, severity: Severity.Critical });
+    }
+
+    return null;
+  } catch (error) {
+    errorFcn({ message: unkownError, severity: Severity.Critical });
+    return null;
+  }
+}
+
+export async function getGeminiInput(errorFcn: (error: ErrorType) => void, imageUrl: string) {
+  try {
+    const response = await fetch(`${url}/geminiUpload/${encodeURIComponent(imageUrl)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return JSON.parse(data.response);
+    } else if (response.status === 400) {
+      errorFcn({
+        message: "Request format is invalid",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 401) {
+      errorFcn({
+        message: "Action requires authentication",
+        severity: Severity.Warning,
+      });
+    } else if (response.status === 404) {
+      errorFcn({
+        message: "Image not found",
+        severity: Severity.Critical,
+      });
+    } else {
       errorFcn({ message: unkownError, severity: Severity.Critical });
     }
 
