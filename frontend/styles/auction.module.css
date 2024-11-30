@@ -23,6 +23,9 @@
 }
 
 .zoom_card_container {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 
@@ -31,6 +34,8 @@
 }
 
 .card {
+  display: flex;
+  align-items: center;
   width: 95%;
 
   /* Standard playing card ratio */
