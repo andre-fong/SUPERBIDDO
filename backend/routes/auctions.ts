@@ -520,6 +520,11 @@ router.get("/", async (req, res) => {
           accountId: auctionRecord.auctioneerId,
           username: auctionRecord.auctioneerUsername,
           email: auctionRecord.auctioneerEmail,
+          address: {
+            addressFormatted: auctionRecord.auctioneerAddressFormatted,
+            latitude: auctionRecord.auctioneerLatitude,
+            longitude: auctionRecord.auctioneerLongitude,
+          },
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
