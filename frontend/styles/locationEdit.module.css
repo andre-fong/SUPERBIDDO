@@ -1,0 +1,17 @@
+.container {
+  padding: 30px 60px;
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.button_row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+}

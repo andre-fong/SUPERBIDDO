@@ -30,6 +30,22 @@ export default function Login({
   const [emailError, setEmailError] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<boolean>(false);
 
+  function handleBackButtonClicked() {
+    const nextPage = JSON.parse(context)?.next as PageName;
+    if (
+      nextPage &&
+      nextPage !== "yourListings" &&
+      nextPage !== "yourBiddings" &&
+      nextPage !== "create" &&
+      nextPage !== "editAuction" &&
+      nextPage !== "watchList"
+    ) {
+      setCurPage(nextPage, context);
+    } else {
+      setCurPage("home");
+    }
+  }
+
   async function handleLoginSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!reCAPTCHAPassed) {
@@ -80,14 +96,7 @@ export default function Login({
         animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
       >
         <div className={styles.back}>
-          <IconButton
-            onClick={() =>
-              setCurPage(
-                (JSON.parse(context)?.next as PageName) || "home",
-                context
-              )
-            }
-          >
+          <IconButton onClick={() => handleBackButtonClicked()}>
             <ArrowBackIcon />
           </IconButton>
         </div>

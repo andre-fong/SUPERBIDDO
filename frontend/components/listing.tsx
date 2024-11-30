@@ -69,11 +69,13 @@ export default function Listing({
             )
           }
         >
-          <img
-            src={getImageUrl(auction) || undefined}
-            alt={auction.name}
-            className={styles.TEMP_img}
-          />
+          <div className={styles.img_relative}>
+            <img
+              src={getImageUrl(auction) || undefined}
+              alt={auction.name}
+              className={styles.TEMP_img}
+            />
+          </div>
         </button>
         <div className={styles.star}>
           <IconButton

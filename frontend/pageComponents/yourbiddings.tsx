@@ -35,6 +35,7 @@ interface YourBiddingsProps {
   user: User;
   setToast: (error: ErrorType) => void;
   setCurPage: (page: PageName, context?: string) => void;
+  context: string;
 }
 
 const auctionStatuses: BiddingStatus[] = Object.values(BiddingStatusEnum).map(
@@ -47,8 +48,17 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
   user,
   setToast,
   setCurPage,
+  context,
 }) => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
+  // Set status provided in context if exists
+  useEffect(() => {
+    if (context) {
+      setSelectedStatuses([context]);
+    }
+  }, [context]);
+
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { auctions, totalPages, isLoaded } = useSelfAuctions(

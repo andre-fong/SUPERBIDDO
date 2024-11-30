@@ -3,7 +3,6 @@ import { User } from "@/types/userTypes";
 import styles from "@/styles/navbar.module.css";
 import Image from "next/image";
 import IconButton from "@mui/material/IconButton";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import { PageName } from "@/types/pageTypes";
 import { motion } from "motion/react";
 import { useInView, useScroll, useMotionValueEvent } from "motion/react";
@@ -22,6 +21,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Auction } from "@/types/backendAuctionTypes";
+import LocationEdit from "@/components/locationEdit";
 
 const navVariants = {
   hidden: {
@@ -65,6 +65,8 @@ export default function Navbar({
 }) {
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
+
+  const [locationEditOpen, setLocationEditOpen] = useState(false);
 
   // Track scroll position to make navbar sticky
   const { scrollY } = useScroll();
@@ -166,447 +168,450 @@ export default function Navbar({
   }, [inputValue, setToast]);
 
   return (
-    <motion.nav
-      className={styles.container}
-      variants={navVariants}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-    >
-      <motion.div className={styles.main} ref={ref}>
-        <button className={styles.logo} onClick={() => setCurPage("home")}>
-          <Image
-            src="/superbiddo-logo.svg"
-            alt="SuperBiddo Logo"
-            fill
-            priority
-          />
-        </button>
-        <form className={styles.search} onSubmit={handleSearch}>
-          <Autocomplete
-            freeSolo
-            value={inputValue}
-            onInputChange={(event, newInputValue) => {
-              setInputValue(newInputValue);
-            }}
-            disableClearable
-            handleHomeEndKeys
-            loading={optionsLoading}
-            loadingText="Loading..."
-            options={options}
-            getOptionLabel={(option) =>
-              typeof option === "string" ? option : option.name
-            }
-            filterOptions={(options, params) => {
-              // Max 10 option results
-              const filteredOptions = options.slice(0, 10);
-
-              if (params.inputValue !== "") {
-                filteredOptions.push({
-                  game: null,
-                  name: `Search for "${params.inputValue}" in Pokémon`,
-                  auctionId: "",
-                  category: "pokemon",
-                });
-                filteredOptions.push({
-                  game: null,
-                  name: `Search for "${params.inputValue}" in Magic: The Gathering`,
-                  auctionId: "",
-                  category: "mtg",
-                });
-                filteredOptions.push({
-                  game: null,
-                  name: `Search for "${params.inputValue}" in Yu-Gi-Oh!`,
-                  auctionId: "",
-                  category: "yugioh",
-                });
-              }
-              return filteredOptions;
-            }}
-            renderOption={(props, option) => {
-              const { key, ...optionProps } = props;
-              return (
-                <Box
-                  component="li"
-                  key={key + option.auctionId}
-                  {...optionProps}
-                  title={
-                    !option.game ? undefined : `${option.name} (${option.game})`
-                  }
-                  onClick={(e) => {
-                    if (!!optionProps.onClick) {
-                      optionProps.onClick(e);
-                    }
-                    if (!option.game) {
-                      setCurPage(
-                        "results",
-                        JSON.stringify({
-                          search: option.name.split('"').at(1) || "",
-                          category: option.category,
-                        })
-                      );
-                      setTimeout(() => {
-                        setInputValue(option.name.split('"').at(1) || "");
-                      }, 500);
-                    } else {
-                      setCurPage(
-                        "auction",
-                        JSON.stringify({ auctionId: option.auctionId })
-                      );
-                    }
-                  }}
-                >
-                  <SearchIcon />
-                  <div className={styles.search_option}>{option.name}</div>
-                  {option.game && (
-                    <p className={styles.search_option_game}>
-                      {" "}
-                      — {option.game}
-                    </p>
-                  )}
-                </Box>
-              );
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Search SuperBiddo"
-                variant="outlined"
-                slotProps={{
-                  input: {
-                    ...params.InputProps, // NOT inputProps
-                    endAdornment: (
-                      <>
-                        {optionsLoading && (
-                          <CircularProgress
-                            color="info"
-                            size={20}
-                            sx={{ marginRight: "10px" }}
-                          />
-                        )}
-                        <IconButton
-                          sx={{
-                            // Filled IconButton: https://github.com/mui/material-ui/issues/37443
-                            backgroundColor: "primary.main",
-                            color: "white",
-                            "&:hover": { backgroundColor: "primary.dark" },
-                            "&:focus": { backgroundColor: "primary.dark" },
-                          }}
-                          title="Search SuperBiddo"
-                          type="submit"
-                        >
-                          <SearchIcon />
-                        </IconButton>
-                      </>
-                    ),
-                  },
-                }}
-              />
-            )}
-          />
-        </form>
-
-        {userLoading ? (
-          <div>
-            <Skeleton
-              variant="text"
-              sx={{ fontSize: "1.5em", marginBottom: "-5px" }}
-              width={100}
+    <>
+      <motion.nav
+        className={styles.container}
+        variants={navVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+      >
+        <motion.div className={styles.main} ref={ref}>
+          <button className={styles.logo} onClick={() => setCurPage("home")}>
+            <Image
+              src="/superbiddo-logo.svg"
+              alt="SuperBiddo Logo"
+              fill
+              priority
             />
-            <Skeleton variant="text" sx={{ fontSize: "2em" }} width={120} />
-          </div>
-        ) : (
-          <div className={styles.right}>
-            {/* {user && (
-              <div className={styles.notifications}>
-                <IconButton title="My Notifications">
-                  <NotificationsIcon fontSize="large" />
-                </IconButton>
+          </button>
+          <form className={styles.search} onSubmit={handleSearch}>
+            <Autocomplete
+              freeSolo
+              value={inputValue}
+              onInputChange={(event, newInputValue) => {
+                setInputValue(newInputValue);
+              }}
+              disableClearable
+              handleHomeEndKeys
+              loading={optionsLoading}
+              loadingText="Loading..."
+              options={options}
+              getOptionLabel={(option) =>
+                typeof option === "string" ? option : option.name
+              }
+              filterOptions={(options, params) => {
+                // Max 10 option results
+                const filteredOptions = options.slice(0, 10);
 
-                {notificationCount > 0 && (
-                  <div className={styles.notifications_count}>
-                    {notificationCount}
-                  </div>
-                )}
-              </div>
-            )} */}
-            <div className={styles.user}>
-              {user ? (
-                <>
-                  <button
-                    className={styles.user_avatar}
-                    ref={accountAnchor}
-                    onMouseOver={() => setAccountPopperOpen(true)}
-                    onMouseOut={() => setAccountPopperOpen(false)}
-                    onClick={() => setAccountPopperOpen(!accountPopperOpen)}
+                if (params.inputValue !== "") {
+                  filteredOptions.push({
+                    game: null,
+                    name: `Search for "${params.inputValue}" in Pokémon`,
+                    auctionId: "",
+                    category: "pokemon",
+                  });
+                  filteredOptions.push({
+                    game: null,
+                    name: `Search for "${params.inputValue}" in Magic: The Gathering`,
+                    auctionId: "",
+                    category: "mtg",
+                  });
+                  filteredOptions.push({
+                    game: null,
+                    name: `Search for "${params.inputValue}" in Yu-Gi-Oh!`,
+                    auctionId: "",
+                    category: "yugioh",
+                  });
+                }
+                return filteredOptions;
+              }}
+              renderOption={(props, option) => {
+                const { key, ...optionProps } = props;
+                return (
+                  <Box
+                    component="li"
+                    key={key + option.auctionId}
+                    {...optionProps}
+                    title={
+                      !option.game
+                        ? undefined
+                        : `${option.name} (${option.game})`
+                    }
+                    onClick={(e) => {
+                      if (!!optionProps.onClick) {
+                        optionProps.onClick(e);
+                      }
+                      if (!option.game) {
+                        setCurPage(
+                          "results",
+                          JSON.stringify({
+                            search: option.name.split('"').at(1) || "",
+                            category: option.category,
+                          })
+                        );
+                        setTimeout(() => {
+                          setInputValue(option.name.split('"').at(1) || "");
+                        }, 500);
+                      } else {
+                        setCurPage(
+                          "auction",
+                          JSON.stringify({ auctionId: option.auctionId })
+                        );
+                      }
+                    }}
                   >
-                    <p className={styles.session_msg}>
-                      Hello, {user?.username || "User"}
-                    </p>
-                    <p className={styles.session_submsg}>
-                      Account & Lists <ArrowDropDownIcon fontSize="small" />
-                    </p>
-                  </button>
+                    <SearchIcon />
+                    <div className={styles.search_option}>{option.name}</div>
+                    {option.game && (
+                      <p className={styles.search_option_game}>
+                        {" "}
+                        — {option.game}
+                      </p>
+                    )}
+                  </Box>
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Search SuperBiddo"
+                  variant="outlined"
+                  slotProps={{
+                    input: {
+                      ...params.InputProps, // NOT inputProps
+                      endAdornment: (
+                        <>
+                          {optionsLoading && (
+                            <CircularProgress
+                              color="info"
+                              size={20}
+                              sx={{ marginRight: "10px" }}
+                            />
+                          )}
+                          <IconButton
+                            sx={{
+                              // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                              backgroundColor: "primary.main",
+                              color: "white",
+                              "&:hover": { backgroundColor: "primary.dark" },
+                              "&:focus": { backgroundColor: "primary.dark" },
+                            }}
+                            title="Search SuperBiddo"
+                            type="submit"
+                          >
+                            <SearchIcon />
+                          </IconButton>
+                        </>
+                      ),
+                    },
+                  }}
+                />
+              )}
+            />
+          </form>
 
-                  <Popper
-                    open={accountPopperOpen}
-                    anchorEl={accountAnchor.current}
-                    placement="bottom-end"
-                    onMouseEnter={() => setAccountPopperOpen(true)}
-                    onMouseLeave={() => setAccountPopperOpen(false)}
-                    onClick={handleAccountPopperClick}
-                    sx={{ zIndex: 9999 }}
-                    transition
-                  >
-                    {({ TransitionProps }) => (
-                      <Fade {...TransitionProps} timeout={350}>
-                        <Paper elevation={3} sx={{ marginTop: "10px" }}>
-                          <div className={styles.account_popper}>
-                            <Paper
-                              variant="outlined"
-                              sx={{
-                                backgroundColor: "secondary.light",
-                                borderStyle: "none",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "10px 20px",
-                              }}
-                            >
-                              <div className={styles.account_popper_row}>
-                                <div className={styles.account_popper_avatar}>
-                                  <AccountCircleIcon fontSize="inherit" />
-                                </div>
-                                <div
-                                  className={
-                                    styles.account_popper_username_email
-                                  }
-                                >
-                                  <p className={styles.account_popper_username}>
-                                    {user.username}{" "}
-                                  </p>
-                                  <p
-                                    className={styles.account_popper_email}
-                                    title={user.email}
-                                  >
-                                    {user.email}
-                                  </p>
-                                </div>
-                              </div>
+          {userLoading ? (
+            <div>
+              <Skeleton
+                variant="text"
+                sx={{ fontSize: "1.5em", marginBottom: "-5px" }}
+                width={100}
+              />
+              <Skeleton variant="text" sx={{ fontSize: "2em" }} width={120} />
+            </div>
+          ) : (
+            <div className={styles.right}>
+              <div className={styles.user}>
+                {user ? (
+                  <>
+                    <button
+                      className={styles.user_avatar}
+                      ref={accountAnchor}
+                      onMouseOver={() => setAccountPopperOpen(true)}
+                      onMouseOut={() => setAccountPopperOpen(false)}
+                      onClick={() => setAccountPopperOpen(!accountPopperOpen)}
+                    >
+                      <p className={styles.session_msg}>
+                        Hello, {user?.username || "User"}
+                      </p>
+                      <p className={styles.session_submsg}>
+                        Account & Lists <ArrowDropDownIcon fontSize="small" />
+                      </p>
+                    </button>
 
-                              <button
-                                className={styles.signout}
-                                onClick={handleSignout}
+                    <Popper
+                      open={accountPopperOpen}
+                      anchorEl={accountAnchor.current}
+                      placement="bottom-end"
+                      onMouseEnter={() => setAccountPopperOpen(true)}
+                      onMouseLeave={() => setAccountPopperOpen(false)}
+                      onClick={handleAccountPopperClick}
+                      sx={{ zIndex: 9999 }}
+                      transition
+                    >
+                      {({ TransitionProps }) => (
+                        <Fade {...TransitionProps} timeout={350}>
+                          <Paper elevation={3} sx={{ marginTop: "10px" }}>
+                            <div className={styles.account_popper}>
+                              <Paper
+                                variant="outlined"
+                                sx={{
+                                  backgroundColor: "secondary.light",
+                                  borderStyle: "none",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "10px 20px",
+                                }}
                               >
-                                <p className={styles.signout_text}>Sign out</p>
-                                <ChevronRightIcon />
-                              </button>
-                            </Paper>
-
-                            <div className={styles.account_popper_bottom}>
-                              <div className={styles.my_superbiddo}>
-                                <p
-                                  className={
-                                    styles.account_popper_section_heading
-                                  }
-                                >
-                                  My SuperBiddo
-                                </p>
-                                <div
-                                  className={styles.account_popper_section_list}
-                                >
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={() => setCurPage("yourListings")}
-                                  >
-                                    My Listings
-                                  </button>
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={() => setCurPage("yourBiddings")}
-                                  >
-                                    Bid History
-                                  </button>
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    // TODO: Set my bids filter to "won"
-                                    onClick={() => setCurPage("yourBiddings")}
-                                  >
-                                    Purchase History
-                                  </button>
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={() => setCurPage("watchList")}
-                                  >
-                                    Watch List
-                                  </button>
+                                <div className={styles.account_popper_row}>
+                                  <div className={styles.account_popper_avatar}>
+                                    <AccountCircleIcon fontSize="inherit" />
+                                  </div>
                                   <div
                                     className={
-                                      styles.account_popper_horizontal_divider
+                                      styles.account_popper_username_email
                                     }
-                                  />
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={() => setCurPage("create")}
                                   >
-                                    Sell
-                                  </button>
+                                    <p
+                                      className={styles.account_popper_username}
+                                    >
+                                      {user.username}{" "}
+                                    </p>
+                                    <p
+                                      className={styles.account_popper_email}
+                                      title={user.email}
+                                    >
+                                      {user.email}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div
-                                className={
-                                  styles.account_popper_vertical_divider
-                                }
-                              />
+                                <button
+                                  className={styles.signout}
+                                  onClick={handleSignout}
+                                >
+                                  <p className={styles.signout_text}>
+                                    Sign out
+                                  </p>
+                                  <ChevronRightIcon />
+                                </button>
+                              </Paper>
 
-                              <div className={styles.my_account}>
-                                <p
-                                  className={
-                                    styles.account_popper_section_heading
-                                  }
-                                >
-                                  My Account
-                                </p>
-                                <div
-                                  className={styles.account_popper_section_list}
-                                >
-                                  <button
+                              <div className={styles.account_popper_bottom}>
+                                <div className={styles.my_superbiddo}>
+                                  <p
                                     className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={() =>
-                                      setCurPage(
-                                        "login",
-                                        JSON.stringify({
-                                          next: curPage,
-                                          ...JSON.parse(context),
-                                        })
-                                      )
+                                      styles.account_popper_section_heading
                                     }
                                   >
-                                    Switch Accounts
-                                  </button>
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
-                                    }
-                                    onClick={handleSignout}
-                                  >
-                                    Sign Out
-                                  </button>
+                                    My SuperBiddo
+                                  </p>
                                   <div
                                     className={
-                                      styles.account_popper_horizontal_divider
-                                    }
-                                  />
-                                  <button
-                                    className={
-                                      styles.account_popper_section_item
+                                      styles.account_popper_section_list
                                     }
                                   >
-                                    Settings
-                                  </button>
-                                  <button
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() => setCurPage("yourListings")}
+                                    >
+                                      My Listings
+                                    </button>
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() => setCurPage("yourBiddings")}
+                                    >
+                                      Bid History
+                                    </button>
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() =>
+                                        setCurPage(
+                                          "yourBiddings",
+                                          JSON.stringify({ filter: "Won" })
+                                        )
+                                      }
+                                    >
+                                      Purchase History
+                                    </button>
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() => setCurPage("watchList")}
+                                    >
+                                      Watch List
+                                    </button>
+                                    <div
+                                      className={
+                                        styles.account_popper_horizontal_divider
+                                      }
+                                    />
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() => setCurPage("create")}
+                                    >
+                                      Sell
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div
+                                  className={
+                                    styles.account_popper_vertical_divider
+                                  }
+                                />
+
+                                <div className={styles.my_account}>
+                                  <p
                                     className={
-                                      styles.account_popper_section_item
+                                      styles.account_popper_section_heading
                                     }
                                   >
-                                    Payment Settings
-                                  </button>
+                                    My Account
+                                  </p>
+                                  <div
+                                    className={
+                                      styles.account_popper_section_list
+                                    }
+                                  >
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() =>
+                                        setCurPage(
+                                          "login",
+                                          JSON.stringify({
+                                            next: curPage,
+                                            ...JSON.parse(context),
+                                          })
+                                        )
+                                      }
+                                    >
+                                      Switch Accounts
+                                    </button>
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={handleSignout}
+                                    >
+                                      Sign Out
+                                    </button>
+                                    <div
+                                      className={
+                                        styles.account_popper_horizontal_divider
+                                      }
+                                    />
+                                    <button
+                                      className={
+                                        styles.account_popper_section_item
+                                      }
+                                      onClick={() => setLocationEditOpen(true)}
+                                    >
+                                      Location Settings
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </Paper>
-                      </Fade>
-                    )}
-                  </Popper>
-                </>
-              ) : (
-                <p className={styles.no_session_msg}>
-                  Hello, guest! <br />
-                  <button
-                    className={styles.link}
-                    onClick={() =>
-                      setCurPage(
-                        "login",
-                        JSON.stringify({
-                          next: curPage,
-                          ...JSON.parse(context),
-                        })
-                      )
-                    }
-                  >
-                    Login
-                  </button>{" "}
-                  or{" "}
-                  <button
-                    className={styles.link}
-                    onClick={() =>
-                      setCurPage(
-                        "signup",
-                        JSON.stringify({
-                          next: curPage,
-                          ...JSON.parse(context),
-                        })
-                      )
-                    }
-                  >
-                    signup
-                  </button>
-                </p>
-              )}
+                          </Paper>
+                        </Fade>
+                      )}
+                    </Popper>
+                  </>
+                ) : (
+                  <p className={styles.no_session_msg}>
+                    Hello, guest! <br />
+                    <button
+                      className={styles.link}
+                      onClick={() =>
+                        setCurPage(
+                          "login",
+                          JSON.stringify({
+                            next: curPage,
+                            ...JSON.parse(context),
+                          })
+                        )
+                      }
+                    >
+                      Login
+                    </button>{" "}
+                    or{" "}
+                    <button
+                      className={styles.link}
+                      onClick={() =>
+                        setCurPage(
+                          "signup",
+                          JSON.stringify({
+                            next: curPage,
+                            ...JSON.parse(context),
+                          })
+                        )
+                      }
+                    >
+                      signup
+                    </button>
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </motion.div>
-      <div className={styles.links_container} ref={linksRef}>
-        <ul className={styles.links}>
-          <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => redirectToSearchResults("pokemon")}
-            >
-              Pokémon
-            </button>
-          </li>
-          <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => redirectToSearchResults("mtg")}
-            >
-              Magic: The Gathering
-            </button>
-          </li>
-          <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => redirectToSearchResults("yugioh")}
-            >
-              Yu-Gi-Oh!
-            </button>
-          </li>
-          <li className={styles.page_link}>
-            <button
-              className={styles.page_button}
-              onClick={() => setCurPage("results")}
-            >
-              All Listings
-            </button>
-          </li>
-        </ul>
-      </div>
-    </motion.nav>
+          )}
+        </motion.div>
+        <div className={styles.links_container} ref={linksRef}>
+          <ul className={styles.links}>
+            <li className={styles.page_link}>
+              <button
+                className={styles.page_button}
+                onClick={() => redirectToSearchResults("pokemon")}
+              >
+                Pokémon
+              </button>
+            </li>
+            <li className={styles.page_link}>
+              <button
+                className={styles.page_button}
+                onClick={() => redirectToSearchResults("mtg")}
+              >
+                Magic: The Gathering
+              </button>
+            </li>
+            <li className={styles.page_link}>
+              <button
+                className={styles.page_button}
+                onClick={() => redirectToSearchResults("yugioh")}
+              >
+                Yu-Gi-Oh!
+              </button>
+            </li>
+            <li className={styles.page_link}>
+              <button
+                className={styles.page_button}
+                onClick={() => setCurPage("results")}
+              >
+                All Listings
+              </button>
+            </li>
+          </ul>
+        </div>
+      </motion.nav>
+
+      <LocationEdit
+        locationEditOpen={locationEditOpen && !!user}
+        setLocationEditOpen={setLocationEditOpen}
+        setToast={setToast}
+      />
+    </>
   );
 }
