@@ -30,7 +30,7 @@ export default function Home({
     if (user) {
       setRecommendedLoading(true);
       getAuctionSearchResults(setToast, {
-        recommended: true,
+        recommendedFor: user.accountId,
       })
         .then((res) => {
           setRecommended(res.auctions);

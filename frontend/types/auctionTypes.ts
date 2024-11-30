@@ -102,7 +102,7 @@ export type AuctionSortByOption =
 
 export type AuctionSearchQuery = {
   name?: string;
-  recommended?: boolean;
+  recommendedFor?: string;
   auctionStatus?: AuctionStatus;
   minMinNewBidPrice?: number;
   maxMinNewBidPrice?: number;

@@ -16,7 +16,7 @@ export const router = express.Router();
 
 router.get("/", async (req, res) => {
   const {
-    recommended,
+    recommendedFor,
     includeBidStatusFor,
     auctioneerId,
     watchedBy,
@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
     page = "1",
     pageSize = "20",
   } = req.query as {
-    recommended: string;
+    recommendedFor: string;
     includeBidStatusFor: string;
     auctioneerId: string;
     bidderId: string;
@@ -164,12 +164,10 @@ router.get("/", async (req, res) => {
 
   // return auctions based on user's viewing and bidding history using a
   // content-based recommendation system
-  if (recommended === "true") {
-    if (!req.session.accountId) {
-      res.json({ auctions: [], totalNumAuctions: 0 });
-      return;
+  if (recommendedFor) {
+    if (recommendedFor !== req.session.accountId) {
+      throw unauthorized();
     }
-
     const approxNumAuctionsToReturn = 10;
 
     // top 3 most frequently viewed/bidded price ranges for each game
@@ -214,7 +212,7 @@ router.get("/", async (req, res) => {
           SELECT game, price_range, frequency
           FROM game_rows_ranked
           WHERE row_num <= 3`,
-        [req.session.accountId]
+        [recommendedFor]
       )
     ).rows;
 

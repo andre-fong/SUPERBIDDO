@@ -172,11 +172,12 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: recommended
-          description: If provided, only auctions that are recommended for the signed in user will be returned. If not signed in, will return empty list.
+          name: recommendedFor
+          description: If provided, only auctions that are recommended for the provided user will be returned. Must match signed in user id.
           required: false
           schema:
-            type: boolean
+            type: string
+            format: uuid
         - in: query
           name: includeBidStatusFor
           description: The uuid of a bidder. If provided, the bid status of the bidder will be included in the response for each auction. Must match signed in user id.
