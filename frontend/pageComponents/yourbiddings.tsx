@@ -52,12 +52,16 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   // Set status provided in context if exists
-  //TODO: andre fix this
-  // useEffect(() => {
-  //   if (context != "{}") {
-  //     setSelectedStatuses([context]);
-  //   }
-  // }, [context]);
+  useEffect(() => {
+    if (context) {
+      const status = JSON.parse(context)?.filter;
+      if (auctionStatuses.includes(status as BiddingStatus)) {
+        setTimeout(() => {
+          setSelectedStatuses([status]);
+        }, 500);
+      }
+    }
+  }, [context]);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -86,7 +90,6 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
     setCurrentPage(page);
   };
 
-  //TODO: andre countdown timer
   return (
     <>
       <div
