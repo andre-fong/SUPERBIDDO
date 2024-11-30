@@ -1,9 +1,6 @@
 import { AuctionStatus, AuctionStatusEnum, BiddingStatus, BiddingStatusEnum } from "@/types/auctionTypes"
 import { Auction, QualityPsa, QualityUngraded } from "@/types/backendAuctionTypes"
 
-
-
-
 export function determineTypeListings(
     status: AuctionStatus,
     endDate: string | null,

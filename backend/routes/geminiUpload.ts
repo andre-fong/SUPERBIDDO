@@ -5,6 +5,7 @@ import { BusinessError } from '../utils/errors';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { qualityList, cardRarities } from '../types/geminiTypes';
 import fetch, { Headers } from 'node-fetch';
+
 if (!globalThis.fetch) {
     globalThis.fetch = fetch as any;
 }

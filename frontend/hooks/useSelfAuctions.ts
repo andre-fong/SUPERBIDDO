@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Auction } from "@/types/auctionTypes";
-import { AuctionSelfType } from "@/types/backendAuctionTypes";
+import { AuctionSelfType, Auction } from "@/types/backendAuctionTypes";
 import { fetchSelfAuctions } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
@@ -9,6 +8,7 @@ import {
   determineTypeListings,
   getImageUrl,
 } from "@/utils/determineFunctions";
+import { AuctionStatus } from "@/types/auctionTypes";
 
 const useSelfAuctions = (
   type: AuctionSelfType,
@@ -43,9 +43,7 @@ const useSelfAuctions = (
     ).then((auctionsGet) => {
       setTotalPages(Math.ceil(auctionsGet.totalNumAuctions / pageSize));
       setAuctions(
-        //TODO: set this type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        auctionsGet.auctions.map((auction: any) => {
+        auctionsGet.auctions.map((auction: Auction & { bidStatus: string; auctionStatus: AuctionStatus; endTime: string | null }) => {
           return {
               auctionId: auction.auctionId,
               name: auction.name,
