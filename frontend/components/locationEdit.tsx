@@ -58,7 +58,6 @@ export default function LocationEdit({
   const [value, setValue] = useState<PlaceType | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
-  const [error, setError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const loaded = useRef(false);
 
@@ -191,12 +190,7 @@ export default function LocationEdit({
             setInputValue(newInputValue);
           }}
           renderInput={(params) => (
-            <TextField
-              error={error}
-              {...params}
-              label="Your location"
-              fullWidth
-            />
+            <TextField {...params} required label="Your location" fullWidth />
           )}
           renderOption={(props, option) => {
             const { key, ...optionProps } = props;
@@ -263,10 +257,16 @@ export default function LocationEdit({
             variant="outlined"
             type="button"
             onClick={() => setLocationEditOpen(false)}
+            disabled={submitting}
           >
             Cancel
           </Button>
-          <Button variant="contained" type="submit" color="primary">
+          <Button
+            variant="contained"
+            type="submit"
+            color="primary"
+            disabled={submitting}
+          >
             Save
           </Button>
         </div>
