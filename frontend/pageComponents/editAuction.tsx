@@ -54,7 +54,7 @@ export default function EditAuction({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [auctionName, setAuctionName] = useState<string>("");
   const [editing, setEditing] = useState<boolean>(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState<string>("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
@@ -124,6 +124,7 @@ export default function EditAuction({
           setSet(isBundle ? auction.bundle.set : auction.cards[0].set);
           setStartingPrice(auction.startPrice);
           setSpread(auction.spread);
+          setAuctionName(auction.name);
 
           let date = new Date(auction.startTime);
           let year = date.getFullYear();
@@ -208,6 +209,10 @@ export default function EditAuction({
     setSpread(Number(event.target.value));
   };
 
+  const handleAuctionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAuctionName(event.target.value);
+  }
+
   const handleStartDateChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -232,7 +237,7 @@ export default function EditAuction({
     if (editing || deleting) return;
 
     const auctionData: AuctionPatchBody = {
-      name: cardName,
+      name: auctionName,
       description: description,
       startPrice: startingPrice,
       spread: spread,
@@ -463,6 +468,15 @@ export default function EditAuction({
             InputLabelProps={{ shrink: true }}
             value={set}
             onChange={handleSetChange}
+            fullWidth
+            required
+            disabled={loading}
+          />
+          <TextField
+            label="Auction Name"
+            InputLabelProps={{ shrink: true }}
+            value={auctionName}
+            onChange={handleAuctionNameChange}
             fullWidth
             required
             disabled={loading}
