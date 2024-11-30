@@ -10,6 +10,12 @@ type Account = {
   username: string;
 };
 
+type Address = {
+  addressFormatted: string;
+  latitude: number;
+  longitude: number;
+};
+
 type AuctionInput = {
   auctioneerId: string;
   name: string;
@@ -25,7 +31,9 @@ type AuctionInput = {
 
 type Auction = {
   auctionId: string;
-  auctioneer: Account;
+  auctioneer: Account & {
+    address?: Address;
+  };
   name: string;
   description?: string;
   startPrice: number;

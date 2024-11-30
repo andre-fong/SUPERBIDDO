@@ -3,6 +3,9 @@ type AccountDb = {
   username: string;
   email: string;
   passhash: string;
+  address_formatted: string;
+  latitude: number;
+  longitude: number;
 };
 
 type AuctionDb = {

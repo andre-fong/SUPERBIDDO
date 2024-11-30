@@ -28,16 +28,41 @@ router.get("/", async (req, res, next) => {
   }
 
   const accountRecord = camelize(
-    await pool.query<Omit<AccountDb, "passhash">>(
-      `SELECT account_id, email, username
-      FROM account
-      WHERE account_id=$1`,
+    await pool.query<
+      Omit<AccountDb, "passhash"> & {
+        address_formatted: string;
+        latitude: number;
+        longitude: number;
+      }
+    >(
+      ` SELECT account_id, email, username, 
+        address_formatted, latitude, longitude
+        FROM account
+        WHERE account_id=$1`,
       [req.session.accountId]
     )
   ).rows[0];
 
-  const account: Account = accountRecord;
+  const account:
+    | Account
+    | (Account & {
+        address: Address;
+      }) = {
+    accountId: accountRecord.accountId,
+    email: accountRecord.email,
+    username: accountRecord.username,
+    ...(accountRecord.addressFormatted
+      ? {
+          address: {
+            addressFormatted: accountRecord.addressFormatted,
+            latitude: accountRecord.latitude,
+            longitude: accountRecord.longitude,
+          },
+        }
+      : {}),
+  };
 
+  console.log(account);
   res.json(account);
 });
 
@@ -79,7 +104,7 @@ router.post("/", async (req, res, next) => {
 });
 
 router.delete("/", async (req, res, next) => {
-  if (!req.session.accountId && !req.user) {
+  if (!req.session.accountId) {
     throw sessionNotFound();
   }
   req.session.destroy(() => {

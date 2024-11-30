@@ -2,7 +2,7 @@ import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import bcrypt from "bcrypt";
-import { BusinessError, sessionNotFound } from "../utils/errors.js";
+import { BusinessError, ServerError, unauthorized } from "../utils/errors.js";
 
 export const router = express.Router();
 
@@ -55,4 +55,59 @@ router.post("/", async (req, res) => {
   const account = await createAccount(email, passhash, username);
 
   res.status(201).json(account);
+});
+
+router.put("/:accountId/address", async (req, res) => {
+  const { accountId } = req.params;
+  const { sessionToken } = req.query;
+
+  if (req.session.accountId !== accountId) {
+    throw unauthorized();
+  }
+
+  const { placeId } = req.body;
+
+  const fields = "formatted_address,geometry";
+  const gmapsResponse = await fetch(
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&sessiontoken=${sessionToken}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
+    {
+      method: "GET",
+    }
+  );
+  const gmapsJson = await gmapsResponse.json();
+  if (gmapsJson.status !== "OK") {
+    throw new BusinessError(400, "Invalid place ID");
+  }
+  const { formatted_address: addressFormatted, geometry } =
+    gmapsJson.result as {
+      formatted_address: string;
+      geometry: { location: { lat: number; lng: number } };
+      status: "OK";
+    };
+
+  const accountRecord = camelize(
+    await pool.query<{
+      address_formatted: string;
+      latitude: number;
+      longitude: number;
+    }>(
+      ` UPDATE account
+        SET address_formatted=$1, latitude=$2, longitude=$3
+        WHERE account_id=$4
+        RETURNING address_formatted, latitude, longitude`,
+      [
+        addressFormatted,
+        geometry.location.lat,
+        geometry.location.lng,
+        accountId,
+      ]
+    )
+  ).rows[0];
+
+  // account should exist if session is valid
+  if (!accountRecord) {
+    throw new ServerError(500, "Error updating address");
+  }
+
+  res.json(accountRecord);
 });
