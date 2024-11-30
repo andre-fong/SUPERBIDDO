@@ -122,7 +122,7 @@ export default function WatchList({
             {!resultsLoading && results.length === 0 && (
             <div style={{ fontStyle: "italic" }}>No auctions watching</div>
             )}
-            {results?.map((auction) => (
+            {results?.map((auction: Auction) => (
             <Listing
               key={auction.auctionId}
               auction={auction}
