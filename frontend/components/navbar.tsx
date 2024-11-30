@@ -610,6 +610,7 @@ export default function Navbar({
       <LocationEdit
         locationEditOpen={locationEditOpen && !!user}
         setLocationEditOpen={setLocationEditOpen}
+        setToast={setToast}
       />
     </>
   );

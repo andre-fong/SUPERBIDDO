@@ -10,6 +10,7 @@ import Button from "@mui/material/Button";
 import styles from "@/styles/locationEdit.module.css";
 import { debounce } from "@mui/material/utils";
 import parse from "autosuggest-highlight/parse";
+import { ErrorType, Severity } from "@/types/errorTypes";
 
 // Key can only be used on our domains, so it's safe to expose
 const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -48,13 +49,17 @@ interface PlaceType {
 export default function LocationEdit({
   locationEditOpen,
   setLocationEditOpen,
+  setToast,
 }: {
   locationEditOpen: boolean;
   setLocationEditOpen: (open: boolean) => void;
+  setToast: (error: ErrorType) => void;
 }) {
   const [value, setValue] = useState<PlaceType | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
+  const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const loaded = useRef(false);
 
   if (typeof window !== "undefined" && !loaded.current) {
@@ -134,6 +139,22 @@ export default function LocationEdit({
     };
   }, [value, inputValue, fetchPlaces]);
 
+  function submitLocationEdit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!value) {
+      setToast({
+        message: "Please select a location",
+        severity: Severity.Critical,
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    // TODO: Submit to new endpoint
+    console.log("submitting ", value.place_id);
+  }
+
   return (
     <Dialog
       open={locationEditOpen}
@@ -141,7 +162,10 @@ export default function LocationEdit({
       fullWidth
       disableScrollLock
     >
-      <div className={styles.container}>
+      <form
+        className={styles.container}
+        onSubmit={(e) => submitLocationEdit(e)}
+      >
         <h2 className={styles.title}>Edit Location</h2>
 
         <Autocomplete
@@ -156,6 +180,7 @@ export default function LocationEdit({
           includeInputInList
           filterSelectedOptions
           value={value}
+          disabled={submitting}
           noOptionsText="No locations"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onChange={(event: any, newValue: PlaceType | null) => {
@@ -166,7 +191,12 @@ export default function LocationEdit({
             setInputValue(newInputValue);
           }}
           renderInput={(params) => (
-            <TextField {...params} label="Your location" fullWidth />
+            <TextField
+              error={error}
+              {...params}
+              label="Your location"
+              fullWidth
+            />
           )}
           renderOption={(props, option) => {
             const { key, ...optionProps } = props;
@@ -229,14 +259,18 @@ export default function LocationEdit({
         ></iframe>
 
         <div className={styles.button_row}>
-          <Button variant="outlined" onClick={() => setLocationEditOpen(false)}>
+          <Button
+            variant="outlined"
+            type="button"
+            onClick={() => setLocationEditOpen(false)}
+          >
             Cancel
           </Button>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" type="submit" color="primary">
             Save
           </Button>
         </div>
-      </div>
+      </form>
     </Dialog>
   );
 }
