@@ -311,10 +311,8 @@ router.get("/", async (req, res) => {
       // add filters for ongoing auctions, game
       addCondition(
         `CASE
-          WHEN start_time IS NULL THEN 'Not scheduled'
-          WHEN start_time >= NOW() THEN 'Scheduled'
           WHEN start_time <= NOW() AND end_time >= NOW() THEN 'Ongoing'
-          ELSE 'Ended'
+          ELSE 'Not ongoing'
         END = ?`,
         "Ongoing"
       );
@@ -405,7 +403,7 @@ router.get("/", async (req, res) => {
                     WHEN (
                       SELECT COUNT(*) 
                       FROM bid 
-                      WHERE auction_id = auction.auction_id
+                      WHERE bid.auction_id = auction_id
                       ) > 0 
                     THEN 'Successful' 
                     ELSE 'Unsuccessful' 
@@ -600,7 +598,7 @@ router.get("/", async (req, res) => {
           WHEN (
             SELECT COUNT(*) 
             FROM bid 
-            WHERE auction_id = auction.auction_id
+            WHERE bid.auction_id = auction_id
             ) > 0 
           THEN 'Successful' 
           ELSE 'Unsuccessful' 
@@ -784,7 +782,7 @@ router.get("/", async (req, res) => {
                 WHEN (
                   SELECT COUNT(*) 
                   FROM bid 
-                  WHERE auction_id = auction.auction_id
+                  WHERE bid.auction_id = auction_id
                   ) > 0 
                 THEN 'Successful' 
                 ELSE 'Unsuccessful' 
@@ -1078,7 +1076,7 @@ router.get("/:auctionId", async (req, res) => {
                 WHEN (
                   SELECT COUNT(*) 
                   FROM bid 
-                  WHERE auction_id = auction.auction_id
+                  WHERE bid.auction_id = auction_id
                   ) > 0 
                 THEN 'Successful' 
                 ELSE 'Unsuccessful' 
