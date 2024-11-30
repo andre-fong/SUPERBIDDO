@@ -14,6 +14,7 @@ import {
   Container,
   Typography,
   Box,
+  Skeleton,
 } from "@mui/material";
 import { fetchCardPrice } from "@/app/api/apiEndpoints";
 import { createAuction, getGeminiInput } from "@/utils/fetchFunctions";
@@ -70,12 +71,13 @@ const CardListing: React.FC<CardListingProps> = ({
   const [quality, setQuality] = useState<string>("Mint");
   const [isFoil, setIsFoil] = useState<string>("No");
   const [rarity, setRarity] = useState<string>("Common");
-  const [isImageLoading, setImageLoading] = useState<boolean>(false);
+  const [isImageLoading, setImageLoading] = useState<null | boolean>(null);
+  const [isGeminiLoading, setGeminiIsLoading] = useState<null | boolean>(null);
+  const [manufacturer, setManufacturer] = useState<string>("");
+  const [set, setSet] = useState<string>("");
+  const [cardName, setCardName] = useState<string>("");
 
-  const cardNameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const manufacturerRef = useRef<HTMLInputElement>(null);
-  const setRef = useRef<HTMLInputElement>(null);
   const startingPriceRef = useRef<HTMLInputElement>(null);
   const spreadRef = useRef<HTMLInputElement>(null);
   const startDateRef = useRef<HTMLInputElement>(null);
@@ -86,7 +88,10 @@ const CardListing: React.FC<CardListingProps> = ({
     if (!cardPhotosRef.current) { return; }
     
     try {
+      setGeminiIsLoading(true);
       const cardInfo = await getGeminiInput(setToast, cardPhotosRef.current);
+      setGeminiIsLoading(false);
+
       setType(cardInfo.type === "bundle" ? "Bundle" : "Card");
 
       let price;
@@ -122,11 +127,11 @@ const CardListing: React.FC<CardListingProps> = ({
         }
       }
 
-      if (cardNameRef.current) {
+      if (cardInfo.type && (cardInfo.cardName || cardInfo.bundleName)) {
         if (cardInfo.type === "bundle") {
-          cardNameRef.current.value = cardInfo.bundleName;
+          setCardName(cardInfo.bundleName);
         } else {
-          cardNameRef.current.value = cardInfo.cardName;
+          setCardName(cardInfo.cardName);
         }
       } else {
         if (cardInfo.type === "bundle") {
@@ -138,19 +143,19 @@ const CardListing: React.FC<CardListingProps> = ({
 
       setCardType(cardInfo.cardType);
 
-      if (manufacturerRef.current) {
-        manufacturerRef.current.value = cardInfo.manufacturer;
+      if (cardInfo.manufacturer) {
+        setManufacturer(cardInfo.manufacturer);
       } else {
         missingFields.push("Manufacturer");
       }
 
-      if (setRef.current) {
-        setRef.current.value = cardInfo.set;
+      if (cardInfo.set) {
+        setSet(cardInfo.set);
       } else {
         missingFields.push("Set");
       }
 
-      if (startingPriceRef.current) {
+      if (cardInfo.type != "bundle" && startingPriceRef.current) {
         startingPriceRef.current.value = price || "";
       } else {
         missingFields.push("Starting price");
@@ -162,11 +167,13 @@ const CardListing: React.FC<CardListingProps> = ({
           severity: Severity.Warning,
         });
       }
+ 
     } catch (error) {
       setToast({
         message: "Error uploading retrieving fields for cards",
         severity: Severity.Critical,
       });
+      setGeminiIsLoading(false);
     }
   };
 
@@ -186,8 +193,9 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
 
+    setImageLoading(true);
     const imageUploadResponse = await imageUpload(file);
-
+    setImageLoading(false);
     if (!imageUploadResponse) {
       setToast({
         message: "Error uploading image. Please try again",
@@ -281,16 +289,16 @@ const CardListing: React.FC<CardListingProps> = ({
         type === "Card"
           ? {
               game: cardType,
-              name: cardNameRef.current?.value || "Unknown Card Name",
+              name: cardName || "Unknown Card Name",
               description:
                 descriptionRef.current?.value || "No description provided",
               manufacturer:
-                manufacturerRef.current?.value || "Unknown Manufacturer",
+                manufacturer || "Unknown Manufacturer",
               qualityUngraded:
                 typeof quality === "string" ? quality : undefined,
               qualityPsa: typeof quality === "number" ? quality : undefined,
               rarity: rarity,
-              set: setRef.current?.value || "Unknown Set",
+              set: set || "Unknown Set",
               isFoil: isFoil === "Yes",
               imageUrl: cardPhotosRef.current,
             }
@@ -312,10 +320,10 @@ const CardListing: React.FC<CardListingProps> = ({
     if (type === "Bundle") {
       auctionData.bundle = {
         game: cardType,
-        name: cardNameRef.current?.value || "",
+        name: cardName || "",
         description: descriptionRef.current?.value || "",
-        manufacturer: manufacturerRef.current?.value || "",
-        set: setRef.current?.value || "",
+        manufacturer: manufacturer || "",
+        set: set || "",
         imageUrl: cardPhotosRef.current,
       };
     }
@@ -365,7 +373,8 @@ const CardListing: React.FC<CardListingProps> = ({
       <Container maxWidth={false} style={{ padding: 40 }}>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
           <Box flex={1} maxWidth="50%">
-            {(frontPhotoPreview) && (
+            {isImageLoading ? <Skeleton variant="rectangular" width="100%" height={400} /> : 
+            (frontPhotoPreview) && (
               <Box
                 border={1}
                 borderRadius={2}
@@ -382,7 +391,7 @@ const CardListing: React.FC<CardListingProps> = ({
               </Box>
             )}
           </Box>
-          <Box flex={1} maxWidth="50%">
+          {!isGeminiLoading ? <Box flex={1} maxWidth="50%">
             <form
               onSubmit={handleSubmit}
               style={{
@@ -486,11 +495,12 @@ const CardListing: React.FC<CardListingProps> = ({
               )}
               <TextField
                 label={type === "Bundle" ? "Bundle Name" : "Card Name"}
-                inputRef={cardNameRef}
                 fullWidth
                 sx={{ marginTop: "13px" }}
                 required
                 InputLabelProps={{ shrink: true }}
+                onChange={(e) => setCardName(e.target.value)}
+                value={cardName}
               />
 
               <TextField
@@ -529,20 +539,22 @@ const CardListing: React.FC<CardListingProps> = ({
 
               <TextField
                 label="Manufacturer"
-                inputRef={manufacturerRef}
                 fullWidth
                 margin="normal"
                 required
+                onChange={(e) => setManufacturer(e.target.value)}
                 InputLabelProps={{ shrink: true }}
+                value={manufacturer}
               />
 
               <TextField
                 label="Set"
-                inputRef={setRef}
                 fullWidth
                 margin="normal"
                 required
+                onChange={(e) => setSet(e.target.value)}
                 InputLabelProps={{ shrink: true }}
+                value={set}
               />
 
               <TextField
@@ -604,8 +616,8 @@ const CardListing: React.FC<CardListingProps> = ({
                 Submit Listing
               </Button>
             </form>
-          </Box>
-        </Box>
+          </Box> : <Skeleton variant="rectangular" width="50%" height={800} />}
+        </Box> 
       </Container>
     </>
   );
