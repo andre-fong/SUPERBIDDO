@@ -7,7 +7,6 @@ export const router = express.Router();
 
 router.post("/", async (req, res, next) => {
   if (!req.session.accountId) {
-
     throw new BusinessError(401, "unauthorized", "must be logged in");
   }
   uploadHandler.single("image")(req, res, (err) => {
@@ -97,6 +96,9 @@ export async function preserveImage(imageUrl: string, accountId: string) {
   }
   const blob = bucket.file(name);
   const [metadata] = await blob.getMetadata();
+  // not allowed to remove customTime
+  // could workaround by reuploading the image without date in metadata
+  // as suggested in docs, but this would incur unnecessary storage costs
   // google won't accept dates past around here
   // remember to update this in 200 years
   const neverDate = new Date("2250-01-02T03:04:05.006Z").toISOString();
