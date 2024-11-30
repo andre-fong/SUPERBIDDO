@@ -183,7 +183,9 @@ export default function Listing({
           }
         >
           {ended || inPast ? (
-            <span className={styles.ended}>Ended</span>
+            <span className={styles.ended}>
+              {inPast ? "Ended" : inFuture ? "Starting Now" : "Ended"}
+            </span>
           ) : (
             <>
               <span
