@@ -673,7 +673,7 @@ export async function getWatching(
 ) {
   try {
     const response = await fetch(
-      `${url}/auctions/${auctionId}?watchedBy=${accountId}`,
+      `${url}/auctions/${auctionId}?includeWatchingFor=${accountId}`,
       {
         method: "GET",
         headers: {
@@ -685,8 +685,7 @@ export async function getWatching(
 
     if (response.ok) {
       const watching = await response.json();
-      console.log(watching.auctionId);
-      return watching.auctionId ? true : false;
+      return watching.watching;
     } else if (response.status === 401) {
       errorFcn({
         message: "Action requires authentication",
