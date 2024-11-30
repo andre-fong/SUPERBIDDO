@@ -59,12 +59,14 @@ router.post("/", async (req, res) => {
 
 router.put("/:accountId/address", async (req, res) => {
   const { accountId } = req.params;
+  const { sessionToken } = req.query;
 
   if (req.session.accountId !== accountId) {
     throw unauthorized();
   }
 
-  const { placeId, sessionToken } = req.body;
+  const { placeId } = req.body;
+
   const fields = "formatted_address,geometry";
   const gmapsResponse = await fetch(
     `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&sessiontoken=${sessionToken}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
@@ -84,17 +86,15 @@ router.put("/:accountId/address", async (req, res) => {
     };
 
   const accountRecord = camelize(
-    await pool.query<
-      AccountDb & {
-        address_formatted: string;
-        latitude: number;
-        longitude: number;
-      }
-    >(
+    await pool.query<{
+      address_formatted: string;
+      latitude: number;
+      longitude: number;
+    }>(
       ` UPDATE account
         SET address_formatted=$1, latitude=$2, longitude=$3
         WHERE account_id=$4
-        RETURNING account_id, email, username, address_formatted, latitude, longitude`,
+        RETURNING address_formatted, latitude, longitude`,
       [
         addressFormatted,
         geometry.location.lat,
@@ -109,11 +109,5 @@ router.put("/:accountId/address", async (req, res) => {
     throw new BusinessError(500, "Error updating address");
   }
 
-  const account: Account & {
-    addressFormatted: string;
-    latitude: number;
-    longitude: number;
-  } = accountRecord;
-
-  res.json(account);
+  res.json(accountRecord);
 });

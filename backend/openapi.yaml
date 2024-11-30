@@ -39,6 +39,58 @@ paths:
           $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/InternalServerError"
+  /api/v1/accounts/{accountId}/address:
+    put:
+      summary: Update the address of an account.
+      parameters:
+        - name: accountId
+          in: path
+          description: The uuid of an account.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sessionToken
+          in: query
+          description: The session token of the account.
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - placeId
+              properties:
+                placeId:
+                  type: string
+      responses:
+        200:
+          description: The updated account.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - addressFormatted
+                  - latitude
+                  - longitude
+                properties:
+                  addressFormatted:
+                    type: string
+                  latitude:
+                    $ref: "#/components/schemas/Latitude"
+                  longitude:
+                    $ref: "#/components/schemas/Longitude"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/session:
     get:
       summary: Get the current session details.
