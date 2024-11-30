@@ -21,8 +21,7 @@ import {
 import { User } from "@/types/userTypes";
 import {
   AuctionStatus,
-  AuctionStatusEnum,
-  Auction,
+  AuctionStatusEnum
 } from "@/types/auctionTypes";
 import { ErrorType } from "@/types/errorTypes";
 import ListingsGallery from "@/components/listingsGallery";

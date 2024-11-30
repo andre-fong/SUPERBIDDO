@@ -47,7 +47,7 @@ export enum BiddingStatusColorEnum {
 export type BiddingStatus = keyof typeof BiddingStatusEnum;
 export type AuctionStatus = keyof typeof AuctionStatusEnum;
 
-export interface Auction {
+export interface AuctionListings {
   auctionId: string;
   name: string;
   status: AuctionStatusEnum | BiddingStatusEnum;

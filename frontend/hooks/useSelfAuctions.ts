@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AuctionSelfType, Auction } from "@/types/backendAuctionTypes";
+import { AuctionListings, AuctionStatus } from "@/types/auctionTypes";
 import { fetchSelfAuctions } from "@/utils/fetchFunctions";
 import { ErrorType } from "@/types/errorTypes";
 import { User } from "@/types/userTypes";
@@ -8,7 +9,6 @@ import {
   determineTypeListings,
   getImageUrl,
 } from "@/utils/determineFunctions";
-import { AuctionStatus } from "@/types/auctionTypes";
 
 const useSelfAuctions = (
   type: AuctionSelfType,
@@ -20,24 +20,21 @@ const useSelfAuctions = (
   pageSize: number
   
 ) => {
-  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [auctions, setAuctions] = useState<AuctionListings[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   useEffect(() => {
-    if (type === "biddings" && searchStatuses.length === 0) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      searchStatuses = allBiddingStatuses();
-    }
+    console.log(searchStatuses)
     setIsLoaded(false);
     fetchSelfAuctions(
       (err: ErrorType) => {
-        setIsLoaded(false);
+        setIsLoaded(true);
         errorFcn(err);
       },
       type,
       user.accountId,
       searchTerm,
-      searchStatuses,
+      type === "biddings" && searchStatuses.length === 0 ? allBiddingStatuses() : searchStatuses,
       pageSize,
       currentPage
     ).then((auctionsGet) => {
