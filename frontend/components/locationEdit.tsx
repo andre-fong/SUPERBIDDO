@@ -63,6 +63,21 @@ export default function LocationEdit({
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [optionClickedFirstTime, setOptionClickedFirstTime] = useState(false);
+
+  const embeddedMapsURL = useMemo(() => {
+    if (!optionClickedFirstTime) {
+      if (user?.address) {
+        return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${user.address.addressFormatted}`;
+      } else {
+        // default of UTSC :)
+        return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=place_id:ChIJf9Wrt2_a1IkRrHuIaQFuZbs`;
+      }
+    } else {
+      return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=place_id:${value?.place_id}`;
+    }
+  }, [optionClickedFirstTime, user, value]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [sessionToken, setSessionToken] = useState<any>();
   const loaded = useRef(false);
@@ -231,6 +246,7 @@ export default function LocationEdit({
             if (typeof newValue !== "string") {
               setOptions(newValue ? [newValue, ...options] : options);
               setValue(newValue);
+              setOptionClickedFirstTime(true);
             }
           }}
           onInputChange={(event, newInputValue) => {
@@ -297,12 +313,14 @@ export default function LocationEdit({
           style={{ border: 0 }}
           loading="lazy"
           allowFullScreen
-          src={`https://www.google.com/maps/embed/v1/place?q=place_id:${
-            value?.place_id || "ChIJf9Wrt2_a1IkRrHuIaQFuZbs"
-          }&key=${googleMapsApiKey}`}
+          src={embeddedMapsURL}
         ></iframe>
 
-        <div className={styles.button_row}>
+        <p className={styles.maps_note}>
+          (Note: Above map will update whenever the location input is changed.)
+        </p>
+
+        <p className={styles.button_row}>
           <Button
             variant="outlined"
             type="button"
@@ -319,7 +337,7 @@ export default function LocationEdit({
           >
             Save
           </Button>
-        </div>
+        </p>
       </form>
     </Dialog>
   );
