@@ -10,13 +10,13 @@ import {
   patchAuctionNotification,
 } from "../middlewares/notifications.js";
 import { getPriceRangeBounds } from "../utils/recommendations/userActions.js";
-import { deleteImage, preserveImage } from "./images.js";
+import { deleteImage, generateImageName, preserveImage } from "./images.js";
 
 export const router = express.Router();
 
 router.get("/", async (req, res) => {
   const {
-    recommended,
+    recommendedFor,
     includeBidStatusFor,
     includeWatchingFor,
     auctioneerId,
@@ -48,7 +48,7 @@ router.get("/", async (req, res) => {
     page = "1",
     pageSize = "20",
   } = req.query as {
-    recommended: string;
+    recommendedFor: string;
     includeBidStatusFor: string;
     includeWatchingFor: string;
     auctioneerId: string;
@@ -166,12 +166,10 @@ router.get("/", async (req, res) => {
 
   // return auctions based on user's viewing and bidding history using a
   // content-based recommendation system
-  if (recommended === "true") {
-    if (!req.session.accountId) {
-      res.json({ auctions: [], totalNumAuctions: 0 });
-      return;
+  if (recommendedFor) {
+    if (recommendedFor !== req.session.accountId) {
+      throw unauthorized();
     }
-
     const approxNumAuctionsToReturn = 10;
 
     // top 3 most frequently viewed/bidded price ranges for each game
@@ -216,7 +214,7 @@ router.get("/", async (req, res) => {
           SELECT game, price_range, frequency
           FROM game_rows_ranked
           WHERE row_num <= 3`,
-        [req.session.accountId]
+        [recommendedFor]
       )
     ).rows;
 
@@ -522,6 +520,11 @@ router.get("/", async (req, res) => {
           accountId: auctionRecord.auctioneerId,
           username: auctionRecord.auctioneerUsername,
           email: auctionRecord.auctioneerEmail,
+          address: {
+            addressFormatted: auctionRecord.auctioneerAddressFormatted,
+            latitude: auctionRecord.auctioneerLatitude,
+            longitude: auctionRecord.auctioneerLongitude,
+          },
         },
         name: auctionRecord.name,
         description: auctionRecord.description,
@@ -1844,6 +1847,39 @@ router.post(
         "Invalid auction end time",
         "Auction must last at least 5 minutes"
       );
+    }
+
+    // start of imageUrl(s) name must match auctioneerId
+    // (check that image actually exists happens later when trying to preserve))
+    if (auctionInput.bundle) {
+      if (
+        !generateImageName(auctionInput.bundle.imageUrl).startsWith(
+          req.session.accountId
+        )
+      ) {
+        throw new BusinessError(
+          409,
+          "Invalid image url",
+          "Image must be uploaded by auctioneer. Upload an image by posting to api/v_/images first."
+        );
+      }
+    } else {
+      if (auctionInput.cards) {
+        if (
+          auctionInput.cards.some(
+            (card) =>
+              !generateImageName(card.imageUrl).startsWith(
+                req.session.accountId
+              )
+          )
+        ) {
+          throw new BusinessError(
+            409,
+            "Invalid image url",
+            "Images must be uploaded by auctioneer. Upload images by posting to api/v_/images first."
+          );
+        }
+      }
     }
 
     // auctioneer must have an address to post auction
