@@ -102,6 +102,13 @@ export async function preserveImage(imageUrl: string, accountId: string) {
   // google won't accept dates past around here
   // remember to update this in 200 years
   const neverDate = new Date("2250-01-02T03:04:05.006Z").toISOString();
+  if (metadata.customTime === neverDate) {
+    throw new BusinessError(
+      409,
+      "Image already used",
+      "Image has already been assigned to a card/bundle."
+    );
+  }
   metadata.customTime = neverDate;
   await blob.setMetadata(metadata);
 }
