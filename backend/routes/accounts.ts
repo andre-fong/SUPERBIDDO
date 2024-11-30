@@ -2,7 +2,7 @@ import express from "express";
 import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import bcrypt from "bcrypt";
-import { BusinessError, unauthorized } from "../utils/errors.js";
+import { BusinessError, ServerError, unauthorized } from "../utils/errors.js";
 
 export const router = express.Router();
 
@@ -106,7 +106,7 @@ router.put("/:accountId/address", async (req, res) => {
 
   // account should exist if session is valid
   if (!accountRecord) {
-    throw new BusinessError(500, "Error updating address");
+    throw new ServerError(500, "Error updating address");
   }
 
   res.json(accountRecord);
