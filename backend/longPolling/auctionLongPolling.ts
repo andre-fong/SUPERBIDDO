@@ -7,15 +7,15 @@ export function handleCloseAuctionRequest(
   auctionId: string,
   clients: Response[]
 ) {
-  fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auctions/${auctionId}`
-  ).then((res) => {
-    if (res.status === 200) {
-      res.json().then((auction) => {
-        for (let client of clients) {
-          client.status(200).json(auction);
-        }
-      });
+  fetch(`${process.env.BACKEND_URL}/api/v1/auctions/${auctionId}`).then(
+    (res) => {
+      if (res.status === 200) {
+        res.json().then((auction) => {
+          for (let client of clients) {
+            client.status(200).json(auction);
+          }
+        });
+      }
     }
-  });
+  );
 }
