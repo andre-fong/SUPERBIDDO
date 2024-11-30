@@ -66,7 +66,7 @@ export default function Navbar({
   const [accountPopperOpen, setAccountPopperOpen] = useState(false);
   const accountAnchor = useRef<HTMLButtonElement | null>(null);
 
-  const [locationEditOpen, setLocationEditOpen] = useState(true);
+  const [locationEditOpen, setLocationEditOpen] = useState(false);
 
   // Track scroll position to make navbar sticky
   const { scrollY } = useScroll();
@@ -518,8 +518,9 @@ export default function Navbar({
                                       className={
                                         styles.account_popper_section_item
                                       }
+                                      onClick={() => setLocationEditOpen(true)}
                                     >
-                                      Settings
+                                      Location Settings
                                     </button>
                                   </div>
                                 </div>
@@ -606,7 +607,6 @@ export default function Navbar({
         </div>
       </motion.nav>
 
-      {/* TODO: Add location dialog */}
       <LocationEdit
         locationEditOpen={locationEditOpen}
         setLocationEditOpen={setLocationEditOpen}
