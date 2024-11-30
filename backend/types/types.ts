@@ -50,7 +50,12 @@ type Auction = {
   | { cards?: never; bundle: Bundle }
 );
 
-type AuctionStatus = "Not scheduled" | "Scheduled" | "Ongoing" | "Ended";
+type AuctionStatus =
+  | "Not scheduled"
+  | "Scheduled"
+  | "Ongoing"
+  | "Successful"
+  | "Failed";
 
 type BidStatus =
   | "Not bid (ended)"
