@@ -17,6 +17,9 @@
   padding: 10px 0 20px 0;
   background-color: rgb(220, 220, 220);
   border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .zoom_card_container {
@@ -69,13 +72,6 @@
   display: flex;
   align-items: center;
   margin-bottom: 12px;
-}
-
-.TEMP_pfp {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  margin-right: 10px;
 }
 
 .username {
@@ -369,12 +365,6 @@
   height: 70px;
 }
 
-.TEMP_auctioneer_pfp {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-}
-
 .auctioneer_username {
   font-size: 1.3em;
   font-weight: 600;
@@ -405,6 +395,18 @@
 
 .payment_details_container {
   padding: 20px 0;
+}
+
+.slick_container {
+  min-width: 0px;
+}
+
+.image_skeleton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  aspect-ratio: 2.5/3.5;
 }
 
 @media (max-width: 800px) {
