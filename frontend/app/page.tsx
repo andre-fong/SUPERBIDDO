@@ -22,6 +22,7 @@ import { pollNotifications } from "@/utils/fetchFunctions";
 import useNotifications from "@/hooks/useNotfications";
 import EditAuction from "@/pageComponents/editAuction";
 import WatchList from "@/pageComponents/watchlist";
+import BeforeCreate from "@/pageComponents/beforeCreate";
 
 const theme = createTheme({
   palette: {
@@ -148,6 +149,18 @@ export default function PageHandler() {
       ),
     },
     create: {
+      title: "Create Auction | SuperBiddo",
+      component: (
+        <BeforeCreate
+          setCurPage={setCurPage}
+          user={user}
+          setUser={setUser}
+          setToast={setToast}
+          context={pageContext}
+        />
+      ),
+    },
+    createAuction: {
       title: "Create Auction | SuperBiddo",
       component: user ? (
         <CreateBid

@@ -63,10 +63,10 @@ export default function LocationEdit({
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [optionClickedFirstTime, setOptionClickedFirstTime] = useState(false);
+  const [optionClicks, setOptionClicks] = useState(0);
 
   const embeddedMapsURL = useMemo(() => {
-    if (!optionClickedFirstTime) {
+    if (optionClicks === 0) {
       if (user?.address) {
         return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${user.address.addressFormatted}`;
       } else {
@@ -76,7 +76,8 @@ export default function LocationEdit({
     } else {
       return `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=place_id:${value?.place_id}`;
     }
-  }, [optionClickedFirstTime, user, value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optionClicks, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [sessionToken, setSessionToken] = useState<any>();
@@ -246,7 +247,9 @@ export default function LocationEdit({
             if (typeof newValue !== "string") {
               setOptions(newValue ? [newValue, ...options] : options);
               setValue(newValue);
-              setOptionClickedFirstTime(true);
+              if (newValue) {
+                setOptionClicks((prev) => prev + 1);
+              }
             }
           }}
           onInputChange={(event, newInputValue) => {
