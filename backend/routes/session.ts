@@ -94,10 +94,17 @@ router.post("/", async (req, res, next) => {
 
   req.session.accountId = accountRecord.accountId;
 
-  const account: Account = {
+  const account: Account & {
+    address: Address;
+  } = {
     accountId: accountRecord.accountId,
     email: accountRecord.email,
     username: accountRecord.username,
+    address: {
+      addressFormatted: accountRecord.addressFormatted,
+      latitude: accountRecord.latitude,
+      longitude: accountRecord.longitude,
+    },
   };
 
   res.status(201).json(account);
