@@ -17,6 +17,23 @@ paths:
                 properties:
                   version:
                     type: string
+  /api/v1/csrfToken:
+    get:
+      summary: Get a new CSRF token.
+      responses:
+        200:
+          description: The new CSRF token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrfToken:
+                    type: string
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/accounts:
     post:
       summary: Create a new account.
