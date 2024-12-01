@@ -47,8 +47,6 @@ router.get("/", async (req, res, next) => {
     )
   ).rows[0];
 
-  const csrfToken = req.session.csrfToken || generateToken(req, res);
-
   const account:
     | Account
     | ((Account & {
@@ -66,7 +64,6 @@ router.get("/", async (req, res, next) => {
           },
         }
       : {}),
-    ...(csrfToken ? { csrfToken: csrfToken } : {}),
   };
 
   res.json(account);
@@ -101,11 +98,10 @@ router.post("/", async (req, res, next) => {
   req.session.accountId = accountRecord.accountId;
   req.session.csrfToken = generateToken(req, res);
 
-  const account: Account & { csrfToken: string } = {
+  const account: Account = {
     accountId: accountRecord.accountId,
     email: accountRecord.email,
     username: accountRecord.username,
-    csrfToken: req.session.csrfToken,
   };
 
   res.status(201).json(account);

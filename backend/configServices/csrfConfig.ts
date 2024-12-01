@@ -1,4 +1,6 @@
 import { doubleCsrf, DoubleCsrfConfigOptions } from "csrf-csrf";
+import { RequestHandler } from "express";
+import { BusinessError } from "../utils/errors";
 
 const doubleCsrfOptions: DoubleCsrfConfigOptions = {
   getSecret: () => {
@@ -21,3 +23,18 @@ export const {
   validateRequest, // Also a convenience if you plan on making your own middleware.
   doubleCsrfProtection, // This is the default CSRF protection middleware.
 } = doubleCsrf(doubleCsrfOptions);
+
+export const csrfRoute: RequestHandler = (req, res) => {
+  if (!req.session.accountId) {
+    throw new BusinessError(
+      401,
+      "unauthorized",
+      "must be logged in to get a csrf token"
+    );
+  }
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = generateToken(req, res);
+  }
+
+  res.json({ csrfToken: req.session.csrfToken });
+};

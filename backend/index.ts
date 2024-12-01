@@ -20,7 +20,10 @@ import { router as watchersRouter } from "./routes/watchers.js";
 import { router as imageRouter } from "./routes/images.js";
 import { router as geminiUploadRouter } from "./routes/geminiUpload.js";
 import { Server } from "socket.io";
-import { doubleCsrfProtection } from "./configServices/csrfConfig.js";
+import {
+  csrfRoute,
+  doubleCsrfProtection,
+} from "./configServices/csrfConfig.js";
 import createHttpError from "http-errors";
 
 const PORT = process.env.PORT || 3001;
@@ -55,12 +58,13 @@ app.use(cookieParser());
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
-
-// allow session and oauth to be accessed without csrf token (delete is explicitly allowed)
+app.get("/api/v1/csrfToken", csrfRoute);
+// allow session and oauth to be accessed without csrf token (delete is explicitly protected)
 app.use("/api/v1/session", sessionRouter);
 app.use("/api/v1/oauth", oauthRouter);
-app.use(doubleCsrfProtection);
+// allow post accounts to be accessed without csrf token (modifying an account with put is explicitly protected)
 app.use("/api/v1/accounts", accountRouter);
+app.use(doubleCsrfProtection);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/auctions/:auctionId/watchers", watchersRouter);
