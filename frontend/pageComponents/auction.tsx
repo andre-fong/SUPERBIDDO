@@ -228,10 +228,6 @@ export default function Auction({
 
   // This useEffect should only run once, since it initiates the long polling
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
     const auctionContext = JSON.parse(context);
     const abortController = new AbortController();
     const signal = abortController.signal;
@@ -307,11 +303,17 @@ export default function Auction({
           }
         );
 
-        getWatching(setToast, user.accountId, curAuctionId.current).then(
-          (isWatching: boolean) => {
-            setWatching(isWatching);
-          }
-        );
+        // Only check if user is watching if they are logged in
+        if (user) {
+          getWatching(setToast, user.accountId, curAuctionId.current).then(
+            (isWatching: boolean) => {
+              setWatching(isWatching);
+            }
+          );
+        } else {
+          setWatching(false);
+        }
+
         setAuctionLoading(false);
       }
     );
@@ -696,7 +698,14 @@ export default function Auction({
                 />
               ) : (
                 <div className={styles.location_row}>
-                  <p className={styles.location}>{shortSellerAddress}</p>
+                  <p
+                    className={styles.location}
+                    title={
+                      sellerAddress?.addressFormatted || "No location provided"
+                    }
+                  >
+                    {shortSellerAddress}
+                  </p>
                   <button
                     className={styles.view_map}
                     title="View location on Google Maps"
