@@ -405,7 +405,7 @@ router.get("/", async (req, res) => {
                     WHEN (
                       SELECT COUNT(*) 
                       FROM bid 
-                      WHERE bid.auction_id = auction_id
+                      WHERE auction_id = auction.auction_id
                       ) > 0 
                     THEN 'Successful' 
                     ELSE 'Unsuccessful' 
@@ -619,7 +619,7 @@ router.get("/", async (req, res) => {
           WHEN (
             SELECT COUNT(*) 
             FROM bid 
-            WHERE bid.auction_id = auction_id
+            WHERE auction_id = auction.auction_id
             ) > 0 
           THEN 'Successful' 
           ELSE 'Unsuccessful' 
@@ -804,7 +804,7 @@ router.get("/", async (req, res) => {
                 WHEN (
                   SELECT COUNT(*) 
                   FROM bid 
-                  WHERE bid.auction_id = auction_id
+                  WHERE auction_id = auction.auction_id
                   ) > 0 
                 THEN 'Successful' 
                 ELSE 'Unsuccessful' 
@@ -1116,7 +1116,7 @@ router.get("/:auctionId", async (req, res) => {
                 WHEN (
                   SELECT COUNT(*) 
                   FROM bid 
-                  WHERE bid.auction_id = auction_id
+                  WHERE auction_id = auction.auction_id
                   ) > 0 
                 THEN 'Successful' 
                 ELSE 'Unsuccessful' 
