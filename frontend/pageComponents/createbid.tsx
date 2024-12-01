@@ -85,8 +85,10 @@ const CardListing: React.FC<CardListingProps> = ({
   const auctionNameRef = useRef<HTMLInputElement>(null);
 
   const formatCardUploadData = async () => {
-    if (!cardPhotosRef.current) { return; }
-    
+    if (!cardPhotosRef.current) {
+      return;
+    }
+
     try {
       setGeminiIsLoading(true);
       const cardInfo = await getGeminiInput(setToast, cardPhotosRef.current);
@@ -167,7 +169,6 @@ const CardListing: React.FC<CardListingProps> = ({
           severity: Severity.Warning,
         });
       }
- 
     } catch (error) {
       setToast({
         message: "Error uploading retrieving fields for cards",
@@ -183,7 +184,7 @@ const CardListing: React.FC<CardListingProps> = ({
   };
 
   const imageUpload = async (formFile: File) => {
-    return uploadImage(setToast, formFile)
+    return uploadImage(setToast, formFile);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,7 +209,6 @@ const CardListing: React.FC<CardListingProps> = ({
 
     formatCardUploadData();
   };
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,8 +267,6 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
 
-
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const auctionData: any = {
       auctioneerId: user.accountId,
@@ -292,8 +290,7 @@ const CardListing: React.FC<CardListingProps> = ({
               name: cardName || "Unknown Card Name",
               description:
                 descriptionRef.current?.value || "No description provided",
-              manufacturer:
-                manufacturer || "Unknown Manufacturer",
+              manufacturer: manufacturer || "Unknown Manufacturer",
               qualityUngraded:
                 typeof quality === "string" ? quality : undefined,
               qualityPsa: typeof quality === "number" ? quality : undefined,
@@ -334,7 +331,7 @@ const CardListing: React.FC<CardListingProps> = ({
       if (!auction.auctionId) {
         return;
       }
-      setCurPage("auction", JSON.stringify({auctionId: auction.auctionId}))
+      setCurPage("auction", JSON.stringify({ auctionId: auction.auctionId }));
       console.log("Auction created with ID: " + auction.auctionId);
     });
   };
@@ -373,251 +370,259 @@ const CardListing: React.FC<CardListingProps> = ({
       <Container maxWidth={false} style={{ padding: 40 }}>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
           <Box flex={1} maxWidth="50%">
-            {isImageLoading ? <Skeleton variant="rectangular" width="100%" height={400} /> : 
-            (frontPhotoPreview) && (
-              <Box
-                border={1}
-                borderRadius={2}
-                boxShadow={3}
-                padding={1}
-                paddingBottom={1}
-                borderColor="grey.500"
-              >
-                <Slider {...settings}>
-                  {frontPhotoPreview && (
-                    <img src={frontPhotoPreview} alt="Front Preview" />
-                  )}
-                </Slider>
-              </Box>
+            {isImageLoading ? (
+              <Skeleton variant="rectangular" width="100%" height={400} />
+            ) : (
+              frontPhotoPreview && (
+                <Box
+                  border={1}
+                  borderRadius={2}
+                  boxShadow={3}
+                  padding={1}
+                  paddingBottom={1}
+                  borderColor="grey.500"
+                >
+                  <Slider {...settings}>
+                    {frontPhotoPreview && (
+                      <img src={frontPhotoPreview} alt="Front Preview" />
+                    )}
+                  </Slider>
+                </Box>
+              )
             )}
           </Box>
-          {!isGeminiLoading ? <Box flex={1} maxWidth="50%">
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                flexDirection: "column",
-                height: "100%",
-                gap: "5px",
-              }}
-            >
-              <Typography
-                variant="h3"
-                component="h1"
-                gutterBottom
-                style={{ fontWeight: "bold", marginTop: "-20px" }}
+          {!isGeminiLoading ? (
+            <Box flex={1} maxWidth="50%">
+              <form
+                onSubmit={handleSubmit}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  height: "100%",
+                  gap: "5px",
+                }}
               >
-                Create an Auction
-              </Typography>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Card Type</InputLabel>
-                <Select
-                  value={cardType}
-                  onChange={(e) => setCardType(e.target.value)}
-                  required
-                  label="card-type-label"
+                <Typography
+                  variant="h3"
+                  component="h1"
+                  gutterBottom
+                  style={{ fontWeight: "bold", marginTop: "-20px" }}
                 >
-                  <MenuItem value="MTG">Magic: The Gathering</MenuItem>
-                  <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
-                  <MenuItem value="Pokemon">Pokemon</MenuItem>
-                </Select>
-              </FormControl>
+                  Create an Auction
+                </Typography>
 
-              <FormControl fullWidth sx={{ marginTop: "8px" }}>
-                <InputLabel id="type-label">Type</InputLabel>
-                <Select
-                  label="type-label"
-                  value={type}
-                  onChange={(e) => {
-                    setType(e.target.value);
+                <TextField
+                  label="Auction Name"
+                  inputRef={auctionNameRef}
+                  fullWidth
+                  margin="normal"
+                  required
+                  InputLabelProps={{ shrink: true }}
+                />
+
+                <FormControl fullWidth sx={{ marginTop: "8px" }}>
+                  <InputLabel id="type-label">Auction Type</InputLabel>
+                  <Select
+                    label="Auction Type"
+                    value={type}
+                    onChange={(e) => {
+                      setType(e.target.value);
+                    }}
+                    required
+                  >
+                    <MenuItem value="Bundle">Bundle</MenuItem>
+                    <MenuItem value="Card">Card</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Description"
+                  inputRef={descriptionRef}
+                  fullWidth
+                  margin="normal"
+                  multiline
+                  rows={4}
+                />
+
+                <TextField
+                  label="Start Date and Time"
+                  type="datetime-local"
+                  inputRef={startDateRef}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    min: getCurDate(),
                   }}
-                  required
-                >
-                  <MenuItem value="Bundle">Bundle</MenuItem>
-                  <MenuItem value="Card">Card</MenuItem>
-                </Select>
-              </FormControl>
+                />
 
-              {type === "Card" && (
-                <>
-                  <FormControl fullWidth sx={{ marginTop: "11px" }}>
-                    <InputLabel>Quality</InputLabel>
-                    <Select
-                      label="quality-label"
-                      value={quality}
-                      onChange={(e) => setQuality(e.target.value)}
-                      required
-                    >
-                      {[...qualityList, ...PSAList].map(
-                        (quality: string | number, index: number) => (
-                          <MenuItem value={quality} key={index}>
-                            {typeof quality === "number"
-                              ? `PSA ${quality}`
-                              : quality}
-                          </MenuItem>
-                        )
-                      )}
-                    </Select>
-                  </FormControl>
-
-                  <FormControl fullWidth sx={{ marginTop: "14px" }}>
-                    <InputLabel>Foil (y/n)</InputLabel>
-                    <Select
-                      label="foil-label"
-                      value={isFoil}
-                      onChange={(e) => setIsFoil(e.target.value)}
-                      required
-                    >
-                      <MenuItem value="No">No</MenuItem>
-                      <MenuItem value="Yes">Yes</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  <FormControl fullWidth sx={{ marginTop: "14px" }}>
-                    <InputLabel>Rarity</InputLabel>
-                    <Select
-                      value={rarity}
-                      onChange={(e) => setRarity(e.target.value)}
-                      required
-                      label="rarity-label"
-                    >
-                      {cardRarities[cardType]?.rarities.map(
-                        (rarity: string, index: number) => (
-                          <MenuItem value={rarity} key={index}>
-                            {rarity}
-                          </MenuItem>
-                        )
-                      )}
-                    </Select>
-                  </FormControl>
-                </>
-              )}
-              <TextField
-                label={type === "Bundle" ? "Bundle Name" : "Card Name"}
-                fullWidth
-                sx={{ marginTop: "13px" }}
-                required
-                InputLabelProps={{ shrink: true }}
-                onChange={(e) => setCardName(e.target.value)}
-                value={cardName}
-              />
-
-              <TextField
-                label="Description"
-                inputRef={descriptionRef}
-                fullWidth
-                margin="normal"
-                multiline
-                rows={4}
-              />
+                <TextField
+                  label="End Date and Time"
+                  type="datetime-local"
+                  inputRef={endDateRef}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
 
                 <Button
-                variant="contained"
-                component="label"
-                fullWidth
-                sx={{ marginBottom: "10px" }}
+                  variant="contained"
+                  component="label"
+                  fullWidth
+                  sx={{ marginBottom: "10px" }}
                 >
-                Upload Front Photo
-                <input
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp, image/bmp"
-                  hidden
-                  onChange={handleFileChange}
-                  name="imageUploadFront"
-                />
+                  Upload Front Photo
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp, image/bmp"
+                    hidden
+                    onChange={handleFileChange}
+                    name="imageUploadFront"
+                  />
                 </Button>
-              
-              <TextField
-                label="Auction Name"
-                inputRef={auctionNameRef}
-                fullWidth
-                margin="normal"
-                required
-                InputLabelProps={{ shrink: true }}
-              />
 
-              <TextField
-                label="Manufacturer"
-                fullWidth
-                margin="normal"
-                required
-                onChange={(e) => setManufacturer(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                value={manufacturer}
-              />
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Game</InputLabel>
+                  <Select
+                    value={cardType}
+                    onChange={(e) => setCardType(e.target.value)}
+                    required
+                    label="Game"
+                  >
+                    <MenuItem value="MTG">Magic: The Gathering</MenuItem>
+                    <MenuItem value="Yugioh">Yu-Gi-Oh!</MenuItem>
+                    <MenuItem value="Pokemon">Pokemon</MenuItem>
+                  </Select>
+                </FormControl>
 
-              <TextField
-                label="Set"
-                fullWidth
-                margin="normal"
-                required
-                onChange={(e) => setSet(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                value={set}
-              />
+                {type === "Card" && (
+                  <>
+                    <FormControl fullWidth sx={{ marginTop: "11px" }}>
+                      <InputLabel>Quality</InputLabel>
+                      <Select
+                        label="Quality"
+                        value={quality}
+                        onChange={(e) => setQuality(e.target.value)}
+                        required
+                      >
+                        {[...qualityList, ...PSAList].map(
+                          (quality: string | number, index: number) => (
+                            <MenuItem value={quality} key={index}>
+                              {typeof quality === "number"
+                                ? `PSA ${quality}`
+                                : quality}
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
 
-              <TextField
-                label="Starting Price"
-                type="number"
-                inputRef={startingPriceRef}
-                fullWidth
-                margin="normal"
-                required
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  step: "0.01",
-                  min: "0",
-                }}
-              />
+                    <FormControl fullWidth sx={{ marginTop: "14px" }}>
+                      <InputLabel>Foil (y/n)</InputLabel>
+                      <Select
+                        label="foil-label"
+                        value={isFoil}
+                        onChange={(e) => setIsFoil(e.target.value)}
+                        required
+                      >
+                        <MenuItem value="No">No</MenuItem>
+                        <MenuItem value="Yes">Yes</MenuItem>
+                      </Select>
+                    </FormControl>
 
-              <TextField
-                label="Spread"
-                type="number"
-                inputRef={spreadRef}
-                fullWidth
-                margin="normal"
-                required
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  step: "0.1",
-                  min: "0",
-                }}
-              />
+                    <FormControl fullWidth sx={{ marginTop: "14px" }}>
+                      <InputLabel>Rarity</InputLabel>
+                      <Select
+                        value={rarity}
+                        onChange={(e) => setRarity(e.target.value)}
+                        required
+                        label="rarity-label"
+                      >
+                        {cardRarities[cardType]?.rarities.map(
+                          (rarity: string, index: number) => (
+                            <MenuItem value={rarity} key={index}>
+                              {rarity}
+                            </MenuItem>
+                          )
+                        )}
+                      </Select>
+                    </FormControl>
+                  </>
+                )}
+                <TextField
+                  label={type === "Bundle" ? "Bundle Name" : "Card Name"}
+                  fullWidth
+                  sx={{ marginTop: "13px" }}
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  onChange={(e) => setCardName(e.target.value)}
+                  value={cardName}
+                />
 
-              <TextField
-                label="Start Date and Time"
-                type="datetime-local"
-                inputRef={startDateRef}
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: getCurDate(),
-                }}
-              />
+                <TextField
+                  label="Manufacturer"
+                  fullWidth
+                  margin="normal"
+                  required
+                  onChange={(e) => setManufacturer(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  value={manufacturer}
+                />
 
-              <TextField
-                label="End Date and Time"
-                type="datetime-local"
-                inputRef={endDateRef}
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-              />
+                <TextField
+                  label="Set"
+                  fullWidth
+                  margin="normal"
+                  required
+                  onChange={(e) => setSet(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  value={set}
+                />
 
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ padding: "15px", fontSize: "20px", marginTop: "20px" }}
-              >
-                Submit Listing
-              </Button>
-            </form>
-          </Box> : <Skeleton variant="rectangular" width="50%" height={800} />}
-        </Box> 
+                <TextField
+                  label="Starting Price"
+                  type="number"
+                  inputRef={startingPriceRef}
+                  fullWidth
+                  margin="normal"
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    step: "0.01",
+                    min: "0",
+                  }}
+                />
+
+                <TextField
+                  label="Spread"
+                  type="number"
+                  inputRef={spreadRef}
+                  fullWidth
+                  margin="normal"
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                    step: "0.1",
+                    min: "0",
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ padding: "15px", fontSize: "20px", marginTop: "20px" }}
+                >
+                  Submit Listing
+                </Button>
+              </form>
+            </Box>
+          ) : (
+            <Skeleton variant="rectangular" width="50%" height={800} />
+          )}
+        </Box>
       </Container>
     </>
   );
