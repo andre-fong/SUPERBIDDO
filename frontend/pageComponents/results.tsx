@@ -170,10 +170,11 @@ export default function Results({
 
   // Rarities change based on category
   const [pokemonRarityFilter, setPokemonRarityFilter] =
-    useState<string>("default");
-  const [mtgRarityFilter, setMtgRarityFilter] = useState<string>("default");
+    useState<string>("Common");
+  const [mtgRarityFilter, setMtgRarityFilter] = useState<string>("Common");
   const [yugiohRarityFilter, setYugiohRarityFilter] =
-    useState<string>("default");
+    useState<string>("Common");
+  const [rarityGameFilter, setRarityGameFilter] = useState<string>("default");
 
   const [priceSearchFilters, setPriceSearchFilters] =
     useState<AuctionPriceFilters>({
@@ -275,7 +276,21 @@ export default function Results({
     }
 
     // STATUS
-    searchParams.auctionStatus = status === "Ended" ? [AuctionStatusEnum.Successful, AuctionStatusEnum.Unsuccessful] : status;
+    searchParams.auctionStatus =
+      status === "Ended"
+        ? [AuctionStatusEnum.Successful, AuctionStatusEnum.Unsuccessful]
+        : status;
+
+    /// RARITY
+    if (searchingForCards) {
+      if (rarityGameFilter === "Pokemon") {
+        searchParams.cardRarity = pokemonRarityFilter;
+      } else if (rarityGameFilter === "MTG") {
+        searchParams.cardRarity = mtgRarityFilter;
+      } else if (rarityGameFilter === "Yugioh") {
+        searchParams.cardRarity = yugiohRarityFilter;
+      }
+    }
 
     // SORT BY
     searchParams.sortBy = sortBy;
@@ -318,6 +333,10 @@ export default function Results({
     foilSearchFilter,
     categorySearchFilters,
     priceSearchFilters,
+    rarityGameFilter,
+    pokemonRarityFilter,
+    mtgRarityFilter,
+    yugiohRarityFilter,
     sortBy,
     searchingForCards,
     status,
@@ -448,22 +467,22 @@ export default function Results({
         mtg: false,
         yugioh: false,
       }));
-      setPokemonRarityFilter("default");
-      setMtgRarityFilter("default");
-      setYugiohRarityFilter("default");
+      setPokemonRarityFilter("Common");
+      setMtgRarityFilter("Common");
+      setYugiohRarityFilter("Common");
     } else {
       setCategorySearchFilters((prev) => {
         const newFilters = { ...prev, [name]: checked };
 
         switch (name) {
           case "pokemon":
-            setPokemonRarityFilter("default");
+            setPokemonRarityFilter("Common");
             break;
           case "mtg":
-            setMtgRarityFilter("default");
+            setMtgRarityFilter("Common");
             break;
           case "yugioh":
-            setYugiohRarityFilter("default");
+            setYugiohRarityFilter("Common");
             break;
         }
 
@@ -479,14 +498,17 @@ export default function Results({
     event: React.ChangeEvent<HTMLInputElement>
   ) {
     setPokemonRarityFilter(event.target.value);
+    setRarityGameFilter("Pokemon");
   }
   function handleMtgRarityChange(event: React.ChangeEvent<HTMLInputElement>) {
     setMtgRarityFilter(event.target.value);
+    setRarityGameFilter("MTG");
   }
   function handleYugiohRarityChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
     setYugiohRarityFilter(event.target.value);
+    setRarityGameFilter("Yugioh");
   }
 
   function handlePriceCheckChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -530,9 +552,9 @@ export default function Results({
     event: React.MouseEvent<HTMLButtonElement>,
     value: boolean
   ) {
-    setPokemonRarityFilter("default");
-    setMtgRarityFilter("default");
-    setYugiohRarityFilter("default");
+    setPokemonRarityFilter("Common");
+    setMtgRarityFilter("Common");
+    setYugiohRarityFilter("Common");
     setQualitySearchFilters({
       default: true,
       graded: false,
@@ -764,46 +786,46 @@ export default function Results({
             </AccordionSummary>
             <AccordionDetails>
               <div className={styles.rarities}>
-                {categorySearchFilters.default && (
-                  <FormControl
-                    component="fieldset"
-                    sx={{ marginBottom: "15px" }}
+                <FormControl
+                  component="fieldset"
+                  sx={{ marginBottom: "15px" }}
+                  disabled={!searchingForCards}
+                >
+                  <FormLabel component="legend">All Rarities</FormLabel>
+                  <RadioGroup
+                    aria-label="rarity"
+                    name="rarity"
+                    value={rarityGameFilter === "default" ? "default" : null}
+                    onChange={() => {
+                      setRarityGameFilter("default");
+                    }}
                   >
-                    <FormLabel component="legend">All Rarities</FormLabel>
-                    <RadioGroup
-                      aria-label="rarity"
-                      name="rarity"
+                    <FormControlLabel
                       value="default"
-                      onChange={() => {}}
-                    >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                )}
+                      defaultChecked
+                      control={<Radio />}
+                      label="All"
+                    />
+                  </RadioGroup>
+                </FormControl>
 
                 {categorySearchFilters.pokemon && (
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">Pokémon</FormLabel>
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={pokemonRarityFilter}
+                      value={
+                        rarityGameFilter === "Pokemon"
+                          ? pokemonRarityFilter
+                          : null
+                      }
                       onChange={handlePokemonRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.Pokemon.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
@@ -820,6 +842,7 @@ export default function Results({
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">
                       Magic: The Gathering
@@ -827,15 +850,11 @@ export default function Results({
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={mtgRarityFilter}
+                      value={
+                        rarityGameFilter === "MTG" ? mtgRarityFilter : null
+                      }
                       onChange={handleMtgRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.MTG.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
@@ -852,20 +871,19 @@ export default function Results({
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={yugiohRarityFilter}
+                      value={
+                        rarityGameFilter === "Yugioh"
+                          ? yugiohRarityFilter
+                          : null
+                      }
                       onChange={handleYugiohRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.Yugioh.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
@@ -1762,46 +1780,46 @@ export default function Results({
             </AccordionSummary>
             <AccordionDetails>
               <div className={styles.rarities}>
-                {categorySearchFilters.default && (
-                  <FormControl
-                    component="fieldset"
-                    sx={{ marginBottom: "15px" }}
+                <FormControl
+                  component="fieldset"
+                  sx={{ marginBottom: "15px" }}
+                  disabled={!searchingForCards}
+                >
+                  <FormLabel component="legend">All Rarities</FormLabel>
+                  <RadioGroup
+                    aria-label="rarity"
+                    name="rarity"
+                    value={rarityGameFilter === "default" ? "default" : null}
+                    onChange={() => {
+                      setRarityGameFilter("default");
+                    }}
                   >
-                    <FormLabel component="legend">All Rarities</FormLabel>
-                    <RadioGroup
-                      aria-label="rarity"
-                      name="rarity"
+                    <FormControlLabel
                       value="default"
-                      onChange={() => {}}
-                    >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                )}
+                      defaultChecked
+                      control={<Radio />}
+                      label="All"
+                    />
+                  </RadioGroup>
+                </FormControl>
 
                 {categorySearchFilters.pokemon && (
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">Pokémon</FormLabel>
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={pokemonRarityFilter}
+                      value={
+                        rarityGameFilter === "Pokemon"
+                          ? pokemonRarityFilter
+                          : null
+                      }
                       onChange={handlePokemonRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.Pokemon.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
@@ -1818,6 +1836,7 @@ export default function Results({
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">
                       Magic: The Gathering
@@ -1825,15 +1844,11 @@ export default function Results({
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={mtgRarityFilter}
+                      value={
+                        rarityGameFilter === "MTG" ? mtgRarityFilter : null
+                      }
                       onChange={handleMtgRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.MTG.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
@@ -1850,20 +1865,19 @@ export default function Results({
                   <FormControl
                     component="fieldset"
                     sx={{ marginBottom: "15px" }}
+                    disabled={!searchingForCards}
                   >
                     <FormLabel component="legend">Yu-Gi-Oh!</FormLabel>
                     <RadioGroup
                       aria-label="rarity"
                       name="rarity"
-                      value={yugiohRarityFilter}
+                      value={
+                        rarityGameFilter === "Yugioh"
+                          ? yugiohRarityFilter
+                          : null
+                      }
                       onChange={handleYugiohRarityChange}
                     >
-                      <FormControlLabel
-                        value="default"
-                        defaultChecked
-                        control={<Radio />}
-                        label="All"
-                      />
                       {cardRarities.Yugioh.rarities.map((rarity) => (
                         <FormControlLabel
                           key={rarity}
