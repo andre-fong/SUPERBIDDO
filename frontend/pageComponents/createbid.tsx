@@ -408,7 +408,7 @@ const CardListing: React.FC<CardListingProps> = ({
                 gutterBottom
                 style={{ fontWeight: "bold", marginTop: "-20px" }}
               >
-                Card Listing Form
+                Create an Auction
               </Typography>
               <FormControl fullWidth margin="normal">
                 <InputLabel>Card Type</InputLabel>
