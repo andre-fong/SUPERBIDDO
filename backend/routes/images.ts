@@ -10,62 +10,72 @@ router.post("/", async (req, res, next) => {
     throw new BusinessError(401, "unauthorized", "must be logged in");
   }
   uploadHandler.single("image")(req, res, (err) => {
-    if (err) {
-      switch (err.code) {
-        case "LIMIT_FILE_SIZE":
-          next(
-            new BusinessError(
-              400,
-              "file too large",
-              "image must be less than 5mb"
-            )
-          );
-          break;
-        case "LIMIT_FILE_COUNT":
-          next(
-            new BusinessError(400, "too many files", "only 1 image allowed")
-          );
-          break;
-        case "LIMIT_UNEXPECTED_FILE":
-          next(
-            new BusinessError(
-              400,
-              "invalid field name",
-              `image field name must be "image" and must contain 1 image`
-            )
-          );
-          break;
-        default:
-          // some other multer error
-          next(err);
+    try {
+      if (err) {
+        switch (err.code) {
+          case "LIMIT_FILE_SIZE":
+            next(
+              new BusinessError(
+                400,
+                "file too large",
+                "image must be less than 5mb"
+              )
+            );
+            break;
+          case "LIMIT_FILE_COUNT":
+            next(
+              new BusinessError(400, "too many files", "only 1 image allowed")
+            );
+            break;
+          case "LIMIT_UNEXPECTED_FILE":
+            next(
+              new BusinessError(
+                400,
+                "invalid field name",
+                `image field name must be "image" and must contain 1 image`
+              )
+            );
+            break;
+          default:
+            // some other multer error
+            next(err);
+        }
+        return;
       }
-      return;
-    }
-    if (!req.file.mimetype.startsWith("image/")) {
-      next(new BusinessError(400, "invalid file type", "only images allowed"));
-      return;
-    }
+      if (
+        !req.file ||
+        !req.file.mimetype ||
+        !req.file.mimetype.startsWith("image/")
+      ) {
+        next(
+          new BusinessError(400, "invalid file type", "only images allowed")
+        );
+        return;
+      }
 
-    // upload successful
-    const fileExtension = req.file.mimetype.split("/")[1];
-    const blob = bucket.file(
-      `${req.session.accountId}_${crypto.randomUUID()}.${fileExtension}`
-    );
-    // add current time to metadata - image will be deleted after 1 day unless auction is created
-    const blobStream = blob.createWriteStream({
-      metadata: {
-        contentType: req.file.mimetype,
-        customTime: new Date().toISOString(),
-      },
-    });
-    blobStream.on("error", (err) => {
-      // some GCS error
+      // upload successful
+      const fileExtension = req.file.mimetype.split("/")[1];
+      const blob = bucket.file(
+        `${req.session.accountId}_${crypto.randomUUID()}.${fileExtension}`
+      );
+      // add current time to metadata - image will be deleted after 1 day unless auction is created
+      const blobStream = blob.createWriteStream({
+        metadata: {
+          contentType: req.file.mimetype,
+          customTime: new Date().toISOString(),
+        },
+      });
+      blobStream.on("error", (err) => {
+        // some GCS error
+        next(err);
+      });
+      blobStream.on("finish", async () => {
+        res.status(201).json({ imageUrl: generateImageLink(blob.name) });
+      });
+      blobStream.end(req.file.buffer);
+    } catch (err) {
       next(err);
-    });
-    blobStream.on("finish", async () => {
-      res.status(201).json({ imageUrl: generateImageLink(blob.name) });
-    });
-    blobStream.end(req.file.buffer);
+    }
   });
 });
 
