@@ -618,6 +618,7 @@ export default function Auction({
                         startIcon={<StarIcon />}
                         fullWidth
                         size="large"
+                        color={watching ? "secondary" : "primary"}
                         onClick={() =>
                           handleWatching(
                             watching,
