@@ -1323,6 +1323,10 @@ components:
           properties:
             address:
               $ref: "#/components/schemas/Address"
+        - type: object
+          properties:
+            csrfToken:
+              type: string
   responses:
     BadRequest:
       description: request format is invalid

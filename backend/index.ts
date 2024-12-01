@@ -20,6 +20,8 @@ import { router as watchersRouter } from "./routes/watchers.js";
 import { router as imageRouter } from "./routes/images.js";
 import { router as geminiUploadRouter } from "./routes/geminiUpload.js";
 import { Server } from "socket.io";
+import { doubleCsrfProtection } from "./configServices/csrfConfig.js";
+import createHttpError from "http-errors";
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -30,7 +32,6 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(express.json());
 app.use(cors(corsConfig));
-app.use(cookieParser());
 app.use(
   bodyParser.urlencoded({
     extended: true,
@@ -40,6 +41,7 @@ app.use(
 app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(cookieParser());
 
 // watching does not work with this right now
 // app.use(
@@ -54,12 +56,14 @@ app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
 
-app.use("/api/v1/accounts", accountRouter);
+// allow session and oauth to be accessed without csrf token (delete is explicitly allowed)
 app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/oauth", oauthRouter);
+app.use(doubleCsrfProtection);
+app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/auctions/:auctionId/watchers", watchersRouter);
-app.use("/api/v1/oauth", oauthRouter);
 app.use("/api/v1/images", imageRouter);
 app.use("/api/v1/geminiUpload", geminiUploadRouter);
 
@@ -88,6 +92,17 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
       detail: `${error.message}`,
     }));
     res.status(err.status).json(errors);
+  }
+  // err form csrf-csrf
+  else if (
+    err instanceof createHttpError.HttpError &&
+    err.code === "EBADCSRFTOKEN"
+  ) {
+    res.status(err.status).json({
+      path: req.originalUrl,
+      message: "invalid csrf token",
+      detail: "Get /api/v_/csrfToken first to get a csrf token.",
+    });
   }
   // other errors are unknown system errors
   else {

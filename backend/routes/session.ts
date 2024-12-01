@@ -7,6 +7,10 @@ import {
   invalidLogin,
   BusinessError,
 } from "../utils/errors.js";
+import {
+  doubleCsrfProtection,
+  generateToken,
+} from "../configServices/csrfConfig.js";
 export const router = express.Router();
 
 export async function findEmail(email: string) {
@@ -43,11 +47,13 @@ router.get("/", async (req, res, next) => {
     )
   ).rows[0];
 
+  const csrfToken = req.session.csrfToken || generateToken(req, res);
+
   const account:
     | Account
-    | (Account & {
+    | ((Account & {
         address: Address;
-      }) = {
+      }) & { csrfToken?: string }) = {
     accountId: accountRecord.accountId,
     email: accountRecord.email,
     username: accountRecord.username,
@@ -60,9 +66,9 @@ router.get("/", async (req, res, next) => {
           },
         }
       : {}),
+    ...(csrfToken ? { csrfToken: csrfToken } : {}),
   };
 
-  console.log(account);
   res.json(account);
 });
 
@@ -93,23 +99,29 @@ router.post("/", async (req, res, next) => {
   }
 
   req.session.accountId = accountRecord.accountId;
+  req.session.csrfToken = generateToken(req, res);
 
-  const account: Account = {
+  const account: Account & { csrfToken: string } = {
     accountId: accountRecord.accountId,
     email: accountRecord.email,
     username: accountRecord.username,
+    csrfToken: req.session.csrfToken,
   };
 
   res.status(201).json(account);
 });
 
-router.delete("/", async (req, res, next) => {
+// protect delete route with double csrf protection
+router.delete("/", doubleCsrfProtection, async (req, res, next) => {
   if (!req.session.accountId) {
     throw sessionNotFound();
   }
   req.session.destroy(() => {
     res
       .clearCookie("connect.sid", {
+        path: "/",
+      })
+      .clearCookie("csrfToken", {
         path: "/",
       })
       .sendStatus(204);
