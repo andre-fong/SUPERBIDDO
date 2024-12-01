@@ -76,12 +76,15 @@ const CardListing: React.FC<CardListingProps> = ({
   const [manufacturer, setManufacturer] = useState<string>("");
   const [set, setSet] = useState<string>("");
   const [cardName, setCardName] = useState<string>("");
+  const [isDates, setIsDates] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const startingPriceRef = useRef<HTMLInputElement>(null);
   const spreadRef = useRef<HTMLInputElement>(null);
-  const startDateRef = useRef<HTMLInputElement>(null);
-  const endDateRef = useRef<HTMLInputElement>(null);
+  // const startDateRef = useRef<HTMLInputElement>(null);
+  // const endDateRef = useRef<HTMLInputElement>(null);
   const auctionNameRef = useRef<HTMLInputElement>(null);
 
   const formatCardUploadData = async () => {
@@ -98,13 +101,20 @@ const CardListing: React.FC<CardListingProps> = ({
 
       let price;
       if (cardInfo.type != "bundle") {
-        price = await fetchCardPrice(
-          cardInfo.cardType,
-          cardInfo.cardName,
-          cardInfo.setCode,
-          cardInfo.collectorNumber,
-          cardInfo.foil === "Yes"
-        );
+        try {
+          price = await fetchCardPrice(
+            cardInfo.cardType,
+            cardInfo.cardName,
+            cardInfo.setCode,
+            cardInfo.collectorNumber,
+            cardInfo.foil === "Yes"
+          );
+        } catch {
+          setToast({
+            message: "Error retrieving card price",
+            severity: Severity.Warning,
+          });
+        }
       }
 
       const missingFields = [];
@@ -221,21 +231,18 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
 
-    if (
-      (startDateRef.current && !endDateRef.current) ||
-      (endDateRef.current && !startDateRef.current)
-    ) {
+    if (isDates && (!startDate || !endDate)) {
+
       setToast({
-        message: "Please set either both start date and end date or neither",
+        message: "Please provide both a start and end date for a scheduled auction",
         severity: Severity.Warning,
       });
       return;
     }
 
     if (
-      startDateRef.current &&
-      endDateRef.current &&
-      new Date(startDateRef.current.value) >= new Date(endDateRef.current.value)
+      isDates &&
+      new Date(startDate) >= new Date(endDate)
     ) {
       setToast({
         message: "Start date must be before end date",
@@ -244,10 +251,9 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
     if (
-      startDateRef.current &&
-      endDateRef.current &&
-      new Date(endDateRef.current.value).getTime() -
-        new Date(startDateRef.current.value).getTime() <
+      isDates &&
+      new Date(endDate).getTime() -
+        new Date(startDate).getTime() <
         5 * 60 * 1000
     ) {
       setToast({
@@ -257,8 +263,8 @@ const CardListing: React.FC<CardListingProps> = ({
       return;
     }
     if (
-      startDateRef.current &&
-      new Date(startDateRef.current.value) < new Date()
+      isDates &&
+      new Date(startDate) < new Date()
     ) {
       setToast({
         message: "Start date must be in the future",
@@ -274,14 +280,6 @@ const CardListing: React.FC<CardListingProps> = ({
       description: descriptionRef.current?.value,
       startPrice: parseFloat(startingPriceRef.current?.value || "0"),
       spread: parseFloat(spreadRef.current?.value || "0"),
-      startTime:
-        startDateRef.current && startDateRef.current.value != ""
-          ? new Date(startDateRef.current.value).toJSON()
-          : "",
-      endTime:
-        endDateRef.current && endDateRef.current.value != ""
-          ? new Date(endDateRef.current.value).toJSON()
-          : "",
       type: type,
       cards:
         type === "Card"
@@ -302,12 +300,9 @@ const CardListing: React.FC<CardListingProps> = ({
           : undefined,
     };
 
-    if (
-      startDateRef.current?.value === "" &&
-      endDateRef.current?.value === ""
-    ) {
-      delete auctionData.startTime;
-      delete auctionData.endTime;
+    if (isDates) {
+      auctionData.startTime = startDate;
+      auctionData.endTime = endDate;
     }
 
     if (!descriptionRef.current) {
@@ -325,14 +320,11 @@ const CardListing: React.FC<CardListingProps> = ({
       };
     }
 
-    console.log(auctionData);
-
     createAuction(setToast, auctionData).then((auction) => {
       if (!auction.auctionId) {
         return;
       }
       setCurPage("auction", JSON.stringify({ auctionId: auction.auctionId }));
-      console.log("Auction created with ID: " + auction.auctionId);
     });
   };
 
@@ -369,28 +361,24 @@ const CardListing: React.FC<CardListingProps> = ({
 
       <Container maxWidth={false} style={{ padding: 40 }}>
         <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
-          <Box flex={1} maxWidth="50%">
+            <Box flex={1} maxWidth="50%">
             {isImageLoading ? (
               <Skeleton variant="rectangular" width="100%" height={400} />
             ) : (
               frontPhotoPreview && (
-                <Box
-                  border={1}
-                  borderRadius={2}
-                  boxShadow={3}
-                  padding={1}
-                  paddingBottom={1}
-                  borderColor="grey.500"
-                >
-                  <Slider {...settings}>
-                    {frontPhotoPreview && (
-                      <img src={frontPhotoPreview} alt="Front Preview" />
-                    )}
-                  </Slider>
-                </Box>
+              <Box
+                border={1}
+                borderRadius={2}
+                boxShadow={3}
+                padding={1}
+                paddingBottom={1}
+                borderColor="grey.500"
+              >
+                <img src={frontPhotoPreview} alt="Front Preview" style={{ width: '100%', height: 'auto' }} />
+              </Box>
               )
             )}
-          </Box>
+            </Box>
           {!isGeminiLoading ? (
             <Box flex={1} maxWidth="50%">
               <form
@@ -445,26 +433,42 @@ const CardListing: React.FC<CardListingProps> = ({
                   rows={4}
                 />
 
-                <TextField
-                  label="Start Date and Time"
-                  type="datetime-local"
-                  inputRef={startDateRef}
+                
+                <Button
+                  variant="contained"
+                  component="label"
                   fullWidth
-                  margin="normal"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{
-                    min: getCurDate(),
-                  }}
-                />
+                  sx={{ marginBottom: "10px" }}
+                  onClick={() => setIsDates(!isDates)}
+                >
+                  {isDates ? "Leave unscheduled" : "schedule auction"}
+                </Button>
 
-                <TextField
-                  label="End Date and Time"
-                  type="datetime-local"
-                  inputRef={endDateRef}
-                  fullWidth
-                  margin="normal"
-                  InputLabelProps={{ shrink: true }}
-                />
+                {isDates && 
+                <>
+                    <TextField
+                    label="Start Date and Time"
+                    type="datetime-local"
+                    value={startDate}
+                    fullWidth
+                    margin="normal"
+                    onChange={(e) => setStartDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      min: getCurDate(),
+                    }}
+                  />
+
+                  <TextField
+                    label="End Date and Time"
+                    type="datetime-local"
+                    value={endDate}
+                    fullWidth
+                    onChange={(e) => setEndDate(e.target.value)}
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </>}
 
                 <Button
                   variant="contained"
@@ -481,7 +485,7 @@ const CardListing: React.FC<CardListingProps> = ({
                     name="imageUploadFront"
                   />
                 </Button>
-
+                {frontPhotoPreview && <>
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Game</InputLabel>
                   <Select
@@ -617,6 +621,7 @@ const CardListing: React.FC<CardListingProps> = ({
                 >
                   Submit Listing
                 </Button>
+                </>}
               </form>
             </Box>
           ) : (

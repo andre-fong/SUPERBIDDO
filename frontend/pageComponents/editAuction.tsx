@@ -60,6 +60,7 @@ export default function EditAuction({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<boolean>(false);
+  const [isDates, setIsDates] = useState<boolean>(true);
 
   useEffect(() => {
     const auctionId = JSON.parse(context)?.auctionId;
@@ -246,6 +247,15 @@ export default function EditAuction({
     }
     if (editing || deleting) return;
 
+    if (isDates && (!startDate || !endDate)) {
+      setToast({
+        message: "Please provide both a start and end date for a scheduled auction",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
     if (!startingPrice || !spread) {
       setToast({
         message: "Starting price and spread are required",
@@ -273,18 +283,17 @@ export default function EditAuction({
       return;
     }
 
-    if (startDate && endDate) {
-      if (new Date(startDate) >= new Date(endDate)) {
-        setToast({
-          message: "Start date must be before end date",
-          severity: Severity.Warning,
-        });
+    if (isDates && new Date(startDate) >= new Date(endDate)) {
+      setToast({
+        message: "Start date must be before end date",
+        severity: Severity.Warning,
+      });
 
-        return;
-      }
+      return;
     }
 
-    if (new Date() >= new Date(startDate)) {
+
+    if (isDates && new Date() >= new Date(startDate)) {
       setToast({
         message: "Start date must be in the future",
         severity: Severity.Warning,
@@ -298,8 +307,8 @@ export default function EditAuction({
       description: description,
       startPrice: startingPrice,
       spread: spread,
-      startTime: !startDate ? null : new Date(startDate).toISOString(),
-      endTime: !endDate ? null : new Date(endDate).toISOString(),
+      startTime: !isDates ? null : new Date(startDate).toISOString(),
+      endTime: !isDates ? null : new Date(endDate).toISOString(),
     };
 
     if (type === "Card") {
@@ -558,7 +567,16 @@ export default function EditAuction({
             required
             disabled={loading}
           />
-
+          <Button
+            variant="contained"
+            component="label"
+            fullWidth
+            sx={{ marginBottom: "10px" }}
+            onClick={() => setIsDates(!isDates)}
+          >
+            {isDates ? "Leave unscheduled" : "schedule auction"}
+          </Button>
+          {isDates && <>
           <TextField
             label="Start Date and Time"
             type="datetime-local"
@@ -577,6 +595,7 @@ export default function EditAuction({
             fullWidth
             disabled={loading}
           />
+          </>}
 
           <Button
             variant="contained"
