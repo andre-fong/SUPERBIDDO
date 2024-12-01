@@ -61,7 +61,7 @@ app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/auctions/:auctionId/watchers", watchersRouter);
 app.use("/api/v1/oauth", oauthRouter);
 app.use("/api/v1/images", imageRouter);
-app.use("/api/v1/geminiUpload", geminiUploadRouter);
+app.use("/api/v1/images/:imageUrl/geminiDetails", geminiUploadRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.
