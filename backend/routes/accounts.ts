@@ -3,6 +3,7 @@ import { pool } from "../configServices/dbConfig.js";
 import camelize from "camelize";
 import bcrypt from "bcrypt";
 import { BusinessError, ServerError, unauthorized } from "../utils/errors.js";
+import { doubleCsrfProtection } from "../configServices/csrfConfig.js";
 
 export const router = express.Router();
 
@@ -57,7 +58,7 @@ router.post("/", async (req, res) => {
   res.status(201).json(account);
 });
 
-router.put("/:accountId/address", async (req, res) => {
+router.put("/:accountId/address", doubleCsrfProtection, async (req, res) => {
   const { accountId } = req.params;
   const { sessionToken } = req.query;
 

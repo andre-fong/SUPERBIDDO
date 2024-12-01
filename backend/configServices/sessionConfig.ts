@@ -10,6 +10,7 @@ const store = new (pgSession(session))({
 declare module "express-session" {
   interface SessionData {
     accountId?: string;
+    csrfToken?: string;
   }
 }
 
