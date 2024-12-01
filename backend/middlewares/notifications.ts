@@ -70,6 +70,10 @@ async function getAuctionName(auctionId: string) {
 }
 
 function sendNotification(event: NotificationEvents, accountId: string, email: string, auctionName: string, username: string, args: any = {}) {
+  if (!accountId || !email || !auctionName) {
+    return;
+  }
+  
   if (io.sockets.adapter.rooms.has(accountId)) {
     io.to(accountId).emit(event, auctionName);
   } else {
@@ -215,8 +219,11 @@ export async function postBidNotification(
   if (outbidBidder) {
     sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
   }
-  console.log(auction.auctioneerid, auction.email, auction.name, auction.username);
-  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.email, auction.name, auction.username);
+
+  if (auction) {
+    sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.email, auction.name, auction.username);
+  }
+  
 }
 
 export async function postAuctionNotification(
