@@ -16,6 +16,32 @@ import {
 
 const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 
+// fetch csrf token first, may be null if not logged initially
+// we need csrf token for all requests that are not GET (excluding fetchSignup)
+let csrfToken: string = await fetch(`${url}/csrfToken`, {
+  method: "GET",
+  credentials: "include",
+})
+  .then((res) => {
+    if (res.ok) return res.json();
+    else return "";
+  })
+  .then((data) => data.csrfToken);
+
+/**
+ * Refreshes the csrf token in fetchFunctions.ts
+ */
+async function refreshCSRFToken() {
+  const res = await fetch(`${url}/csrfToken`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (res.ok) {
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+  }
+}
+
 const unkownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
@@ -126,10 +152,17 @@ export async function fetchLogout(
   errorFcn: (error: ErrorType) => void,
   successLogout: (user: User | null) => void
 ) {
+  if (!csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/session`, {
       method: "DELETE",
       credentials: "include",
+      headers: {
+        "x-csrf-token": csrfToken,
+      },
     });
 
     if (response.status === 404) {
@@ -325,11 +358,16 @@ export async function submitBid(
   amount: number,
   bidderId: string
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/auctions/${auctionId}/bids`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
       },
       body: JSON.stringify({ amount, bidderId }),
       credentials: "include",
@@ -365,11 +403,16 @@ export async function createAuction(
   errorFcn: (error: ErrorType) => void,
   auctionData: Auction
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/auctions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
       body: JSON.stringify({
@@ -506,11 +549,16 @@ export async function editAuction(
   auctionId: string,
   auctionData: AuctionPatchBody
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/auctions/${auctionId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
       body: JSON.stringify(auctionData),
@@ -546,11 +594,16 @@ export async function deleteAuction(
   errorFcn: (error: ErrorType) => void,
   auctionId: string
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/auctions/${auctionId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
     });
@@ -580,11 +633,16 @@ export async function addWatching(
   accountId: string,
   auctionId: string
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(`${url}/auctions/${auctionId}/watchers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-csrf-token": csrfToken,
       },
       credentials: "include",
       body: JSON.stringify({ watcherId: accountId }),
@@ -625,6 +683,10 @@ export async function removeWatching(
   accountId: string,
   auctionId: string
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(
       `${url}/auctions/${auctionId}/watchers/${accountId}`,
@@ -632,6 +694,7 @@ export async function removeWatching(
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
         },
         credentials: "include",
       }
@@ -707,12 +770,19 @@ export async function uploadImage(
   errorFcn: (error: ErrorType) => void,
   image: File
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const formData = new FormData();
     formData.append("image", image);
 
     const response = await fetch(`${url}/images`, {
       method: "POST",
+      headers: {
+        "x-csrf-token": csrfToken,
+      },
       body: formData,
       credentials: "include",
     });
@@ -792,6 +862,10 @@ export async function editLocation(
   placeId: string,
   sessionToken: string
 ) {
+  if (csrfToken) {
+    await refreshCSRFToken();
+  }
+
   try {
     const response = await fetch(
       `${url}/accounts/${accountId}/address?sessionToken=${sessionToken}`,
@@ -799,6 +873,7 @@ export async function editLocation(
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
         },
         credentials: "include",
         body: JSON.stringify({ placeId }),
