@@ -365,7 +365,7 @@ router.get("/", async (req, res) => {
               FROM bid
               GROUP BY auction_id
             ),
-            filled_auctions AS (
+            filled_auction AS (
               SELECT auction.auction_id, account.account_id as auctioneer_id, 
               account.username as auctioneer_username, 
               account.email as auctioneer_email, 
@@ -415,7 +415,7 @@ router.get("/", async (req, res) => {
               END AS auction_status
               FROM auction
             )
-            SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
+            SELECT filled_auction.*, top_bids.bid_id, top_bids.bidder_id, 
             top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
             COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
             auction_status.auction_status,
@@ -427,7 +427,7 @@ router.get("/", async (req, res) => {
                   }) as watching`
                 : ""
             }
-            FROM filled_auctions
+            FROM filled_auction
             LEFT JOIN top_bids USING (auction_id)
             LEFT JOIN bid_agg USING (auction_id)
             LEFT JOIN (
@@ -619,7 +619,7 @@ router.get("/", async (req, res) => {
           WHEN (
             SELECT COUNT(*) 
             FROM bid 
-            WHERE auction_id = auction.auction_id
+            WHERE auction_id = filled_auction.auction_id
             ) > 0 
           THEN 'Successful' 
           ELSE 'Unsuccessful' 
@@ -764,7 +764,7 @@ router.get("/", async (req, res) => {
           FROM bid
           GROUP BY auction_id
         ),
-        filled_auctions AS (
+        filled_auction AS (
           SELECT auction.auction_id, account.account_id as auctioneer_id, 
           account.username as auctioneer_username, 
           account.email as auctioneer_email, 
@@ -815,14 +815,14 @@ router.get("/", async (req, res) => {
           FROM auction
         ) ${includeBidStatusFor ? `, bid_status AS (${bidStatusCte})` : ""}
         ${includeWatchingFor ? `, watching AS (${watchingCte})` : ""}
-        SELECT filled_auctions.*, top_bids.bid_id, top_bids.bidder_id, 
+        SELECT filled_auction.*, top_bids.bid_id, top_bids.bidder_id, 
         top_bids.bidder_username, top_bids.bidder_email, top_bids.amount, top_bids.timestamp,
         COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
         auction_status.auction_status,
         cards_agg.cards, bundle_agg.bundle
         ${includeBidStatusFor ? `, bid_status.bid_status` : ""}
         ${includeWatchingFor ? `, watching.watching` : ""}
-        FROM filled_auctions
+        FROM filled_auction
         LEFT JOIN top_bids USING (auction_id)
         LEFT JOIN bid_agg USING (auction_id)
         LEFT JOIN (
@@ -977,7 +977,7 @@ router.get("/", async (req, res) => {
           : ""
       }
       SELECT COUNT(*) FROM
-      (SELECT auction_id FROM auction ${whereClause} LIMIT 1001)
+      (SELECT auction_id FROM auction AS filled_auction ${whereClause} LIMIT 1001)
       as count`,
       // capped at 1001 to prevent large queries
       values.slice(
