@@ -145,9 +145,7 @@ function scheduleAuctionSoonEndReminder(
         () => {
           Promise.all([getAllBiddersWithEmail(auctionId), getAuctionName(auctionId), getAllWatchersWithEmail(auctionId)]).then(
             ([allBiddersResult, auctionName, watching]) => {
-              console.log(allBiddersResult.rows);
               allBiddersResult.rows.forEach((row) => {
-                console.log("Sending email to", row.email);
                 sendNotification(NotificationEvents.AuctionEndingSoon, row.bidder_id, row.email, auctionName, row.username);
               });
               watching.rows.forEach((row) => {

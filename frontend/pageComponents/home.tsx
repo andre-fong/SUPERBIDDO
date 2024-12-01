@@ -30,17 +30,16 @@ export default function Home({
     if (user) {
       setRecommendedLoading(true);
       getAuctionSearchResults(setToast, {
-        recommendedFor: user.accountId,
+        recommendedFor: user.accountId, includeWatchingFor: user.accountId,
       })
         .then((res) => {
+          console.log(res.auctions);
           setRecommended(res.auctions);
           setRecommendedLoading(false);
         })
-        .catch((err) => {
-          setToast(err);
-          setRecommendedLoading(false);
-        });
+      
     }
+    
   }, [setToast, user]);
 
   const [trending, setTrending] = useState<Auction[]>([]);
@@ -281,6 +280,7 @@ export default function Home({
                       setCurPage={setCurPage}
                       accountId={user?.accountId}
                       setToast={setToast}
+                      watchingSet={auction.watching || false}
                     />
                   ))}
             </div>
@@ -300,6 +300,7 @@ export default function Home({
                   setCurPage={setCurPage}
                   accountId={user?.accountId}
                   setToast={setToast}
+                  watchingSet={auction.watching || false}
                 />
               ))}
         </div>
@@ -317,6 +318,7 @@ export default function Home({
                   setCurPage={setCurPage}
                   accountId={user?.accountId}
                   setToast={setToast}
+                  watchingSet={auction.watching || false}
                 />
               ))}
         </div>

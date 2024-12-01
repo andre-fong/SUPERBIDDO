@@ -11,7 +11,6 @@ import Image from "next/image";
 import { ErrorType } from "@/types/errorTypes";
 import { getImageUrl } from "@/utils/determineFunctions";
 import { handleWatching } from "@/utils/watchingFunctions";
-import { getWatching } from "@/utils/fetchFunctions";
 
 export default function Listing({
   auction,
@@ -35,16 +34,6 @@ export default function Listing({
     const parts = auction.auctioneer.address.addressFormatted.split(", ");
     return `From ${parts[parts.length - 3]}, ${parts[parts.length - 1]}`;
   }, [auction.auctioneer.address]);
-
-  useEffect(() => {
-    if (!accountId) return;
-
-    getWatching(setToast, accountId, auction.auctionId).then((watching) => {
-      setIsWatching(watching);
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountId]);
 
   const imageUrl = useMemo(() => getImageUrl(auction), [auction]);
 
