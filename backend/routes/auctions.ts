@@ -296,6 +296,7 @@ router.get("/", async (req, res) => {
       };
       auctionStatus: AuctionStatus;
       bidStatus?: BidStatus;
+      watching?: boolean;
     }[] = [];
 
     for (const game of ["MTG", "Pokemon", "Yugioh"]) {
@@ -356,6 +357,7 @@ router.get("/", async (req, res) => {
                 auction_status: AuctionStatus;
               } & {
                 bid_status?: BidStatus;
+                watching?: boolean;
               }
           >(
             ` WITH bid_agg AS (
@@ -418,6 +420,13 @@ router.get("/", async (req, res) => {
             COALESCE(bid_agg.num_bids, 0) as num_bids, COALESCE(is_bundle.is_bundle, false) as is_bundle,
             auction_status.auction_status,
             cards_agg.cards, bundle_agg.bundle
+            ${
+              includeWatchingFor
+                ? `, auction_id IN (SELECT auction_id FROM watch WHERE account_id = $${
+                    values.length + 1
+                  }) as watching`
+                : ""
+            }
             FROM filled_auctions
             LEFT JOIN top_bids USING (auction_id)
             LEFT JOIN bid_agg USING (auction_id)
@@ -433,7 +442,7 @@ router.get("/", async (req, res) => {
             ORDER BY num_bids DESC
             ${limit}
             `,
-            values
+            [...values, ...(includeWatchingFor ? [includeWatchingFor] : [])]
           )
         ).rows
       );
@@ -491,6 +500,7 @@ router.get("/", async (req, res) => {
           numBids: parseInt(auctionRecord.numBids),
           auctionStatus: auctionRecord.auctionStatus,
           bundle: bundle,
+          ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
         };
         return auction;
       }
@@ -552,6 +562,7 @@ router.get("/", async (req, res) => {
         numBids: parseInt(auctionRecord.numBids),
         auctionStatus: auctionRecord.auctionStatus,
         cards: cards,
+        ...(includeWatchingFor ? { watching: auctionRecord.watching } : {}),
       };
       return auction;
     });
