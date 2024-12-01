@@ -215,7 +215,7 @@ export async function postBidNotification(
   if (outbidBidder) {
     sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
   }
-
+  console.log(auction.auctioneerid, auction.email, auction.name, auction.username);
   sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.email, auction.name, auction.username);
 }
 

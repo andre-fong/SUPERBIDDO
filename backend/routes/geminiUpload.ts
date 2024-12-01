@@ -135,13 +135,9 @@ export const router = express.Router();
 
 router.get("/:imageUrl", async (req: express.Request, res: express.Response) => {
     const imageUrl = req.params.imageUrl;
-    const response = await axios.head(imageUrl);
-    const mimeType = response.headers["content-type"];
-
-    const geminiApiKey = process.env.GEMINI_API_KEY
-    let imageResp;
+    let response;
     try {
-        imageResp = await axios.get(imageUrl, { responseType: "arraybuffer" }).then((response) => response.data);
+        response = await axios.head(imageUrl);
     } catch (err) {
         throw new BusinessError(
             404,
@@ -149,6 +145,11 @@ router.get("/:imageUrl", async (req: express.Request, res: express.Response) => 
             `Could not find referenced image at ${imageUrl}. Upload an image by posting to api/v_/images first.`
         );
     }
+    const mimeType = response.headers["content-type"];
+
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    let imageResp: ArrayBuffer;
+    imageResp = await axios.get(imageUrl, { responseType: "arraybuffer" }).then((response) => response.data);
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro" });

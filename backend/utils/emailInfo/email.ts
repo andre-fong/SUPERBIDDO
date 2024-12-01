@@ -21,11 +21,12 @@ export async function sendEmail(to: string, event: NotificationEvents, auctionNa
         to: to, 
         subject: NotificationMessages[event].eventHeader, 
         html: generateEmailTemplate(username, NotificationMessages[event].eventBody(auctionName, args)),
-        // attachments: [{
-        //     filename: 'superbiddo-logo.svg',
-        //     path: path.join(__dirname, 'superbiddo-logo.svg'),
-        //     cid: 'superbiddo' //same cid value as in the html img src
-        // }]
+        attachments: [{   
+            filename: 'logo.jpg',
+            content: 'https://i.ibb.co/YQpG3X0/logo.png',
+            path: 'https://i.ibb.co/YQpG3X0/logo.png',
+            cid: 'logo' 
+        }]
     };
     try {
         const info = await transporter.sendMail(mailOptions);
