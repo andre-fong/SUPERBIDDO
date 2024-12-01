@@ -69,6 +69,13 @@ if [ $? -ne 0 ]; then
 fi
 echo "Environment file copy successful!"
 
+echo "Copying gcs-storage-credentials.json to $SERVER..."
+scp gcs-storage-credentials.json $SERVER:/var/lib/superbiddo/gcs-storage-credentials.json
+if [ $? -ne 0 ]; then
+  echo "gcs-storage-credentials.json copy failed. Exiting..."
+  exit 1
+fi
+
 echo "Starting the application on $SERVER..."
 ssh $SERVER "cd /var/lib/superbiddo && docker compose up -d"
 if [ $? -ne 0 ]; then
