@@ -7,6 +7,7 @@ export function handleCloseAuctionRequest(
   auctionId: string,
   clients: Response[]
 ) {
+  console.log(process.env.BACKEND_URL);
   fetch(`${process.env.BACKEND_URL}/api/v1/auctions/${auctionId}`).then(
     (res) => {
       if (res.status === 200) {

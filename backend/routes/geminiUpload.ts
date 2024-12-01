@@ -4,14 +4,6 @@ import { preserveImage } from './images';
 import { BusinessError } from '../utils/errors';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { qualityList, cardRarities } from '../types/geminiTypes';
-import fetch, { Headers } from 'node-fetch';
-
-if (!globalThis.fetch) {
-    globalThis.fetch = fetch as any;
-}
-if (!globalThis.Headers) {
-    globalThis.Headers = Headers as any;
-}
 
 function getGeminiString(): string {
     return `DONT PUT \`\`\`json at the start. Also never give an empty string for any of these in each json field.
@@ -143,9 +135,13 @@ export const router = express.Router();
 
 router.get("/:imageUrl", async (req: express.Request, res: express.Response) => {
     const imageUrl = req.params.imageUrl;
+    const response = await axios.head(imageUrl);
+    const mimeType = response.headers["content-type"];
 
+    const geminiApiKey = process.env.GEMINI_API_KEY
+    let imageResp;
     try {
-        await preserveImage(imageUrl, req.session.accountId);
+        imageResp = await axios.get(imageUrl, { responseType: "arraybuffer" }).then((response) => response.data);
     } catch (err) {
         throw new BusinessError(
             404,
@@ -153,11 +149,6 @@ router.get("/:imageUrl", async (req: express.Request, res: express.Response) => 
             `Could not find referenced image at ${imageUrl}. Upload an image by posting to api/v_/images first.`
         );
     }
-    const response = await axios.head(imageUrl);
-    const mimeType = response.headers["content-type"];
-
-    const geminiApiKey = process.env.GEMINI_API_KEY
-    const imageResp = await axios.get(imageUrl, { responseType: "arraybuffer" }).then((response) => response.data)
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro" });

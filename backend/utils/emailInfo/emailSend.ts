@@ -7,9 +7,8 @@ export default function generateEmailTemplate(username: string, auctionText: str
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Template</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         * {
-            font-family: 'Inter', 'Inter Fallback';
+            font-family: 'Verdana', 'Tahoma', 'Trebuchet MS', sans-serif;
         }
         .email-header {
             background-color: #e0e0e0;
@@ -40,7 +39,7 @@ export default function generateEmailTemplate(username: string, auctionText: str
 <body>
     <div class="email-container">
         <header class="email-header">
-            <img src="https://drive.google.com/uc?export=view&id=1eK9lgwF3Fedd25bphdVwQN1fBgK7Eu-e" alt="Superbiddo Logo" style="width: 200px; height: auto;">
+            <img src="cid:superbiddo" alt="Superbiddo Logo" style="width: 200px; height: auto;">
         </header>
         <main class="email-content">
             <p id="username-text">Dear ${username},</p>

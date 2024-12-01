@@ -193,12 +193,12 @@ export async function postBidNotification(
   };
   const auction = camelize(
     await pool.query<{
-      auctioneer_id: string;
+      auctioneerid: string;
       name: string;
       email: string;
       username: string;
     }>(
-      `SELECT auction.auctioneer_id, auction.name, account.email, account.username
+      `SELECT auction.auctioneer_id as auctioneerid, auction.name, account.email, account.username
        FROM auction
        JOIN account ON auction.auctioneer_id = account.account_id
        WHERE auction_id = $1`,
@@ -215,8 +215,8 @@ export async function postBidNotification(
   if (outbidBidder) {
     sendNotification(NotificationEvents.AuctionOutbidded, outbidBidder.bidder.accountId, outbidBidder.bidder.email, auction.name, outbidBidder.bidder.username);
   }
-  //IDk why there is a red line here
-  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneer_id, auction.email, auction.name, auction.username);
+
+  sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.email, auction.name, auction.username);
 }
 
 export async function postAuctionNotification(
