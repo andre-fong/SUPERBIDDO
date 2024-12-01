@@ -344,10 +344,12 @@ export default function Auction({
       return;
     }
 
+    const bidAmount = parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value).toFixed(2);
+
     submitBid(
       setToast,
       curAuctionId.current,
-      parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value),
+      parseFloat(bidAmount),
       user?.accountId
     );
   }
@@ -1102,6 +1104,11 @@ export default function Auction({
             label="Bid Amount"
             variant="outlined"
             name="bid_amount"
+            type="number"
+            inputProps={{
+              step: "0.01",
+              min: (bidCount > 0 ? curBid : curMinBid) + spread
+            }}
             defaultValue={(
               (bidCount > 0 ? curBid : curMinBid) + spread
             ).toFixed(2)}
@@ -1132,7 +1139,6 @@ export default function Auction({
               variant="contained"
               sx={{ width: "30%" }}
               type="submit"
-              onClick={() => setIsBidding(false)}
             >
               Place bid!
             </Button>

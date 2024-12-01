@@ -83,8 +83,6 @@ const CardListing: React.FC<CardListingProps> = ({
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const startingPriceRef = useRef<HTMLInputElement>(null);
   const spreadRef = useRef<HTMLInputElement>(null);
-  // const startDateRef = useRef<HTMLInputElement>(null);
-  // const endDateRef = useRef<HTMLInputElement>(null);
   const auctionNameRef = useRef<HTMLInputElement>(null);
 
   const formatCardUploadData = async () => {
