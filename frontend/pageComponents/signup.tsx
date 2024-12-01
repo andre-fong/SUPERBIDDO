@@ -98,7 +98,6 @@ export default function Signup({
           accountId: loginData.accountId,
           username: email.split("@")[0],
           email,
-          address: loginData.address,
         });
         setCurPage((JSON.parse(context)?.next as PageName) || "home", context);
       }
