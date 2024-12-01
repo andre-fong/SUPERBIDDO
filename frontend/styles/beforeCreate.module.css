@@ -1,0 +1,26 @@
+.loading_container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.container {
+  padding: 30px clamp(30px, 10vw, 300px);
+}
+
+.title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.message {
+  color: rgb(88, 88, 88);
+  margin-bottom: 30px;
+}
+
+.bold_500 {
+  font-weight: 500;
+}

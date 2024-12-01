@@ -7,6 +7,7 @@ export type PageName =
   | "signup"
   | "auction"
   | "create"
+  | "createAuction"
   | "yourListings"
   | "yourBiddings"
   | "editAuction"
