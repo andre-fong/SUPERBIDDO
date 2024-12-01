@@ -358,7 +358,7 @@ export async function submitBid(
   amount: number,
   bidderId: string
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -403,7 +403,7 @@ export async function createAuction(
   errorFcn: (error: ErrorType) => void,
   auctionData: Auction
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -549,7 +549,7 @@ export async function editAuction(
   auctionId: string,
   auctionData: AuctionPatchBody
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -594,7 +594,7 @@ export async function deleteAuction(
   errorFcn: (error: ErrorType) => void,
   auctionId: string
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -633,7 +633,7 @@ export async function addWatching(
   accountId: string,
   auctionId: string
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -683,7 +683,7 @@ export async function removeWatching(
   accountId: string,
   auctionId: string
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -770,7 +770,7 @@ export async function uploadImage(
   errorFcn: (error: ErrorType) => void,
   image: File
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
@@ -862,7 +862,7 @@ export async function editLocation(
   placeId: string,
   sessionToken: string
 ) {
-  if (csrfToken) {
+  if (!csrfToken) {
     await refreshCSRFToken();
   }
 
