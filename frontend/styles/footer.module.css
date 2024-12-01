@@ -45,7 +45,8 @@
   gap: 8px;
 }
 
-.link button {
+.link button,
+.link a {
   background: none;
   border: none;
   color: white;
@@ -53,7 +54,10 @@
   font-size: 0.9rem;
   text-align: left;
 }
-.link button:hover {
+.link button:hover,
+.link button:focus-visible,
+.link a:hover,
+.link a:focus-visible {
   text-decoration: underline;
   color: var(--primary);
   filter: brightness(1.5);

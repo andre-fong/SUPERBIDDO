@@ -215,16 +215,18 @@ export default function Footer({
             <ul className={styles.links}>
               <li className={styles.link}>
                 {/* TODO: Link to ABOUT */}
-                <button>About</button>
+                <a
+                  href="https://github.com/UTSCC09/SUPERBIDDO"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  About
+                </a>
               </li>
               <li className={styles.link}>
                 <button onClick={() => setContactDialogOpen(true)}>
                   Contact Us
                 </button>
-              </li>
-              {/* TODO: Link to CREDITS */}
-              <li className={styles.link}>
-                <button>Credits</button>
               </li>
             </ul>
           </section>
