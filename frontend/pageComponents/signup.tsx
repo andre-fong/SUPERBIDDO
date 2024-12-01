@@ -14,7 +14,6 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-
 export default function Signup({
   setCurPage,
   context,
@@ -89,7 +88,7 @@ export default function Signup({
     }
 
     fetchSignup(setToast, email.split("@")[0], password, email).then(
-      (loginData) => {
+      (loginData: User | null) => {
         if (!loginData) {
           setSubmitError(true);
           return;
@@ -194,7 +193,6 @@ export default function Signup({
             }}
           />
 
-          
           <div
             className={styles.recaptcha}
             style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}
