@@ -103,7 +103,8 @@ export type AuctionSortByOption =
 export type AuctionSearchQuery = {
   name?: string;
   recommendedFor?: string;
-  auctionStatus?: AuctionStatus | AuctionStatus[];
+  auctionStatus?: (AuctionStatus | "Not scheduled") | (AuctionStatus | "Not scheduled")[];
+  includeBidStatusFor?: BiddingStatus | BiddingStatus[];
   minMinNewBidPrice?: number;
   maxMinNewBidPrice?: number;
   minStartTime?: Date;

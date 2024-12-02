@@ -72,8 +72,10 @@ const YourBiddings: React.FC<YourBiddingsProps> = ({
     searchTerm,
     selectedStatuses,
     currentPage,
-    cardsPerPage
+    cardsPerPage,
+    setCurrentPage
   );
+
 
   const handleStatusChange = (event: SelectChangeEvent<string[]>) => {
     setSelectedStatuses(event.target.value as string[]);

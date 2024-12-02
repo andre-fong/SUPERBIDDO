@@ -63,7 +63,6 @@ function auctionPollingStart(
         return;
       }
 
-      updateAuction(newAuction);
       auctionPollingStart(
         auctionId,
         setToast,

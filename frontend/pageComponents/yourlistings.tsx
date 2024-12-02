@@ -56,7 +56,8 @@ const YourListings: React.FC<YourListingsProps> = ({
     searchTerm,
     selectedStatuses,
     currentPage,
-    cardsPerPage
+    cardsPerPage,
+    setCurrentPage
   );
 
   const handleStatusChange = (event: SelectChangeEvent<string[]>) => {

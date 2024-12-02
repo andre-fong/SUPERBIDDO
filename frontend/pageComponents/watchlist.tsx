@@ -4,6 +4,7 @@ import { User } from "@/types/userTypes";
 import { useState, useEffect } from "react";
 import styles from "@/styles/watchlist.module.css";
 import { getAuctionSearchResults } from "@/utils/fetchFunctions";
+import { AuctionStatus, AuctionStatusEnum, BiddingStatusEnum } from "@/types/auctionTypes";
 import { Auction } from "@/types/backendAuctionTypes";
 import Button from "@mui/material/Button";
 import Skeleton from "@mui/material/Skeleton";
@@ -43,7 +44,7 @@ export default function WatchList({
       setToast(err)
       setResultsLoading(false)
     }
-      , {watchedBy: accountId, page: resultsPage, pageSize: resultsPerPage}).then((results) => {
+      , {watchedBy: accountId, page: resultsPage, pageSize: resultsPerPage, auctionStatus: [AuctionStatusEnum.NotScheduled, AuctionStatusEnum.Ongoing, AuctionStatusEnum.Scheduled]}).then((results) => {
       setResults(results.auctions);
       setResultsTotalPages(Math.ceil(results.totalNumAuctions / resultsPerPage));
       setResultsLoading(false);
