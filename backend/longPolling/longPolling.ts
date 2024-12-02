@@ -26,18 +26,8 @@ export function addLpClient(reqId: string, client: Response) {
 }
 
 export function removeLpClient(reqId: string, client: Response) {
-  // will this work? aren't these objects
-  console.log("removeLpClient: ", reqId, client);
-  console.log(
-    "pendingLpRequests[reqId].clients before: ",
-    pendingLpRequests[reqId].clients
-  );
   pendingLpRequests[reqId].clients = pendingLpRequests[reqId].clients.filter(
     (c) => c !== client
-  );
-  console.log(
-    "pendingLpRequests[reqId].clients after: ",
-    pendingLpRequests[reqId].clients
   );
 }
 
