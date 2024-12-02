@@ -470,6 +470,7 @@ export default function Results({
       setPokemonRarityFilter("Common");
       setMtgRarityFilter("Common");
       setYugiohRarityFilter("Common");
+      setRarityGameFilter("default");
     } else {
       setCategorySearchFilters((prev) => {
         const newFilters = { ...prev, [name]: checked };
@@ -484,6 +485,18 @@ export default function Results({
           case "yugioh":
             setYugiohRarityFilter("Common");
             break;
+        }
+
+        if (!(newFilters.pokemon || newFilters.mtg || newFilters.yugioh)) {
+          setRarityGameFilter("default");
+        }
+
+        if (!newFilters.pokemon && rarityGameFilter === "Pokemon") {
+          setRarityGameFilter("default");
+        } else if (!newFilters.mtg && rarityGameFilter === "MTG") {
+          setRarityGameFilter("default");
+        } else if (!newFilters.yugioh && rarityGameFilter === "Yugioh") {
+          setRarityGameFilter("default");
         }
 
         return {
