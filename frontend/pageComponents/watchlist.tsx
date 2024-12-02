@@ -4,15 +4,21 @@ import { User } from "@/types/userTypes";
 import { useState, useEffect } from "react";
 import styles from "@/styles/watchlist.module.css";
 import { getAuctionSearchResults } from "@/utils/fetchFunctions";
-import { AuctionStatus, AuctionStatusEnum, BiddingStatusEnum } from "@/types/auctionTypes";
+import {
+  AuctionStatus,
+  AuctionStatusEnum,
+  BiddingStatusEnum,
+} from "@/types/auctionTypes";
 import { Auction } from "@/types/backendAuctionTypes";
 import Button from "@mui/material/Button";
 import Skeleton from "@mui/material/Skeleton";
 import Listing from "@/components/listing";
-import { Box, Pagination } from "@mui/material";
+import Box from "@mui/material/Box";
+import Pagination from "@mui/material/Pagination";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
 
-
-const resultsPerPage = 20
+const resultsPerPage = 20;
 
 export default function WatchList({
   setCurPage,
@@ -32,7 +38,6 @@ export default function WatchList({
   const [results, setResults] = useState<Auction[]>([]);
   const [resultsPage, setResultsPage] = useState(1);
   const [resultsTotalPages, setResultsTotalPages] = useState(0);
-  
 
   ///////////////////////////////////
   //      Watchlist Functions      //
@@ -40,15 +45,28 @@ export default function WatchList({
   function getWatchList(accountId: string) {
     // TODO: Replace this function with a fetchFunctions func that returns watch list
     setResultsLoading(true);
-    getAuctionSearchResults((err) => {
-      setToast(err)
-      setResultsLoading(false)
-    }
-      , {watchedBy: accountId, page: resultsPage, pageSize: resultsPerPage, auctionStatus: [AuctionStatusEnum.NotScheduled, AuctionStatusEnum.Ongoing, AuctionStatusEnum.Scheduled]}).then((results) => {
+    getAuctionSearchResults(
+      (err) => {
+        setToast(err);
+        setResultsLoading(false);
+      },
+      {
+        watchedBy: accountId,
+        page: resultsPage,
+        pageSize: resultsPerPage,
+        auctionStatus: [
+          AuctionStatusEnum.NotScheduled,
+          AuctionStatusEnum.Ongoing,
+          AuctionStatusEnum.Scheduled,
+        ],
+      }
+    ).then((results) => {
       setResults(results.auctions);
-      setResultsTotalPages(Math.ceil(results.totalNumAuctions / resultsPerPage));
+      setResultsTotalPages(
+        Math.ceil(results.totalNumAuctions / resultsPerPage)
+      );
       setResultsLoading(false);
-    })
+    });
   }
 
   const handlePageChange = (
@@ -61,7 +79,7 @@ export default function WatchList({
   useEffect(() => {
     if (!user) {
       setCurPage("login", JSON.stringify({ next: "watchlist" }));
-      return
+      return;
     }
 
     getWatchList(user.accountId);
@@ -70,6 +88,27 @@ export default function WatchList({
   }, [resultsPage, user]);
   return (
     <>
+      <div
+        role="presentation"
+        onClick={(e) => e.preventDefault()}
+        style={{
+          marginLeft: "clamp(30px, 10vw, 300px)",
+          marginBottom: "-10px",
+        }}
+      >
+        <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: "15px" }}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="/"
+            onClick={() => setCurPage("home")}
+          >
+            Home
+          </Link>
+          <p style={{ color: "black" }}>Watch List</p>
+        </Breadcrumbs>
+      </div>
+
       <main className={styles.main}>
         <div className={styles.title_row}>
           <h1 className={styles.title}>Your Watch List</h1>
@@ -119,10 +158,10 @@ export default function WatchList({
               </div>
             ))}
 
-            {!resultsLoading && results.length === 0 && (
+          {!resultsLoading && results.length === 0 && (
             <div style={{ fontStyle: "italic" }}>No auctions watching</div>
-            )}
-            {results?.map((auction: Auction) => (
+          )}
+          {results?.map((auction: Auction) => (
             <Listing
               key={auction.auctionId}
               auction={auction}
@@ -131,25 +170,23 @@ export default function WatchList({
               setToast={setToast}
               watchingSet={true}
             />
-            ))}
-            
-
+          ))}
         </div>
         <Box
-            display="flex"
-            justifyContent="center"
-            marginTop={4}
-            marginBottom={2}
-            >
-            {resultsTotalPages > 0 && (
-              <Pagination
+          display="flex"
+          justifyContent="center"
+          marginTop={4}
+          marginBottom={2}
+        >
+          {resultsTotalPages > 0 && (
+            <Pagination
               count={resultsTotalPages}
               page={resultsPage}
               onChange={handlePageChange}
               color="primary"
-              />
-            )}
-            </Box>
+            />
+          )}
+        </Box>
       </main>
     </>
   );
