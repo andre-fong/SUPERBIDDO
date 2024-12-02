@@ -190,10 +190,6 @@ export default function Footer({
             <ul className={styles.links}>
               {user ? (
                 <>
-                  {/* TODO: Link to settings */}
-                  <li className={styles.link}>
-                    <button>Settings</button>
-                  </li>
                   <li className={styles.link}>
                     <button onClick={() => setCurPage("login")}>
                       Switch Accounts
@@ -214,7 +210,6 @@ export default function Footer({
             <h3 className={styles.section_title}>About SuperBiddo</h3>
             <ul className={styles.links}>
               <li className={styles.link}>
-                {/* TODO: Link to ABOUT */}
                 <a
                   href="https://github.com/UTSCC09/SUPERBIDDO"
                   target="_blank"

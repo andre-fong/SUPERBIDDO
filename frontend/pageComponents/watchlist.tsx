@@ -43,7 +43,6 @@ export default function WatchList({
   //      Watchlist Functions      //
   ///////////////////////////////////
   function getWatchList(accountId: string) {
-    // TODO: Replace this function with a fetchFunctions func that returns watch list
     setResultsLoading(true);
     getAuctionSearchResults(
       (err) => {

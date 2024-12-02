@@ -186,7 +186,6 @@ export default function Results({
 
   const [sortBy, setSortBy] = useState<AuctionSortByOption>("endTimeAsc");
 
-  // TODO: Change status ended
   const [status, setStatus] = useState<AuctionStatus | "Ended">(
     AuctionStatusEnum.Ongoing
   );
@@ -444,7 +443,6 @@ export default function Results({
         [name]: null,
       }));
     } else if (isNaN(grade) || grade < 1 || grade > 10) {
-      // TODO: Show error message
     } else {
       setQualitySearchFilters((prev) => ({
         ...prev,
@@ -543,7 +541,6 @@ export default function Results({
         [name]: null,
       }));
     } else if (isNaN(price) || price < 0) {
-      // TODO: Show error message
     } else {
       setPriceSearchFilters((prev) => ({
         ...prev,

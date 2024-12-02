@@ -111,11 +111,6 @@ export default function LocationEdit({
     setInputValue(user?.address?.addressFormatted || "");
   }, [locationEditOpen, user]);
 
-  // TODO: Remove
-  useEffect(() => {
-    console.log(sessionToken?.aw);
-  }, [sessionToken]);
-
   const fetchPlaces = useMemo(
     () =>
       debounce(
@@ -311,7 +306,6 @@ export default function LocationEdit({
           }}
         />
 
-        {/* TODO: Connect selected place to maps iframe */}
         <iframe
           width="100%"
           height="450"

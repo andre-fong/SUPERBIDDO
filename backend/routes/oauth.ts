@@ -12,13 +12,11 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      //TODO: change to deployed URL
       callbackURL: `${process.env.BACKEND_URL}/api/v1/oauth/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       const accountRecord = await findEmail(profile.emails[0].value);
       if (!accountRecord) {
-        //TODO: remove and add column
         const createAccountRecord = await createAccount(
           profile.emails[0].value,
           null,
@@ -59,7 +57,6 @@ router.get(
   (req, res) => {
     req.session.accountId = req.user.accountId;
     req.session.csrfToken = generateToken(req, res);
-    //TODO: redirect to deployed frontend
     res.redirect(process.env.FRONTEND_URL);
   }
 );

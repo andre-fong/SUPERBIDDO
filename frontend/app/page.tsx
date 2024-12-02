@@ -176,12 +176,7 @@ export default function PageHandler() {
     yourListings: {
       title: "Your Listings | SuperBiddo",
       component: user ? (
-        <YourListings
-          user={user}
-          setToast={setToast}
-          setCurPage={setCurPage}
-          // context={pageContext}
-        />
+        <YourListings user={user} setToast={setToast} setCurPage={setCurPage} />
       ) : (
         <div>Loading...</div>
       ),
