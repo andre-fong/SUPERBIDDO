@@ -744,6 +744,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: summary
+          in: query
+          description: If provided, only aggregate data about each bidder will be returned. If not provided, all bids will be returned.
+          required: false
+          schema:
+            type: boolean
         - name: page
           in: query
           description: The page of bids to return. If provided, the bids will be paginated and only the bids on this page will be returned. If not provided, default of 1 will be used. If pageSize is not provided with this parameter, default of 20 will be used.
@@ -768,15 +774,47 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  bids:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Bid"
-                  totalNumBids:
-                    type: integer
-                    minimum: 0
+                allOf:
+                  - oneOf:
+                      - type: object
+                        required:
+                          - bids
+                        properties:
+                          bids:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Bid"
+                      - type: object
+                        required:
+                          - summary
+                        properties:
+                          summary:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - bidder
+                                - bids
+                                - highBid
+                                - lastBidTime
+                              properties:
+                                bidder:
+                                  type: string
+                                bids:
+                                  type: integer
+                                  minimum: 0
+                                highBid:
+                                  type: number
+                                  format: float
+                                  minimum: 0
+                                lastBidTime:
+                                  type: string
+                                  format: date-time
+                  - type: object
+                    properties:
+                      totalNumBids:
+                        type: integer
+                        minimum: 0
         400:
           $ref: "#/components/responses/BadRequest"
         401:

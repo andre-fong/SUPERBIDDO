@@ -120,9 +120,12 @@ router.get(
       {
         auctionId: string;
       },
-      { bids: Bid[]; totalNumBids: number },
+      ({ bids: Bid[] } | { summary: AuctionBidHistory[] }) & {
+        totalNumBids: number;
+      },
       never,
       {
+        summary?: string;
         page?: string;
         pageSize?: string;
       }
@@ -130,17 +133,58 @@ router.get(
     res
   ) => {
     const { auctionId } = req.params;
-    const { page = "1", pageSize = "10" } = req.query;
+    const { summary = "false", page = "1", pageSize = "10" } = req.query;
+    const isSummary = summary === "true";
     const limit = parseInt(pageSize);
     const offset = (parseInt(page) - 1) * limit;
 
+    // show num bids, max bid amount, time of max bid, grouped by bidder
+    if (isSummary) {
+      const summaryRecords = camelize(
+        await pool.query<{
+          bidder: string;
+          bids: string;
+          high_bid: string;
+          last_bid_time: Date;
+          total: string;
+        }>(
+          ` WITH total AS (
+              SELECT COUNT(*) AS total FROM bid WHERE auction_id = $1
+            )
+            SELECT account.username as bidder, COUNT(*) as bids, MAX(amount) as high_bid, MAX(timestamp) as last_bid_time, total.total FROM bid
+            JOIN account ON account.account_id = bid.bidder_id
+            JOIN total ON true
+            WHERE auction_id = $1
+            GROUP BY account.username, total.total
+            ORDER BY last_bid_time DESC
+            LIMIT $2 OFFSET $3`,
+          [auctionId, limit, offset]
+        )
+      ).rows;
+
+      const summary: AuctionBidHistory[] = summaryRecords.map((bidRecord) => {
+        return {
+          bidder: bidRecord.bidder,
+          bids: parseInt(bidRecord.bids),
+          highBid: parseFloat(bidRecord.highBid),
+          lastBidTime: bidRecord.lastBidTime,
+        };
+      });
+
+      res.json({
+        summary: summary,
+        totalNumBids: summaryRecords[0] ? parseInt(summaryRecords[0].total) : 0,
+      });
+      return;
+    }
+
     const bidRecords = camelize(
-      await pool.query<BidDb & AccountDb & { total: number }>(
+      await pool.query<BidDb & AccountDb & { total: string }>(
         ` WITH total AS (
-            SELECT COUNT(*) AS totalNumBids FROM bid WHERE auction_id = $1
+            SELECT COUNT(*) AS total FROM bid WHERE auction_id = $1
           )
           SELECT bid.*, account.account_id, account.username, account.email, 
-          total.totalNumBids FROM bid
+          total.total FROM bid
           JOIN account ON account.account_id = bid.bidder_id
           JOIN total ON true
           WHERE auction_id = $1
@@ -166,34 +210,7 @@ router.get(
 
     res.json({
       bids: bids,
-      totalNumBids: bidRecords[0] ? bidRecords[0].total : 0,
+      totalNumBids: bidRecords[0] ? parseInt(bidRecords[0].total) : 0,
     });
-
-    // // Check if the client is polling for updates
-    // if (poll) {
-    //   // Ensure the auction exists
-    //   if (!currentBids[auctionId]) {
-    //     return res.status(404).send("Auction not found");
-    //   }
-
-    //   // Initialize the auction's client list if it doesn't exist
-    //   if (!auctionClients[auctionId]) {
-    //     auctionClients[auctionId] = [];
-    //   }
-
-    //   // Add the response object to the auction's client list
-    //   auctionClients[auctionId].push({ res });
-
-    //   // Handle connection close
-    //   req.on("close", () => {
-    //     auctionClients[auctionId] = auctionClients[auctionId].filter(
-    //       (client) => client.res !== res
-    //     );
-    //   });
-    //   return;
-    // } else {
-    //   // Return the current state of the auction
-    //   res.json(formatBids(currentBids[auctionId]));
-    // }
   }
 );

@@ -135,6 +135,13 @@ type Bid = {
   timestamp: Date;
 };
 
+type AuctionBidHistory = {
+  bidder: string;
+  bids: number;
+  highBid: number;
+  lastBidTime: Date;
+};
+
 type QualityUngraded =
   | "Mint"
   | "Near Mint"
