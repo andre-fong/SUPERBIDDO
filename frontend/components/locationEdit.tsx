@@ -198,19 +198,21 @@ export default function LocationEdit({
     }
 
     setSubmitting(true);
-    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
-      .then(() => {
-        setSubmitting(false);
+    editLocation(
+      setToast,
+      user.accountId,
+      value.place_id,
+      sessionToken.aw
+    ).then((res) => {
+      if (!!res) {
         setLocationEditOpen(false);
         setToast({
           message: "Your address was updated.",
           severity: Severity.Info,
         });
-      })
-      .catch((error) => {
-        setSubmitting(false);
-        setToast(error);
-      });
+      }
+      setSubmitting(false);
+    });
   }
 
   return (

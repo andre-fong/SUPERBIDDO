@@ -249,9 +249,13 @@ export default function BeforeCreate({
     }
 
     setSubmitting(true);
-    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
-      .then(() => {
-        setSubmitting(false);
+    editLocation(
+      setToast,
+      user.accountId,
+      value.place_id,
+      sessionToken.aw
+    ).then((res) => {
+      if (!!res) {
         setToast({
           message: "Your address was updated.",
           severity: Severity.Info,
@@ -271,11 +275,9 @@ export default function BeforeCreate({
           }
         });
         setCurPage("createAuction");
-      })
-      .catch((error) => {
-        setSubmitting(false);
-        setToast(error);
-      });
+      }
+      setSubmitting(false);
+    });
   }
 
   return (
