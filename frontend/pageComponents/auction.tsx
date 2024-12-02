@@ -226,11 +226,16 @@ export default function Auction({
     setBidsLoading(false);
   }
 
-  // This useEffect should only run once, since it initiates the long polling
+  // This useEffect should only run once per auction,
+  // since it initiates the long polling
   useEffect(() => {
     const auctionContext = JSON.parse(context);
     const abortController = new AbortController();
     const signal = abortController.signal;
+
+    // Set both loading states to true since we are fetching the auction and bids
+    setAuctionLoading(true);
+    setBidsLoading(true);
 
     fetchAuction(setToast, auctionContext.auctionId).then(
       (auction: Auction) => {
@@ -264,6 +269,7 @@ export default function Auction({
         setSellerAccountId(auction.auctioneer.accountId);
         setSellerUsername(auction.auctioneer.username);
         setSellerAddress(auction.auctioneer.address);
+        setAuctionEnded(false); // Reset auction ended state before calling restart() timer
 
         if (!auctionIsBundle) {
           const qualityType = auction.cards?.at(0)?.qualityUngraded
@@ -323,7 +329,7 @@ export default function Auction({
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, context]);
 
   // /**
   //  * Handles submitting a new bid
@@ -344,7 +350,9 @@ export default function Auction({
       return;
     }
 
-    const bidAmount = parseFloat((e.currentTarget as HTMLFormElement).bid_amount.value).toFixed(2);
+    const bidAmount = parseFloat(
+      (e.currentTarget as HTMLFormElement).bid_amount.value
+    ).toFixed(2);
 
     submitBid(
       setToast,
@@ -510,7 +518,7 @@ export default function Auction({
                 </div>
               )}
 
-              {!unscheduled && !inPast && (
+              {!unscheduled && !inPast && !bidsLoading && (
                 <div className={styles.closing_in}>
                   <p className={styles.closing_in_amt}>
                     {days > 0 && `${days}d `}
@@ -1107,7 +1115,7 @@ export default function Auction({
             type="number"
             inputProps={{
               step: "0.01",
-              min: (bidCount > 0 ? curBid : curMinBid) + spread
+              min: (bidCount > 0 ? curBid : curMinBid) + spread,
             }}
             defaultValue={(
               (bidCount > 0 ? curBid : curMinBid) + spread
@@ -1135,11 +1143,7 @@ export default function Auction({
             >
               Cancel
             </Button>
-            <Button
-              variant="contained"
-              sx={{ width: "30%" }}
-              type="submit"
-            >
+            <Button variant="contained" sx={{ width: "30%" }} type="submit">
               Place bid!
             </Button>
           </div>

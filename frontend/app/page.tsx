@@ -187,7 +187,7 @@ export default function PageHandler() {
       ),
     },
     yourBiddings: {
-      title: "Your Biddings | SuperBiddo",
+      title: "Your Bid History | SuperBiddo",
       component: user ? (
         <YourBiddings
           user={user}
