@@ -17,7 +17,7 @@ fi
 echo "Backend build successful!"
 
 echo "Removing dangling images locally..."
-docker rmi $(docker images --filter “dangling=true” -q --no-trunc)
+docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
 echo "Uploading the backend image to $SERVER..."
 docker save backend | bzip2 | pv | ssh $SERVER docker load
