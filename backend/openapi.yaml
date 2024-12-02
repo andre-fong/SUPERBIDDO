@@ -613,9 +613,11 @@ paths:
                   format: float
                   minimum: 0
                 startTime:
+                  nullable: true
                   type: string
                   format: date-time
                 endTime:
+                  nullable: true
                   type: string
                   format: date-time
                 cardName:
