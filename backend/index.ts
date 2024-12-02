@@ -130,15 +130,10 @@ export const io = new Server(server, {
 
 //I believe this is where we put the groups of the user or whatever
 io.use(async (socket, next) => {
-  //TODO authorization i think?
-  //TODO: place in the user groups
-  console.log("user connected");
   next();
 });
 
 io.on("connection", async (socket) => {
-  console.log("connected", socket.id);
-
   socket.use((event, next) => {
     console.log("received event", event);
     next();
@@ -153,7 +148,6 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("join", (accountId: string) => {
-    console.log("joining notifications for account", accountId);
     socket.join(accountId);
   });
 });

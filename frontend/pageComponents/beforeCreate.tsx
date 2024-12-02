@@ -74,8 +74,6 @@ export default function BeforeCreate({
   // Before create state and functions ////////////////////////////
   const [loading, setLoading] = useState(true);
 
-  console.log(user);
-
   useEffect(() => {
     if (!user) {
       setCurPage("login");

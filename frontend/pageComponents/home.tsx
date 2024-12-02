@@ -33,7 +33,6 @@ export default function Home({
         recommendedFor: user.accountId, includeWatchingFor: user.accountId,
       })
         .then((res) => {
-          console.log(res.auctions);
           setRecommended(res.auctions);
           setRecommendedLoading(false);
         })

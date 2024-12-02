@@ -277,7 +277,7 @@ export async function pollForAuctionUpdates(
         signal,
       }
     );
-
+    
     if (response.ok) {
       const newBid = await response.json();
       return newBid;
