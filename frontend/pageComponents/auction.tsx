@@ -109,8 +109,6 @@ function formatBids(bids: BidDetails[]): AuctionBidHistory[] {
   return formattedBids;
 }
 
-const pageSize = 999999999;
-
 const gameMap = {
   MTG: "Magic: The Gathering",
   Yugioh: "Yu-Gi-Oh!",
@@ -195,12 +193,12 @@ export default function Auction({
       return;
     }
     setBidsLoading(true);
-    getAuctionBids(setToast, curAuctionId.current, 1, pageSize).then(
-      (newBids: BidDetails[]) => {
+    getAuctionBids(setToast, curAuctionId.current, 1, 50, true).then(
+      (newBids: AuctionBidHistory[]) => {
         if (!newBids) {
           return;
         }
-        setBids(formatBids(newBids));
+        setBids(newBids);
         setBidsLoading(false);
       }
     );
