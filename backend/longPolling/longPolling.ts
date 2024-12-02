@@ -44,9 +44,10 @@ export function closeLpRequest(reqId: string) {
   if (!pendingLpRequests[reqId]) {
     return;
   }
+  const clients = pendingLpRequests[reqId].clients;
   switch (pendingLpRequests[reqId].type) {
     case LpTypes.AUCTION:
-      handleCloseAuctionRequest(reqId, pendingLpRequests[reqId].clients);
+      delete pendingLpRequests[reqId];
+      handleCloseAuctionRequest(reqId, clients);
   }
-  delete pendingLpRequests[reqId];
 }
