@@ -63,6 +63,9 @@ export default function Signup({
     const email = (
       e.currentTarget.elements.namedItem("email") as HTMLInputElement
     ).value;
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
@@ -87,7 +90,7 @@ export default function Signup({
       return;
     }
 
-    fetchSignup(setToast, email.split("@")[0], password, email).then(
+    fetchSignup(setToast, username, password, email).then(
       (loginData: User | null) => {
         if (!loginData) {
           setSubmitError(true);
@@ -96,7 +99,7 @@ export default function Signup({
 
         setUser({
           accountId: loginData.accountId,
-          username: email.split("@")[0],
+          username,
           email,
         });
         setCurPage((JSON.parse(context)?.next as PageName) || "home", context);
@@ -151,6 +154,22 @@ export default function Signup({
             helperText={
               emailError ? "Email must have a valid email format." : undefined
             }
+          />
+
+          <label
+            htmlFor="username"
+            className={`${styles.label} ${styles.required}`}
+          >
+            Username
+          </label>
+          <TextField
+            id="username"
+            size="small"
+            placeholder="Enter your username"
+            variant="outlined"
+            required
+            autoComplete="off"
+            onChange={() => setSubmitError(false)}
           />
 
           <label
