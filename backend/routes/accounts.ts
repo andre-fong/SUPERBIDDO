@@ -70,14 +70,17 @@ router.put("/:accountId/address", doubleCsrfProtection, async (req, res) => {
 
   const fields = "formatted_address,geometry";
   const gmapsResponse = await fetch(
-    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&sessiontoken=${sessionToken}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
+    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&sessiontoken=${sessionToken}&key=${process.env.GOOGLE_MAPS_API_KEY_BACKEND}`,
     {
       method: "GET",
     }
   );
   const gmapsJson = await gmapsResponse.json();
   if (gmapsJson.status !== "OK") {
-    throw new BusinessError(400, "Invalid place ID");
+    if (gmapsJson.status === "INVALID_REQUEST") {
+      throw new BusinessError(400, "Invalid place ID");
+    }
+    throw new ServerError(500, "Error fetching address");
   }
   const { formatted_address: addressFormatted, geometry } =
     gmapsJson.result as {
