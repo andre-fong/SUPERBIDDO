@@ -151,6 +151,9 @@ export default function Auction({
       return <span className={styles.no_address}>No address provided</span>;
     }
     const parts = sellerAddress.addressFormatted.split(", ");
+    if (parts.length < 3) {
+      return parts[parts.length - 1];
+    }
     return `${parts[parts.length - 3]}, ${parts[parts.length - 2]}`;
   }, [sellerAddress]);
   const [spread, setSpread] = useState<number>(0);
