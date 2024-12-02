@@ -41,7 +41,7 @@ function resetCSRFToken() {
   csrfToken = "";
 }
 
-const unkownError = "An unknown error occurred";
+const unknownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
   return encodeURIComponent(str.replaceAll(/!/g, "%21"));
@@ -70,13 +70,13 @@ export async function fetchSignup(
       });
       return null;
     } else if (!response.ok) {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return null;
     }
 
     return await fetchLogin(errorFcn, email, password);
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -109,7 +109,7 @@ export async function fetchLogin(
       });
       return null;
     } else if (!response.ok) {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return null;
     }
 
@@ -136,14 +136,14 @@ export async function fetchSession(errorFcn: (error: ErrorType) => void) {
       });
       return null;
     } else if (!response.ok) {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return null;
     }
 
     const userData = await response.json();
     return userData;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -172,14 +172,14 @@ export async function fetchLogout(
       });
       return;
     } else if (!response.ok) {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return;
     }
 
     resetCSRFToken();
     successLogout(null);
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
   }
 }
 
@@ -217,14 +217,14 @@ export async function getAuctionSearchResults(
       const auctions = await response.json();
       return auctions;
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return {
         auctions: [],
         totalNumAuctions: 0,
       };
     }
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return {
       auctions: [],
       totalNumAuctions: 0,
@@ -266,7 +266,7 @@ export async function getAuctionBids(
       return [];
     }
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return [];
   }
 }
@@ -315,7 +315,7 @@ export async function pollForAuctionUpdates(
       console.log(`Polling for auction ${auctionId} aborted`);
     } else {
       console.error(err);
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
     return null;
   }
@@ -341,7 +341,7 @@ export async function pollNotifications(
       notifcationFcn(data.message);
       pollNotifications(accountId, errorFcn, notifcationFcn, signal);
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -350,7 +350,7 @@ export async function pollNotifications(
       return;
     } else {
       console.error(error);
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
   }
 }
@@ -398,7 +398,7 @@ export async function submitBid(
     }
     return null;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -437,7 +437,7 @@ export async function createAuction(
         });
       } else {
         errorFcn({
-          message: unkownError,
+          message: unknownError,
           severity: Severity.Critical,
         });
       }
@@ -447,7 +447,7 @@ export async function createAuction(
     const auction = await response.json();
     return auction;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -478,11 +478,11 @@ export async function fetchAuction(
       });
       return null;
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
       return null;
     }
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -535,12 +535,12 @@ export async function fetchSelfAuctions(
         severity: Severity.Warning,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return { auctions: [], totalNumAuctions: 0 };
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return { auctions: [], totalNumAuctions: 0 };
   }
 }
@@ -581,12 +581,12 @@ export async function editAuction(
         severity: Severity.Warning,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return null;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -619,12 +619,12 @@ export async function deleteAuction(
         severity: Severity.Warning,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return false;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return false;
   }
 }
@@ -669,12 +669,12 @@ export async function addWatching(
         severity: Severity.Warning,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return false;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return false;
   }
 }
@@ -719,12 +719,12 @@ export async function removeWatching(
         severity: Severity.Warning,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return true;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return true;
   }
 }
@@ -762,7 +762,7 @@ export async function getWatching(
     }
     return false;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return false;
   }
 }
@@ -802,12 +802,12 @@ export async function uploadImage(
         severity: Severity.Critical,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return null;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -847,12 +847,12 @@ export async function getGeminiInput(
         severity: Severity.Critical,
       });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
 
     return null;
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 }
@@ -896,10 +896,10 @@ export async function editLocation(
     } else if (response.status === 404) {
       errorFcn({ message: "Place ID not found", severity: Severity.Critical });
     } else {
-      errorFcn({ message: unkownError, severity: Severity.Critical });
+      errorFcn({ message: unknownError, severity: Severity.Critical });
     }
   } catch (error) {
-    errorFcn({ message: unkownError, severity: Severity.Critical });
+    errorFcn({ message: unknownError, severity: Severity.Critical });
     return null;
   }
 
