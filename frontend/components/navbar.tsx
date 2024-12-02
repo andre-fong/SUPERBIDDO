@@ -489,22 +489,6 @@ export default function Navbar({
                                       className={
                                         styles.account_popper_section_item
                                       }
-                                      onClick={() =>
-                                        setCurPage(
-                                          "login",
-                                          JSON.stringify({
-                                            next: curPage,
-                                            ...JSON.parse(context),
-                                          })
-                                        )
-                                      }
-                                    >
-                                      Switch Accounts
-                                    </button>
-                                    <button
-                                      className={
-                                        styles.account_popper_section_item
-                                      }
                                       onClick={handleSignout}
                                     >
                                       Sign Out

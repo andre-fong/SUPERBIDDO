@@ -259,7 +259,12 @@ export default function PageHandler() {
 
       <AnimatePresence>
         {curPage !== "login" && curPage !== "signup" && (
-          <Footer setCurPage={setCurPage} user={user} />
+          <Footer
+            setCurPage={setCurPage}
+            user={user}
+            setToast={setToast}
+            setUser={setUser}
+          />
         )}
       </AnimatePresence>
     </ThemeProvider>
