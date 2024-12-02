@@ -260,7 +260,7 @@ export default function EditAuction({
       return;
     }
 
-    if (!startingPrice || !spread) {
+    if (startingPrice === null || spread === null) {
       setToast({
         message: "Starting price and spread are required",
         severity: Severity.Warning,
@@ -269,9 +269,9 @@ export default function EditAuction({
       return;
     }
 
-    if (startingPrice <= 0) {
+    if (startingPrice < 0) {
       setToast({
-        message: "Starting price must be greater than 0",
+        message: "Starting price must be greater than or equal to 0",
         severity: Severity.Warning,
       });
 
