@@ -102,13 +102,17 @@ export default function Listing({
                   : "Add this listing to your Watch List"
               }
               onClick={() => {
-                handleWatching(
-                  isWatching,
-                  auction.auctionId,
-                  accountId || "0",
-                  setIsWatching,
-                  setToast
-                );
+                if (!accountId) {
+                  setCurPage("login");
+                } else {
+                  handleWatching(
+                    isWatching,
+                    auction.auctionId,
+                    accountId || "0",
+                    setIsWatching,
+                    setToast
+                  );
+                }
               }}
             >
               {isWatching ? <CheckIcon /> : <StarIcon />}
