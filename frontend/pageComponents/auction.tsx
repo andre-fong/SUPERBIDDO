@@ -331,9 +331,9 @@ export default function Auction({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, context]);
 
-  // /**
-  //  * Handles submitting a new bid
-  //  */
+  /**
+   * Handles submitting a new bid
+   */
   function handleBidSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -359,7 +359,13 @@ export default function Auction({
       curAuctionId.current,
       parseFloat(bidAmount),
       user?.accountId
-    );
+    ).then((res) => {
+      if (!res) {
+        return;
+      } else {
+        setIsBidding(false);
+      }
+    });
   }
 
   const [tabIndex, setTabIndex] = useState(0);

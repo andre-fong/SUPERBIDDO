@@ -171,7 +171,7 @@
 .button_row {
   display: flex;
   gap: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .auction_secondary_data {
