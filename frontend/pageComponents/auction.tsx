@@ -62,7 +62,7 @@ function auctionPollingStart(
       if (!newAuction) {
         return;
       }
-
+      updateAuction(newAuction);
       auctionPollingStart(
         auctionId,
         setToast,
