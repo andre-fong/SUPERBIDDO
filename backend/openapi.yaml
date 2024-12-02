@@ -185,6 +185,32 @@ paths:
           $ref: "#/components/responses/Forbidden"
         500:
           $ref: "#/components/responses/InternalServerError"
+  /api/v1/images/{imageUrl}/geminiDetails:
+    get:
+      summary: Get the details of an image from Gemini.
+      parameters:
+        - name: imageUrl
+          in: path
+          description: The url of an image.
+          required: true
+          schema:
+            $ref: "#/components/schemas/ImageUrl"
+      responses:
+        200:
+          description: The details of the image from Gemini.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  geminiDetails:
+                    type: object
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
   /api/v1/auctions:
     get:
       summary: Get auctions. Query params can be used to filter and order results.

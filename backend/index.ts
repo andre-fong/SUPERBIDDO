@@ -46,7 +46,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
 
-// watching does not work with this right now
 app.use(
   OpenApiValidator.middleware({
     apiSpec: "./openapi.yaml",
@@ -69,7 +68,7 @@ app.use("/api/v1/auctions", auctionRouter);
 app.use("/api/v1/auctions/:auctionId/bids/", bidRouter);
 app.use("/api/v1/auctions/:auctionId/watchers", watchersRouter);
 app.use("/api/v1/images", imageRouter);
-app.use("/api/v1/geminiUpload", geminiUploadRouter);
+app.use("/api/v1/images/:imageUrl/geminiDetails", geminiUploadRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   // if multiple errors (from openapi validator) return those errors.

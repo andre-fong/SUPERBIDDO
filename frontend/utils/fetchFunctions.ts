@@ -818,7 +818,7 @@ export async function getGeminiInput(
 ) {
   try {
     const response = await fetch(
-      `${url}/geminiUpload/${encodeURIComponent(imageUrl)}`,
+      `${url}/images/${encodeURIComponent(imageUrl)}/geminiDetails`,
       {
         method: "GET",
         headers: {
@@ -830,7 +830,7 @@ export async function getGeminiInput(
 
     if (response.ok) {
       const data = await response.json();
-      return JSON.parse(data.response);
+      return data;
     } else if (response.status === 400) {
       errorFcn({
         message: "Request format is invalid",
