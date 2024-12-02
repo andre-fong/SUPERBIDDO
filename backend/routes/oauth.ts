@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { createAccount } from "./accounts";
 import { findEmail } from "./session";
 import bcrypt from "bcrypt";
+import { generateToken } from "../configServices/csrfConfig";
 export const router = express.Router();
 
 passport.use(
@@ -57,6 +58,7 @@ router.get(
   }),
   (req, res) => {
     req.session.accountId = req.user.accountId;
+    req.session.csrfToken = generateToken(req, res);
     //TODO: redirect to deployed frontend
     res.redirect(process.env.FRONTEND_URL);
   }
