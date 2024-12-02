@@ -16,13 +16,14 @@ const useSelfAuctions = (
   searchTerm: string,
   searchStatuses: string[],
   currentPage: number,
-  pageSize: number
-  
+  pageSize: number,
+  setCurPage: (page: number) => void
 ) => {
   const [auctions, setAuctions] = useState<AuctionListings[]>([]);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  useEffect(() => {
+
+  function auctionsSet() {
     setIsLoaded(false);
     fetchSelfAuctions(
       (err: ErrorType) => {
@@ -53,9 +54,17 @@ const useSelfAuctions = (
         })
       );
       setIsLoaded(true);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, searchStatuses, currentPage]);
+  });
+  }
+
+  useEffect(() => {
+    auctionsSet();
+    setCurPage(1);
+  }, [searchTerm, searchStatuses]);
+
+  useEffect(() => {
+    auctionsSet();
+  }, [currentPage]);
 
   return { auctions, totalPages, isLoaded };
 };
