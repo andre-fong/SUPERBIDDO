@@ -16,17 +16,8 @@ import {
 
 const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1`;
 
-// fetch csrf token first, may be null if not logged initially
 // we need csrf token for all requests that are not GET (excluding fetchSignup)
-let csrfToken: string = await fetch(`${url}/csrfToken`, {
-  method: "GET",
-  credentials: "include",
-})
-  .then((res) => {
-    if (res.ok) return res.json();
-    else return "";
-  })
-  .then((data) => data.csrfToken);
+let csrfToken = "";
 
 /**
  * Refreshes the csrf token in fetchFunctions.ts
