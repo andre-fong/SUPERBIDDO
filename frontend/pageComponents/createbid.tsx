@@ -25,6 +25,7 @@ import { User } from "@/types/userTypes";
 import { PageName } from "@/types/pageTypes";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
+import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import { uploadImage } from "@/utils/fetchFunctions";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -434,8 +435,10 @@ const CardListing: React.FC<CardListingProps> = ({
                 
                 <Button
                   variant="contained"
+                  color="secondary"
                   component="label"
                   fullWidth
+                  startIcon={!isDates && <AccessAlarmIcon />}
                   sx={{ marginBottom: "10px" }}
                   onClick={() => setIsDates(!isDates)}
                 >
