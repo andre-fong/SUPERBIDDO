@@ -18,6 +18,7 @@ export function addLpClient(reqId: string, client: Response) {
       pendingLpRequests[reqId].clients.includes(client)
     ) {
       if (pendingLpRequests[reqId].type === LpTypes.AUCTION) {
+        removeLpClient(reqId, client);
         handleCloseAuctionRequest(reqId, [client]);
       }
     }
@@ -25,18 +26,8 @@ export function addLpClient(reqId: string, client: Response) {
 }
 
 export function removeLpClient(reqId: string, client: Response) {
-  // will this work? aren't these objects
-  console.log("removeLpClient: ", reqId, client);
-  console.log(
-    "pendingLpRequests[reqId].clients before: ",
-    pendingLpRequests[reqId].clients
-  );
   pendingLpRequests[reqId].clients = pendingLpRequests[reqId].clients.filter(
     (c) => c !== client
-  );
-  console.log(
-    "pendingLpRequests[reqId].clients after: ",
-    pendingLpRequests[reqId].clients
   );
 }
 
@@ -44,9 +35,10 @@ export function closeLpRequest(reqId: string) {
   if (!pendingLpRequests[reqId]) {
     return;
   }
+  const clients = pendingLpRequests[reqId].clients;
   switch (pendingLpRequests[reqId].type) {
     case LpTypes.AUCTION:
-      handleCloseAuctionRequest(reqId, pendingLpRequests[reqId].clients);
+      delete pendingLpRequests[reqId];
+      handleCloseAuctionRequest(reqId, clients);
   }
-  delete pendingLpRequests[reqId];
 }
