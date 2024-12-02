@@ -47,13 +47,13 @@ app.use(passport.session());
 app.use(cookieParser());
 
 // watching does not work with this right now
-// app.use(
-//   OpenApiValidator.middleware({
-//     apiSpec: "./openapi.yaml",
-//     validateRequests: true, // (default)
-//     validateResponses: true, // false by default
-//   })
-// );
+app.use(
+  OpenApiValidator.middleware({
+    apiSpec: "./openapi.yaml",
+    validateRequests: true, // (default)
+    validateResponses: true, // false by default
+  })
+);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Hello from server!" });

@@ -226,11 +226,13 @@ export async function getAuctionBids(
   errorFcn: (error: ErrorType) => void,
   auctionId: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  summary: boolean
 ) {
   try {
+    summary = summary ? true : false;
     const response = await fetch(
-      `${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}`,
+      `${url}/auctions/${auctionId}/bids?page=${page}&pageSize=${pageSize}&summary=${summary}`,
       {
         method: "GET",
         headers: {
@@ -242,7 +244,7 @@ export async function getAuctionBids(
 
     if (response.ok) {
       const bids = await response.json();
-      return bids.bids;
+      return bids.summary;
     } else if (response.status === 400) {
       errorFcn({
         message: "Request format is invalid",
@@ -277,7 +279,7 @@ export async function pollForAuctionUpdates(
         signal,
       }
     );
-    
+
     if (response.ok) {
       const newBid = await response.json();
       return newBid;
