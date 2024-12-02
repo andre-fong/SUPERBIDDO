@@ -300,8 +300,8 @@ const CardListing: React.FC<CardListingProps> = ({
     };
 
     if (isDates) {
-      auctionData.startTime = startDate;
-      auctionData.endTime = endDate;
+      auctionData.startTime = new Date(startDate).toISOString();
+      auctionData.endTime = new Date(endDate).toISOString();
     }
 
     if (!descriptionRef.current) {
