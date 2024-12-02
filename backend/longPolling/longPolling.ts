@@ -17,8 +17,8 @@ export function addLpClient(reqId: string, client: Response) {
       pendingLpRequests[reqId] &&
       pendingLpRequests[reqId].clients.includes(client)
     ) {
+      removeLpClient(reqId, client);
       if (pendingLpRequests[reqId].type === LpTypes.AUCTION) {
-        removeLpClient(reqId, client);
         handleCloseAuctionRequest(reqId, [client]);
       }
     }
