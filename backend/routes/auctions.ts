@@ -1010,8 +1010,6 @@ router.get("/:auctionId", async (req, res) => {
 
   const bidStatusCte = getBidStatusCte(includeBidStatusFor, 2);
 
-  // TODO can pass longPoll object of current state with more than just bid
-  // and hold response if state matches entirely
   const longPollMaxBidId = req.query.longPollMaxBidId;
 
   if (longPollMaxBidId) {

@@ -74,8 +74,6 @@ export default function BeforeCreate({
   // Before create state and functions ////////////////////////////
   const [loading, setLoading] = useState(true);
 
-  console.log(user);
-
   useEffect(() => {
     if (!user) {
       setCurPage("login");
@@ -162,11 +160,6 @@ export default function BeforeCreate({
     setInputValue(user?.address?.addressFormatted || "");
   }, [loading, user]);
 
-  // TODO: Remove
-  useEffect(() => {
-    console.log(sessionToken?.aw);
-  }, [sessionToken]);
-
   const fetchPlaces = useMemo(
     () =>
       debounce(
@@ -249,9 +242,13 @@ export default function BeforeCreate({
     }
 
     setSubmitting(true);
-    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
-      .then(() => {
-        setSubmitting(false);
+    editLocation(
+      setToast,
+      user.accountId,
+      value.place_id,
+      sessionToken.aw
+    ).then((res) => {
+      if (!!res) {
         setToast({
           message: "Your address was updated.",
           severity: Severity.Info,
@@ -271,11 +268,9 @@ export default function BeforeCreate({
           }
         });
         setCurPage("createAuction");
-      })
-      .catch((error) => {
-        setSubmitting(false);
-        setToast(error);
-      });
+      }
+      setSubmitting(false);
+    });
   }
 
   return (
@@ -410,7 +405,6 @@ export default function BeforeCreate({
               }}
             />
 
-            {/* TODO: Connect selected place to maps iframe */}
             <iframe
               width="100%"
               height="450"

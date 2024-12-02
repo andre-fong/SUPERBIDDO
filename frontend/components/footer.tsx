@@ -5,6 +5,8 @@ import { User } from "@/types/userTypes";
 import Dialog from "@mui/material/Dialog";
 import EmailIcon from "@mui/icons-material/Email";
 import { motion } from "motion/react";
+import { fetchLogout } from "@/utils/fetchFunctions";
+import { ErrorType } from "@/types/errorTypes";
 
 const footerVariants = {
   hidden: {
@@ -25,11 +27,26 @@ const footerVariants = {
 export default function Footer({
   setCurPage,
   user,
+  setToast,
+  setUser,
 }: {
   setCurPage: (page: PageName, context?: string) => void;
   user: User | null;
+  setToast: (err: ErrorType) => void;
+  setUser: (user: User | null) => void;
 }) {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+
+  function handleSignout(event: React.MouseEvent<HTMLButtonElement>): void {
+    if (!user) {
+      return;
+    }
+
+    fetchLogout(setToast, (user: User | null) => {
+      setUser(user);
+      setCurPage("home");
+    });
+  }
 
   return (
     <motion.footer
@@ -190,14 +207,8 @@ export default function Footer({
             <ul className={styles.links}>
               {user ? (
                 <>
-                  {/* TODO: Link to settings */}
                   <li className={styles.link}>
-                    <button>Settings</button>
-                  </li>
-                  <li className={styles.link}>
-                    <button onClick={() => setCurPage("login")}>
-                      Switch Accounts
-                    </button>
+                    <button onClick={handleSignout}>Sign Out</button>
                   </li>
                 </>
               ) : (
@@ -214,7 +225,6 @@ export default function Footer({
             <h3 className={styles.section_title}>About SuperBiddo</h3>
             <ul className={styles.links}>
               <li className={styles.link}>
-                {/* TODO: Link to ABOUT */}
                 <a
                   href="https://github.com/UTSCC09/SUPERBIDDO"
                   target="_blank"

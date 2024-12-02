@@ -73,7 +73,7 @@ export default function Login({
       return;
     }
 
-    fetchLogin(setToast, email, password).then((loginData) => {
+    fetchLogin(setToast, email, password).then((loginData: User | null) => {
       if (!loginData) {
         setSubmitError(true);
         return;
@@ -83,6 +83,7 @@ export default function Login({
         accountId: loginData.accountId,
         username: email.split("@")[0],
         email,
+        address: loginData.address,
       });
       setCurPage((JSON.parse(context)?.next as PageName) || "home", context);
     });
@@ -153,7 +154,6 @@ export default function Login({
             autoComplete="off"
             onChange={() => setSubmitError(false)}
           />
-
 
           <div
             className={styles.recaptcha}

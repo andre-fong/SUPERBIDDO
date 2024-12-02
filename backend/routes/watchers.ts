@@ -29,7 +29,8 @@ router.post(
       await pool.query(
         `SELECT auctioneer_id
          FROM auction
-         WHERE auction_id = $1`,
+         WHERE auction_id = $1 
+         AND end_time > now()`,
         [auctionId]
       )
     ).rows;
@@ -110,7 +111,8 @@ router.get("/:auctionId/:accountId", async (req, res, next) => {
     await pool.query(
       `SELECT auction_id
          FROM watch
-         WHERE account_id = $1 AND auction_id = $2`,
+         WHERE account_id = $1 
+         AND auction_id = $2`,
       [accountId, auctionId]
     )
   ).rows;

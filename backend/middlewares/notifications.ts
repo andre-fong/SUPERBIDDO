@@ -223,7 +223,6 @@ export async function postBidNotification(
   if (auction) {
     sendNotification(NotificationEvents.AuctionReceivedBid, auction.auctioneerid, auction.email, auction.name, auction.username);
   }
-  
 }
 
 export async function postAuctionNotification(

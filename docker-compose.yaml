@@ -53,15 +53,17 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       # backend environment variables
       - FRONTEND_URL=${FRONTEND_URL}
+      - BACKEND_URL=${BACKEND_URL}
       - GCS_FILENAME=/run/secrets/gcs_credentials
       - GCS_ID=${GCS_ID}
       - GCS_BUCKET=${GCS_BUCKET}
       - EMAIL_USER=${EMAIL_USER}
-      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - GOOGLE_MAPS_API_KEY_BACKEND=${GOOGLE_MAPS_API_KEY_BACKEND}
       # secrets
-      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GEMINI_API_KEY,EMAIL_PASSWORD
+      - SECRET_FILES=DB_USER,DB_PASSWORD,SESSION_SECRET,CSRF_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GEMINI_API_KEY,EMAIL_PASSWORD
       - DB_USER_FILE=/run/secrets/db_user
       - DB_PASSWORD_FILE=/run/secrets/db_password
+      - CSRF_SECRET_FILE=/run/secrets/csrf_secret
       - SESSION_SECRET_FILE=/run/secrets/session_secret
       - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
       - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
@@ -71,6 +73,7 @@ services:
       - db_user
       - db_password
       - session_secret
+      - csrf_secret
       - google_client_id
       - google_client_secret
       - gemini_api_key
@@ -105,6 +108,8 @@ secrets:
     environment: "DB_PASSWORD"
   session_secret:
     environment: "SESSION_SECRET"
+  csrf_secret:
+    environment: "CSRF_SECRET"
   google_client_id:
     environment: "GOOGLE_CLIENT_ID"
   google_client_secret:

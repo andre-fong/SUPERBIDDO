@@ -25,7 +25,7 @@ fi
 echo "Backend build successful!"
 
 echo "Removing dangling images locally..."
-docker rmi $(docker images --filter “dangling=true” -q --no-trunc)
+docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
 echo "Uploading the frontend image to $SERVER..."
 docker save frontend | bzip2 | pv | ssh $SERVER docker load
@@ -68,6 +68,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo "Environment file copy successful!"
+
+echo "Copying gcs-storage-credentials.json to $SERVER..."
+scp gcs-storage-credentials.json $SERVER:/var/lib/superbiddo/gcs-storage-credentials.json
+if [ $? -ne 0 ]; then
+  echo "gcs-storage-credentials.json copy failed. Exiting..."
+  exit 1
+fi
 
 echo "Starting the application on $SERVER..."
 ssh $SERVER "cd /var/lib/superbiddo && docker compose up -d"

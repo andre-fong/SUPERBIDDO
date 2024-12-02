@@ -347,7 +347,7 @@ export default function Navbar({
                       onMouseEnter={() => setAccountPopperOpen(true)}
                       onMouseLeave={() => setAccountPopperOpen(false)}
                       onClick={handleAccountPopperClick}
-                      sx={{ zIndex: 9999 }}
+                      sx={{ zIndex: 1300 }}
                       transition
                     >
                       {({ TransitionProps }) => (
@@ -485,22 +485,6 @@ export default function Navbar({
                                       styles.account_popper_section_list
                                     }
                                   >
-                                    <button
-                                      className={
-                                        styles.account_popper_section_item
-                                      }
-                                      onClick={() =>
-                                        setCurPage(
-                                          "login",
-                                          JSON.stringify({
-                                            next: curPage,
-                                            ...JSON.parse(context),
-                                          })
-                                        )
-                                      }
-                                    >
-                                      Switch Accounts
-                                    </button>
                                     <button
                                       className={
                                         styles.account_popper_section_item

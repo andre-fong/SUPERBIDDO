@@ -111,11 +111,6 @@ export default function LocationEdit({
     setInputValue(user?.address?.addressFormatted || "");
   }, [locationEditOpen, user]);
 
-  // TODO: Remove
-  useEffect(() => {
-    console.log(sessionToken?.aw);
-  }, [sessionToken]);
-
   const fetchPlaces = useMemo(
     () =>
       debounce(
@@ -198,19 +193,21 @@ export default function LocationEdit({
     }
 
     setSubmitting(true);
-    editLocation(setToast, user.accountId, value.place_id, sessionToken.aw)
-      .then(() => {
-        setSubmitting(false);
+    editLocation(
+      setToast,
+      user.accountId,
+      value.place_id,
+      sessionToken.aw
+    ).then((res) => {
+      if (!!res) {
         setLocationEditOpen(false);
         setToast({
           message: "Your address was updated.",
           severity: Severity.Info,
         });
-      })
-      .catch((error) => {
-        setSubmitting(false);
-        setToast(error);
-      });
+      }
+      setSubmitting(false);
+    });
   }
 
   return (
@@ -309,7 +306,6 @@ export default function LocationEdit({
           }}
         />
 
-        {/* TODO: Connect selected place to maps iframe */}
         <iframe
           width="100%"
           height="450"

@@ -13,6 +13,7 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Skeleton from "@mui/material/Skeleton";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import {
   editAuction,
   deleteAuction,
@@ -49,8 +50,8 @@ export default function EditAuction({
   const [description, setDescription] = useState<string>("");
   const [manufacturer, setManufacturer] = useState<string>("");
   const [set, setSet] = useState<string>("");
-  const [startingPrice, setStartingPrice] = useState<number>(0);
-  const [spread, setSpread] = useState<number>(0);
+  const [startingPrice, setStartingPrice] = useState<number | null>(0);
+  const [spread, setSpread] = useState<number | null>(0);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,6 +61,7 @@ export default function EditAuction({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<boolean>(false);
+  const [isDates, setIsDates] = useState<boolean>(true);
 
   useEffect(() => {
     const auctionId = JSON.parse(context)?.auctionId;
@@ -148,6 +150,8 @@ export default function EditAuction({
           if (auction.endTime) setEndDate(formattedDate);
           else setEndDate("");
 
+          if (!auction.startTime && !auction.endTime) setIsDates(false);
+
           setLoading(false);
         }
       });
@@ -202,16 +206,26 @@ export default function EditAuction({
   const handleStartingPriceChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setStartingPrice(Number(event.target.value));
+    setStartingPrice(
+      isNaN(parseFloat(event.target.value))
+        ? null
+        : parseFloat(event.target.value)
+    );
   };
 
   const handleSpreadChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSpread(Number(event.target.value));
+    setSpread(
+      isNaN(parseFloat(event.target.value))
+        ? null
+        : parseFloat(event.target.value)
+    );
   };
 
-  const handleAuctionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAuctionNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setAuctionName(event.target.value);
-  }
+  };
 
   const handleStartDateChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -236,13 +250,68 @@ export default function EditAuction({
     }
     if (editing || deleting) return;
 
+    if (isDates && (!startDate || !endDate)) {
+      setToast({
+        message:
+          "Please provide both a start and end date for a scheduled auction",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
+    if (!startingPrice || !spread) {
+      setToast({
+        message: "Starting price and spread are required",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
+    if (startingPrice <= 0) {
+      setToast({
+        message: "Starting price must be greater than 0",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
+    if (spread <= 0) {
+      setToast({
+        message: "Spread must be greater than 0",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
+    if (isDates && new Date(startDate) >= new Date(endDate)) {
+      setToast({
+        message: "Start date must be before end date",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
+    if (isDates && new Date() >= new Date(startDate)) {
+      setToast({
+        message: "Start date must be in the future",
+        severity: Severity.Warning,
+      });
+
+      return;
+    }
+
     const auctionData: AuctionPatchBody = {
       name: auctionName,
       description: description,
       startPrice: startingPrice,
       spread: spread,
-      startTime: !startDate ? null : new Date(startDate).toISOString(),
-      endTime: !endDate ? null : new Date(endDate).toISOString(),
+      startTime: !isDates ? null : new Date(startDate).toISOString(),
+      endTime: !isDates ? null : new Date(endDate).toISOString(),
     };
 
     if (type === "Card") {
@@ -335,6 +404,27 @@ export default function EditAuction({
       <main className={styles.main}>
         <form className={styles.form} onSubmit={handleEditSubmit}>
           <h1>Edit Auction</h1>
+
+          <TextField
+            label="Auction Name"
+            InputLabelProps={{ shrink: true }}
+            value={auctionName}
+            onChange={handleAuctionNameChange}
+            fullWidth
+            required
+            disabled={loading}
+          />
+
+          <TextField
+            label="Description"
+            InputLabelProps={{ shrink: true }}
+            value={description}
+            onChange={handleDescriptionChange}
+            multiline
+            rows={4}
+            fullWidth
+            disabled={loading}
+          />
 
           <FormControl fullWidth>
             <InputLabel required>Game</InputLabel>
@@ -444,16 +534,7 @@ export default function EditAuction({
             required
             disabled={loading}
           />
-          <TextField
-            label="Description"
-            InputLabelProps={{ shrink: true }}
-            value={description}
-            onChange={handleDescriptionChange}
-            multiline
-            rows={4}
-            fullWidth
-            disabled={loading}
-          />
+
           <TextField
             label="Manufacturer"
             InputLabelProps={{ shrink: true }}
@@ -472,20 +553,12 @@ export default function EditAuction({
             required
             disabled={loading}
           />
-          <TextField
-            label="Auction Name"
-            InputLabelProps={{ shrink: true }}
-            value={auctionName}
-            onChange={handleAuctionNameChange}
-            fullWidth
-            required
-            disabled={loading}
-          />
+
           <TextField
             label="Starting Price"
             type="number"
             InputLabelProps={{ shrink: true }}
-            value={startingPrice}
+            value={startingPrice !== null ? startingPrice : ""}
             onChange={handleStartingPriceChange}
             fullWidth
             required
@@ -495,31 +568,45 @@ export default function EditAuction({
             label="Spread"
             type="number"
             InputLabelProps={{ shrink: true }}
-            value={spread}
+            value={spread !== null ? spread : ""}
             onChange={handleSpreadChange}
             fullWidth
             required
             disabled={loading}
           />
-
-          <TextField
-            label="Start Date and Time"
-            type="datetime-local"
-            InputLabelProps={{ shrink: true }}
-            value={startDate}
-            onChange={handleStartDateChange}
+          <Button
+            variant="contained"
+            color="secondary"
+            component="label"
             fullWidth
-            disabled={loading}
-          />
-          <TextField
-            label="End Date and Time"
-            type="datetime-local"
-            InputLabelProps={{ shrink: true }}
-            value={endDate}
-            onChange={handleEndDateChange}
-            fullWidth
-            disabled={loading}
-          />
+            startIcon={!isDates && <AccessAlarmIcon />}
+            sx={{ marginBottom: "10px" }}
+            onClick={() => setIsDates(!isDates)}
+          >
+            {isDates ? "Leave unscheduled" : "schedule auction"}
+          </Button>
+          {isDates && (
+            <>
+              <TextField
+                label="Start Date and Time"
+                type="datetime-local"
+                InputLabelProps={{ shrink: true }}
+                value={startDate}
+                onChange={handleStartDateChange}
+                fullWidth
+                disabled={loading}
+              />
+              <TextField
+                label="End Date and Time"
+                type="datetime-local"
+                InputLabelProps={{ shrink: true }}
+                value={endDate}
+                onChange={handleEndDateChange}
+                fullWidth
+                disabled={loading}
+              />
+            </>
+          )}
 
           <Button
             variant="contained"

@@ -14,7 +14,6 @@ import GoogleSessionButton from "@/components/googleSessionButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Severity } from "@/types/errorTypes";
 
-
 export default function Signup({
   setCurPage,
   context,
@@ -64,6 +63,9 @@ export default function Signup({
     const email = (
       e.currentTarget.elements.namedItem("email") as HTMLInputElement
     ).value;
+    const username = (
+      e.currentTarget.elements.namedItem("username") as HTMLInputElement
+    ).value;
     const password = (
       e.currentTarget.elements.namedItem("password") as HTMLInputElement
     ).value;
@@ -88,8 +90,8 @@ export default function Signup({
       return;
     }
 
-    fetchSignup(setToast, email.split("@")[0], password, email).then(
-      (loginData) => {
+    fetchSignup(setToast, username, password, email).then(
+      (loginData: User | null) => {
         if (!loginData) {
           setSubmitError(true);
           return;
@@ -97,7 +99,7 @@ export default function Signup({
 
         setUser({
           accountId: loginData.accountId,
-          username: email.split("@")[0],
+          username,
           email,
         });
         setCurPage((JSON.parse(context)?.next as PageName) || "home", context);
@@ -155,6 +157,22 @@ export default function Signup({
           />
 
           <label
+            htmlFor="username"
+            className={`${styles.label} ${styles.required}`}
+          >
+            Username
+          </label>
+          <TextField
+            id="username"
+            size="small"
+            placeholder="Enter your username"
+            variant="outlined"
+            required
+            autoComplete="off"
+            onChange={() => setSubmitError(false)}
+          />
+
+          <label
             htmlFor="password"
             className={`${styles.label} ${styles.required}`}
           >
@@ -194,7 +212,6 @@ export default function Signup({
             }}
           />
 
-          
           <div
             className={styles.recaptcha}
             style={{ borderColor: reCAPTCHAError ? "red" : "transparent" }}

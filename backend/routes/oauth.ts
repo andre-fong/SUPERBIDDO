@@ -4,6 +4,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { createAccount } from "./accounts";
 import { findEmail } from "./session";
 import bcrypt from "bcrypt";
+import { generateToken } from "../configServices/csrfConfig";
 export const router = express.Router();
 
 passport.use(
@@ -11,13 +12,11 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      //TODO: change to deployed URL
       callbackURL: `${process.env.BACKEND_URL}/api/v1/oauth/callback`,
     },
     async (accessToken, refreshToken, profile, done) => {
       const accountRecord = await findEmail(profile.emails[0].value);
       if (!accountRecord) {
-        //TODO: remove and add column
         const createAccountRecord = await createAccount(
           profile.emails[0].value,
           null,
@@ -57,7 +56,7 @@ router.get(
   }),
   (req, res) => {
     req.session.accountId = req.user.accountId;
-    //TODO: redirect to deployed frontend
+    req.session.csrfToken = generateToken(req, res);
     res.redirect(process.env.FRONTEND_URL);
   }
 );

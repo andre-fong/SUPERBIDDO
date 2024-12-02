@@ -176,18 +176,13 @@ export default function PageHandler() {
     yourListings: {
       title: "Your Listings | SuperBiddo",
       component: user ? (
-        <YourListings
-          user={user}
-          setToast={setToast}
-          setCurPage={setCurPage}
-          // context={pageContext}
-        />
+        <YourListings user={user} setToast={setToast} setCurPage={setCurPage} />
       ) : (
         <div>Loading...</div>
       ),
     },
     yourBiddings: {
-      title: "Your Biddings | SuperBiddo",
+      title: "Your Bid History | SuperBiddo",
       component: user ? (
         <YourBiddings
           user={user}
@@ -264,7 +259,12 @@ export default function PageHandler() {
 
       <AnimatePresence>
         {curPage !== "login" && curPage !== "signup" && (
-          <Footer setCurPage={setCurPage} user={user} />
+          <Footer
+            setCurPage={setCurPage}
+            user={user}
+            setToast={setToast}
+            setUser={setUser}
+          />
         )}
       </AnimatePresence>
     </ThemeProvider>
