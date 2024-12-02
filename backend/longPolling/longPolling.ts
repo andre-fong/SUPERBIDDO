@@ -11,6 +11,17 @@ export function addLpClient(reqId: string, client: Response) {
     pendingLpRequests[reqId] = { clients: [], type: LpTypes.AUCTION };
   }
   pendingLpRequests[reqId].clients.push(client);
+  setTimeout(() => {
+    // request may have been closed from update or client may have disconnected
+    if (
+      pendingLpRequests[reqId] &&
+      pendingLpRequests[reqId].clients.includes(client)
+    ) {
+      if (pendingLpRequests[reqId].type === LpTypes.AUCTION) {
+        handleCloseAuctionRequest(reqId, [client]);
+      }
+    }
+  }, 40000);
 }
 
 export function removeLpClient(reqId: string, client: Response) {
