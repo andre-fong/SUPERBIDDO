@@ -102,11 +102,13 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     err instanceof createHttpError.HttpError &&
     err.code === "EBADCSRFTOKEN"
   ) {
-    res.status(err.status).json({
-      path: req.originalUrl,
-      message: "invalid csrf token",
-      detail: "Get /api/v_/csrfToken first to get a csrf token.",
-    });
+    res.status(err.status).json([
+      {
+        path: req.originalUrl,
+        message: "invalid csrf token",
+        detail: "Get /api/v_/csrfToken first to get a csrf token.",
+      },
+    ]);
   }
   // other errors are unknown system errors
   else {
