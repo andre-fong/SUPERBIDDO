@@ -11,7 +11,7 @@ DECLARE
 BEGIN
 	SELECT start_time, end_time INTO _start_time, _end_time FROM auction WHERE auction_id = NEW.auction_id;
 	IF 
-		_start_time > now() THEN
+		_start_time IS NULL OR _start_time > now() THEN
 			RAISE EXCEPTION 'auction_not_started' 
 			USING CONSTRAINT = 'auction_not_started';
 	END IF;
@@ -117,10 +117,12 @@ CREATE TABLE public.account (
 	account_id uuid NOT NULL DEFAULT gen_random_uuid(),
 	username varchar(40) NOT NULL,
 	email public."citext" NOT NULL,
-	passhash bpchar(60) NOT NULL,
+	passhash bpchar(60) NULL,
+	address_formatted varchar(300) NULL,
+	longitude float8 NULL,
+	latitude float8 NULL,
 	CONSTRAINT account_email_un UNIQUE (email),
-	CONSTRAINT account_pk PRIMARY KEY (account_id),
-	CONSTRAINT account_username_un UNIQUE (username)
+	CONSTRAINT account_pk PRIMARY KEY (account_id)
 );
 
 
@@ -161,6 +163,7 @@ CREATE TABLE public.auction (
 	CONSTRAINT auction_fk_auctioneer FOREIGN KEY (auctioneer_id) REFERENCES public.account(account_id)
 );
 CREATE INDEX auction_auctioneer_id_idx ON public.auction USING btree (auctioneer_id);
+CREATE INDEX trgm_idx ON public.auction USING gist (name gist_trgm_ops);
 
 -- Table Triggers
 
@@ -223,6 +226,7 @@ CREATE TABLE public.bundle (
 	description varchar(500) NULL,
 	manufacturer varchar(100) NOT NULL,
 	"set" varchar(100) NOT NULL,
+	image_url varchar(140) NOT NULL,
 	CONSTRAINT bundle_pk PRIMARY KEY (bundle_id),
 	CONSTRAINT bundle_fk_auction FOREIGN KEY (auction_id) REFERENCES public.auction(auction_id) ON DELETE CASCADE
 );
@@ -247,9 +251,42 @@ CREATE TABLE public.card (
 	"set" varchar(100) NULL,
 	is_foil bool NOT NULL,
 	quality_psa int4 NULL,
+	image_url varchar(140) NOT NULL,
 	CONSTRAINT card_check_exact_one_quality CHECK (((quality_ungraded IS NULL) <> (quality_psa IS NULL))),
 	CONSTRAINT card_check_psa_range CHECK (((quality_psa IS NULL) OR ((1 <= quality_psa) AND (quality_psa <= 10)))),
 	CONSTRAINT card_pk PRIMARY KEY (card_id),
 	CONSTRAINT card_fk_auction FOREIGN KEY (auction_id) REFERENCES public.auction(auction_id) ON DELETE CASCADE
 );
 CREATE INDEX card_auction_id_idx ON public.card USING btree (auction_id);
+
+
+-- public.recommendation definition
+
+-- Drop table
+
+-- DROP TABLE public.recommendation;
+
+CREATE TABLE public.recommendation (
+	account_id uuid NOT NULL,
+	game varchar(30) NOT NULL,
+	price numeric(12, 2) NOT NULL,
+	"action" varchar(30) NOT NULL,
+	"timestamp" timestamptz NOT NULL DEFAULT now(),
+	CONSTRAINT recommendation_pk PRIMARY KEY (account_id, "timestamp"),
+	CONSTRAINT recommendation_fk_account FOREIGN KEY (account_id) REFERENCES public.account(account_id)
+);
+
+
+-- public.watch definition
+
+-- Drop table
+
+-- DROP TABLE public.watch;
+
+CREATE TABLE public.watch (
+	account_id uuid NOT NULL,
+	auction_id uuid NOT NULL,
+	CONSTRAINT watch_pk PRIMARY KEY (account_id, auction_id),
+	CONSTRAINT watch_fk_account FOREIGN KEY (account_id) REFERENCES public.account(account_id),
+	CONSTRAINT watch_fk_auction FOREIGN KEY (auction_id) REFERENCES public.auction(auction_id) ON DELETE CASCADE
+);
