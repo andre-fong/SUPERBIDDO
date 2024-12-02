@@ -86,35 +86,40 @@ export default function Listing({
           </div>
         </button>
 
-        {(!inPast || !auction.endTime) && (
-          <div className={styles.star}>
-            <IconButton
-              sx={{
-                // Filled IconButton: https://github.com/mui/material-ui/issues/37443
-                backgroundColor: "primary.light",
-                color: "white",
-                "&:hover": { backgroundColor: "primary.main" },
-                "&:focus-visible": { backgroundColor: "primary.main" },
-              }}
-              title={
-                isWatching
-                  ? "Remove from your watch list"
-                  : "Add this listing to your Watch List"
-              }
-              onClick={() => {
-                handleWatching(
-                  isWatching,
-                  auction.auctionId,
-                  accountId || "0",
-                  setIsWatching,
-                  setToast
-                );
-              }}
-            >
-              {isWatching ? <CheckIcon /> : <StarIcon />}
-            </IconButton>
-          </div>
-        )}
+        {(!inPast || !auction.endTime) &&
+          auction.auctioneer.accountId !== accountId && (
+            <div className={styles.star}>
+              <IconButton
+                sx={{
+                  // Filled IconButton: https://github.com/mui/material-ui/issues/37443
+                  backgroundColor: "primary.light",
+                  color: "white",
+                  "&:hover": { backgroundColor: "primary.main" },
+                  "&:focus-visible": { backgroundColor: "primary.main" },
+                }}
+                title={
+                  isWatching
+                    ? "Remove from your watch list"
+                    : "Add this listing to your Watch List"
+                }
+                onClick={() => {
+                  if (!accountId) {
+                    setCurPage("login");
+                  } else {
+                    handleWatching(
+                      isWatching,
+                      auction.auctionId,
+                      accountId || "0",
+                      setIsWatching,
+                      setToast
+                    );
+                  }
+                }}
+              >
+                {isWatching ? <CheckIcon /> : <StarIcon />}
+              </IconButton>
+            </div>
+          )}
       </div>
 
       <button
