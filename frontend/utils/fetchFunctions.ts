@@ -33,6 +33,14 @@ async function refreshCSRFToken() {
   }
 }
 
+/**
+ * Resets the csrf token to "" in fetchFunctions.ts.\
+ * Should be called on every req to login, signup, or logout.
+ */
+function resetCSRFToken() {
+  csrfToken = "";
+}
+
 const unkownError = "An unknown error occurred";
 
 function customEncodeURIComponent(str: string) {
@@ -106,6 +114,7 @@ export async function fetchLogin(
     }
 
     const data = await response.json();
+    resetCSRFToken();
     return data;
   } catch (error) {
     console.error(error);
@@ -167,6 +176,7 @@ export async function fetchLogout(
       return;
     }
 
+    resetCSRFToken();
     successLogout(null);
   } catch (error) {
     errorFcn({ message: unkownError, severity: Severity.Critical });
@@ -277,7 +287,7 @@ export async function pollForAuctionUpdates(
         signal,
       }
     );
-    
+
     if (response.ok) {
       const newBid = await response.json();
       return newBid;
