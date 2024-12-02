@@ -16,6 +16,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "Backend build successful!"
 
+echo "Removing dangling images locally..."
+docker rmi $(docker images --filter “dangling=true” -q --no-trunc)
+
 echo "Uploading the backend image to $SERVER..."
 docker save backend | bzip2 | pv | ssh $SERVER docker load
 if [ $? -ne 0 ]; then
@@ -25,13 +28,13 @@ fi
 echo "Backend upload successful!"
 
 echo "Stopping all containers on $SERVER..."
-ssh $SERVER docker compose down --remove-orphans
+ssh $SERVER "cd /var/lib/superbiddo && docker compose down --remove-orphans"
 
 echo "Removing dangling images on $SERVER..."
 ssh $SERVER docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
 echo "Copying docker-compose.yaml to $SERVER..."
-scp docker-compose.yaml $SERVER:.
+scp docker-compose.yaml $SERVER:/var/lib/superbiddo/docker-compose.yaml
 if [ $? -ne 0 ]; then
   echo "docker-compose.yaml copy failed. Exiting..."
   exit 1
@@ -50,8 +53,15 @@ if [ $? -ne 0 ]; then
 fi
 echo "Environment file copy successful!"
 
+echo "Copying gcs-storage-credentials.json to $SERVER..."
+scp gcs-storage-credentials.json $SERVER:/var/lib/superbiddo/gcs-storage-credentials.json
+if [ $? -ne 0 ]; then
+  echo "gcs-storage-credentials.json copy failed. Exiting..."
+  exit 1
+fi
+
 echo "Starting the application on $SERVER..."
-ssh $SERVER docker compose up -d
+ssh $SERVER "cd /var/lib/superbiddo && docker compose up -d"
 if [ $? -ne 0 ]; then
   echo "Application start failed. Exiting..."
   exit 1
