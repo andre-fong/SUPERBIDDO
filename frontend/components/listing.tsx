@@ -32,6 +32,9 @@ export default function Listing({
     if (!auction.auctioneer.address)
       return <span className={styles.no_address}>No location provided.</span>;
     const parts = auction.auctioneer.address.addressFormatted.split(", ");
+    if (parts.length < 3) {
+      return `From ${parts[parts.length - 1]}`;
+    }
     return `From ${parts[parts.length - 3]}, ${parts[parts.length - 1]}`;
   }, [auction.auctioneer.address]);
 
