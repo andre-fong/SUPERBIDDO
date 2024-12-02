@@ -13,6 +13,7 @@ import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Skeleton from "@mui/material/Skeleton";
 import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import {
   editAuction,
   deleteAuction,
@@ -149,6 +150,8 @@ export default function EditAuction({
           if (auction.endTime) setEndDate(formattedDate);
           else setEndDate("");
 
+          if (!auction.startTime && !auction.endTime) setIsDates(false);
+
           setLoading(false);
         }
       });
@@ -249,7 +252,8 @@ export default function EditAuction({
 
     if (isDates && (!startDate || !endDate)) {
       setToast({
-        message: "Please provide both a start and end date for a scheduled auction",
+        message:
+          "Please provide both a start and end date for a scheduled auction",
         severity: Severity.Warning,
       });
 
@@ -291,7 +295,6 @@ export default function EditAuction({
 
       return;
     }
-
 
     if (isDates && new Date() >= new Date(startDate)) {
       setToast({
@@ -402,6 +405,27 @@ export default function EditAuction({
         <form className={styles.form} onSubmit={handleEditSubmit}>
           <h1>Edit Auction</h1>
 
+          <TextField
+            label="Auction Name"
+            InputLabelProps={{ shrink: true }}
+            value={auctionName}
+            onChange={handleAuctionNameChange}
+            fullWidth
+            required
+            disabled={loading}
+          />
+
+          <TextField
+            label="Description"
+            InputLabelProps={{ shrink: true }}
+            value={description}
+            onChange={handleDescriptionChange}
+            multiline
+            rows={4}
+            fullWidth
+            disabled={loading}
+          />
+
           <FormControl fullWidth>
             <InputLabel required>Game</InputLabel>
             <Select
@@ -510,16 +534,7 @@ export default function EditAuction({
             required
             disabled={loading}
           />
-          <TextField
-            label="Description"
-            InputLabelProps={{ shrink: true }}
-            value={description}
-            onChange={handleDescriptionChange}
-            multiline
-            rows={4}
-            fullWidth
-            disabled={loading}
-          />
+
           <TextField
             label="Manufacturer"
             InputLabelProps={{ shrink: true }}
@@ -538,15 +553,7 @@ export default function EditAuction({
             required
             disabled={loading}
           />
-          <TextField
-            label="Auction Name"
-            InputLabelProps={{ shrink: true }}
-            value={auctionName}
-            onChange={handleAuctionNameChange}
-            fullWidth
-            required
-            disabled={loading}
-          />
+
           <TextField
             label="Starting Price"
             type="number"
@@ -569,33 +576,37 @@ export default function EditAuction({
           />
           <Button
             variant="contained"
+            color="secondary"
             component="label"
             fullWidth
+            startIcon={!isDates && <AccessAlarmIcon />}
             sx={{ marginBottom: "10px" }}
             onClick={() => setIsDates(!isDates)}
           >
             {isDates ? "Leave unscheduled" : "schedule auction"}
           </Button>
-          {isDates && <>
-          <TextField
-            label="Start Date and Time"
-            type="datetime-local"
-            InputLabelProps={{ shrink: true }}
-            value={startDate}
-            onChange={handleStartDateChange}
-            fullWidth
-            disabled={loading}
-          />
-          <TextField
-            label="End Date and Time"
-            type="datetime-local"
-            InputLabelProps={{ shrink: true }}
-            value={endDate}
-            onChange={handleEndDateChange}
-            fullWidth
-            disabled={loading}
-          />
-          </>}
+          {isDates && (
+            <>
+              <TextField
+                label="Start Date and Time"
+                type="datetime-local"
+                InputLabelProps={{ shrink: true }}
+                value={startDate}
+                onChange={handleStartDateChange}
+                fullWidth
+                disabled={loading}
+              />
+              <TextField
+                label="End Date and Time"
+                type="datetime-local"
+                InputLabelProps={{ shrink: true }}
+                value={endDate}
+                onChange={handleEndDateChange}
+                fullWidth
+                disabled={loading}
+              />
+            </>
+          )}
 
           <Button
             variant="contained"
