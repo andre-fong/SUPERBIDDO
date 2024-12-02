@@ -30,7 +30,7 @@ router.post(
         `SELECT auctioneer_id
          FROM auction
          WHERE auction_id = $1 
-         AND end_time < now()`,
+         AND end_time > now()`,
         [auctionId]
       )
     ).rows;
