@@ -81,7 +81,7 @@ export default function Login({
 
       setUser({
         accountId: loginData.accountId,
-        username: email.split("@")[0],
+        username: loginData.username,
         email,
         address: loginData.address,
       });
